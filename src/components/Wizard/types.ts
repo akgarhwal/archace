@@ -11,7 +11,6 @@ export interface Node {
     icon?: React.ElementType; // For React Icons
     iconName?: string; // For Lucide icon names
     type: 'domain' | 'technology';
-    quizId?: string; // Optional Google Sheet GID for quizzes
 }
 
 export interface Domain extends Node {
@@ -29,9 +28,15 @@ export interface Technology extends Node {
 
 export type RevisionMode = 'quiz' | 'flashcards';
 
+export type Level = 'junior' | 'senior' | 'staff';
+
+export type Difficulty = 'easy' | 'medium' | 'hard';
+
+// Maps each Level × RevisionMode to a Google Sheet GID
+export type SheetGidMap = Record<Level, Record<RevisionMode, string>>;
+
 export interface WizardState {
     step: Step;
-    selectedDomain: Domain | null;
-    selectedTech: Technology | null;
+    level: Level | null;
     mode: RevisionMode | null;
 }

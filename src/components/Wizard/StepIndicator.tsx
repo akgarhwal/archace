@@ -8,9 +8,8 @@ interface StepIndicatorProps {
 
 export const StepIndicator: React.FC<StepIndicatorProps> = ({ currentStep }) => {
     const steps = [
-        { num: 1, label: 'Domain' },
-        { num: 2, label: 'Technology' },
-        { num: 3, label: 'Mode' },
+        { num: 1, label: 'Level' },
+        { num: 2, label: 'Mode' },
     ];
 
     return (

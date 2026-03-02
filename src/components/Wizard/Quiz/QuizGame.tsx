@@ -3,24 +3,31 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Loader2, Clock, CheckCircle, XCircle, Trophy, RefreshCcw, LogOut } from 'lucide-react';
 import { fetchQuizData, type QuizQuestion } from '../../../services/sheetService';
 import { clsx } from 'clsx';
+import type { Level } from '../types';
 
 interface QuizGameProps {
     sheetGid: string;
     technologyName: string;
+    level: Level | null;
     onExit: () => void;
 }
 
 type QuizState = 'loading' | 'playing' | 'finished';
 
-const QUESTION_TIMER = 30;
-const QUESTIONS_COUNT = 10;
+const TIMER_BY_LEVEL: Record<Level, number> = {
+    junior: 30,  // Easy: 30 seconds
+    senior: 45,  // Medium: 45 seconds
+    staff: 60,  // Hard: 60 seconds
+};
+const QUESTIONS_COUNT = 20;
 
-export const QuizGame: React.FC<QuizGameProps> = ({ sheetGid, technologyName, onExit }) => {
+export const QuizGame: React.FC<QuizGameProps> = ({ sheetGid, technologyName, level, onExit }) => {
     const [gameState, setGameState] = useState<QuizState>('loading');
     const [questions, setQuestions] = useState<QuizQuestion[]>([]);
     const [currentIndex, setCurrentIndex] = useState(0);
     const [score, setScore] = useState(0);
-    const [timeLeft, setTimeLeft] = useState(QUESTION_TIMER);
+    const questionTimer = level ? TIMER_BY_LEVEL[level] : 30;
+    const [timeLeft, setTimeLeft] = useState(questionTimer);
     const [selectedAnswer, setSelectedAnswer] = useState<number | null>(null);
     const [isAnswerRevealed, setIsAnswerRevealed] = useState(false);
 
@@ -35,7 +42,11 @@ export const QuizGame: React.FC<QuizGameProps> = ({ sheetGid, technologyName, on
             setGameState('loading');
             try {
                 const allQuestions = await fetchQuizData(sheetGid);
-                // Shuffle and pick 10
+
+                // No client-side difficulty filtering needed — each sheet GID
+                // already points to a sheet containing only that difficulty's questions.
+
+                // Shuffle and pick 20
                 const shuffled = [...allQuestions].sort(() => 0.5 - Math.random());
                 setQuestions(shuffled.slice(0, QUESTIONS_COUNT));
                 setGameState('playing');
@@ -46,7 +57,7 @@ export const QuizGame: React.FC<QuizGameProps> = ({ sheetGid, technologyName, on
             }
         };
         loadQuestions();
-    }, [sheetGid, onExit]);
+    }, [sheetGid, level, onExit]);
 
     // Timer logic
     useEffect(() => {
@@ -67,7 +78,7 @@ export const QuizGame: React.FC<QuizGameProps> = ({ sheetGid, technologyName, on
     const nextQuestion = useCallback(() => {
         if (currentIndex < questions.length - 1) {
             setCurrentIndex(prev => prev + 1);
-            setTimeLeft(QUESTION_TIMER);
+            setTimeLeft(questionTimer);
             setSelectedAnswer(null);
             setIsAnswerRevealed(false);
         } else {
@@ -108,7 +119,7 @@ export const QuizGame: React.FC<QuizGameProps> = ({ sheetGid, technologyName, on
         setGameState('loading');
         setScore(0);
         setCurrentIndex(0);
-        setTimeLeft(QUESTION_TIMER);
+        setTimeLeft(questionTimer);
         setSelectedAnswer(null);
         setIsAnswerRevealed(false);
         const loadQuestions = async () => {
