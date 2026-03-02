@@ -4,7 +4,6 @@ export interface QuizQuestion {
     question: string;
     options: string[];
     correctAnswerIndex: number;
-    correctAnswerIndex: number;
 }
 
 interface QuizRow {
@@ -13,7 +12,6 @@ interface QuizRow {
     'Option B': string;
     'Option C': string;
     'Option D': string;
-    'Correct Answer': string; // 'A', 'B', 'C', 'D'
     'Correct Answer': string; // 'A', 'B', 'C', 'D'
 }
 
