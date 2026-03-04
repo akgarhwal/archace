@@ -71,7 +71,7 @@ export const WizardContainer: React.FC = () => {
         <div className="max-w-5xl mx-auto px-4 min-h-screen flex flex-col justify-center py-12 pb-32">
             <div className="text-center mb-10">
                 <h1 className="text-4xl font-extrabold text-gray-900 mb-3 bg-clip-text text-transparent bg-gradient-to-r from-emerald-600 to-teal-600">
-                    ArchAce Learning Path
+                    archeace Learning Path
                 </h1>
                 <p className="text-lg text-gray-600">Select your level and start practicing.</p>
             </div>

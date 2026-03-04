@@ -1,4 +1,4 @@
-# [archace](https://akgarhwal.github.io/archace/) Learning Path
+# [archeace](https://akgarhwal.github.io/archeace/) Learning Path
 
 A React + TypeScript application for technical learning paths, offering quizzes and flashcards driven dynamically by Google Sheets.
 
