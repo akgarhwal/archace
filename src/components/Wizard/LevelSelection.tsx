@@ -48,8 +48,8 @@ export const LevelSelection: React.FC<LevelSelectionProps> = ({ selectedLevel, o
                             className={clsx(
                                 "flex flex-col items-center p-8 rounded-2xl border-2 transition-all duration-300 relative overflow-hidden group text-left",
                                 isSelected
-                                    ? "border-emerald-500 bg-emerald-50 shadow-emerald-100 shadow-lg"
-                                    : "border-gray-100 bg-white hover:border-emerald-200 hover:shadow-lg"
+                                    ? "border-emerald-600 bg-emerald-50/90 shadow-[0_16px_40px_rgba(16,185,129,0.18)]"
+                                    : "border-emerald-900/10 bg-white/80 backdrop-blur-sm hover:border-emerald-400 hover:shadow-lg"
                             )}
                         >
                             <div className={clsx(

@@ -1,83 +1,66 @@
-# [ArchAce](https://akgarhwal.github.io/archace/)
+# ArchAce
 
-Practice software architecture the way interviews and real systems actually work: trade-offs, failure modes, and *why* a design holds up — not trivia.
+**Practice software architecture the way interviews and real systems work:** trade-offs, failure modes, and *why* a design holds up.
 
-Pick a level, pick quiz or flashcards, and go. Each session pulls about **30 random questions** from that path. The next time you load, missed items and unseen items come first. Answers you got right are remembered for **7 days** in a tiny local store, then forgotten so anything can appear again.
+Not flashcards of port numbers. Not “in what year did DynamoDB launch.”
 
-**Live app:** [https://akgarhwal.github.io/archace/](https://akgarhwal.github.io/archace/)
-
----
-
-## What you do in the app
-
-**1. Choose a level**
-
-| Level | What it trains |
-| --- | --- |
-| **Junior** | Fundamentals and *why* the basic patterns exist |
-| **Senior** | Scaling, isolation, and production trade-offs |
-| **Staff+** | Deep internals, multi-system judgment, what you would actually choose |
-
-![Choose your experience level](docs/screenshots/01-level.png)
-
-**2. Choose how you want to practice**
-
-- **Quiz** — timed multiple choice, instant feedback
-- **Flashcards** — think first, flip for the answer, mark *Got it* when it sticks
-
-![Quiz or flashcards](docs/screenshots/02-mode.png)
-
-**3. Work a session**
-
-![Timed architecture quiz](docs/screenshots/03-quiz.png)
-
-![Flip-to-reveal flashcards](docs/screenshots/04-flashcards.png)
+[**Open the live app →**](https://akgarhwal.github.io/archace/)
 
 ---
 
-## How a session is built
+## What it is
 
-1. Load the Google Sheet for **that level + mode** (the lecture path).
-2. Shuffle and take about **30** questions (or the whole sheet if it is smaller).
-3. Prefer questions you **got wrong** recently, then **new** ones.
-4. Only if the bank is too small do recently-correct items come back.
+ArchAce is a short, timed practice loop for backend and platform engineers.
 
-Correct answers are stored as short hashes plus a day stamp in `localStorage` — not the question text. After 7 days those entries expire.
+1. Pick **Junior / Senior / Staff+**
+2. Pick **Quiz** or **Flashcards**
+3. Work ~**30** mixed questions from that path
 
-| Mode | Session size | Timer |
-| --- | --- | --- |
-| Quiz · Junior | ~30 | 30s / question |
-| Quiz · Senior | ~30 | 45s / question |
-| Quiz · Staff+ | ~30 | 60s / question |
-| Flashcards | ~30 | none — flip at your pace |
+Next time you load the same path, **missed and new** items come first. Answers you got right are remembered for **7 days** (a few hashes in the browser, then they expire).
+
+| | Junior | Senior | Staff+ |
+| --- | --- | --- | --- |
+| What you train | Why the basic patterns exist | Scaling, isolation, production trade-offs | Deep internals and what you would actually choose |
+| Quiz timer | 30s | 45s | 60s |
+
+![Choose a level](docs/screenshots/01-level.png)
+
+![Choose quiz or flashcards](docs/screenshots/02-mode.png)
+
+![A quiz item always names the system](docs/screenshots/03-quiz.png)
+
+![Flashcards: think, flip, mark Got it](docs/screenshots/04-flashcards.png)
 
 ---
 
-## What the questions are (and are not)
+## What a good question looks like
 
-Good questions ask how a system scales, where it breaks, and what you give up by choosing it.
+Every item tells you **which system** you are in — a topic chip on the card, and the stem itself. You should never have to guess whether “GAC” is a DynamoDB, Kubernetes, or networking thing.
 
-> DynamoDB: why a hot partition key hurts you, and how you would model around it.
+**Weak (no context, pure trivia)**
 
-Not useful:
+> What is the function of the 'Global Admission Control' (GAC) service?
+> A) Manage region failovers · B) Track capacity with token buckets · …
 
-> In what year was DynamoDB released?
+**Better (you know it is DynamoDB, and the question is a trade-off)**
 
-The replacement question bank in `content/` covers widely used tools only:
+> In DynamoDB, a table keyed on `status=OPEN` starts throttling even though most capacity is unused. What actually went wrong?
+> A) DynamoDB cannot store more than one item per key
+> B) Almost all writes hashed to one hot partition
+> C) Global tables rebalance keys automatically
+> D) On-demand mode removes partition limits
+
+The first one is a vocabulary test. The second one is something you can use on a design.
+
+---
+
+## Topics in the bank
 
 PostgreSQL · MySQL · B-tree & LSM · Cassandra · DynamoDB · Redis · AWS & S3 · Kubernetes · Java · Spring Boot · Python · C++ · Data Structures & Algorithms · Gen AI · AI Agents
 
----
+Widely used tools only. No obscure databases nobody runs.
 
-## Question bank (CSV)
-
-New questions live in the repo so you can review them and paste them into the existing Google Sheets. This bank is **803 quiz items** and **470 flashcards** (thinking questions, not trivia). Rebuild with `python3 scripts/merge_questions.py`.
-
-| File | What it is |
-| --- | --- |
-| [`content/questions-quiz.csv`](content/questions-quiz.csv) | All quiz items (`Section`, `Level`, question, A–D, correct letter) |
-| [`content/questions-flashcards.csv`](content/questions-flashcards.csv) | All flashcards (`Section`, `Level`, question, answer) |
-| [`content/sheets/`](content/sheets/) | Same data split per level, ready to import into a sheet tab |
+**1,273 items** in this version (803 quiz + 470 flashcards):
 
 | Level | Quiz | Flashcards |
 | --- | ---: | ---: |
@@ -85,34 +68,37 @@ New questions live in the repo so you can review them and paste them into the ex
 | Senior | 379 | 226 |
 | Staff | 209 | 122 |
 
-Sheet tabs the app already reads:
+The app loads `public/data/{level}-quiz.csv` (and flashcards) that ship with the build. Master files with `Section` + `Level` live in [`content/`](content/). Rebuild with:
 
-| Level | Quiz GID | Flashcard GID |
-| --- | --- | --- |
-| Junior | `886577120` | `1099335189` |
-| Senior | `1620893919` | `1910075225` |
-| Staff | `1857699421` | `1484665705` |
-
-Configured in `src/data/sheetConfig.ts`.
-
-**Quiz columns:** `Question`, `Option A`, `Option B`, `Option C`, `Option D`, `Correct Answer` (`A`/`B`/`C`/`D`)
-
-**Flashcard columns:** `Question`, `Correct Answer`
+```bash
+python3 scripts/merge_questions.py
+```
 
 ---
 
-## Run locally
+## How a session is picked
+
+1. Load the bank for **that level + mode**.
+2. Take about **30** items (or the whole bank if it is smaller).
+3. Prefer recently **wrong**, then **unseen**.
+4. Recently **correct** items wait **7 days**, then they can appear again.
+
+Nothing but a short hash and a day stamp is stored. Question text never goes into `localStorage`.
+
+---
+
+## Run it locally
 
 ```bash
 npm install
 npm run dev
 ```
 
-Then open [http://localhost:5173/archace/](http://localhost:5173/archace/).
+Open [http://localhost:5173/archace/](http://localhost:5173/archace/).
 
 ```bash
-npm run build     # production bundle
-npm run preview   # preview that bundle
+npm run build      # production bundle
+npm run preview    # serve that bundle
 ```
 
 Pushes to `main` deploy to GitHub Pages via `.github/workflows/deploy.yml`.

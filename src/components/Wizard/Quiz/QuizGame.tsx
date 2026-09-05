@@ -6,10 +6,9 @@ import { selectSessionItems } from '../../../services/questionSelector';
 import { lecturePathKey, loadPathProgress, markCorrect, markWrong, progressSets } from '../../../services/progressStore';
 import { clsx } from 'clsx';
 import type { Level } from '../types';
+import { TopicBadge } from '../TopicBadge';
 
 interface QuizGameProps {
-    sheetGid: string;
-    technologyName: string;
     level: Level | null;
     onExit: () => void;
 }
@@ -23,7 +22,7 @@ const TIMER_BY_LEVEL: Record<Level, number> = {
 };
 const QUESTIONS_COUNT = 30;
 
-export const QuizGame: React.FC<QuizGameProps> = ({ sheetGid, technologyName, level, onExit }) => {
+export const QuizGame: React.FC<QuizGameProps> = ({ level, onExit }) => {
     const [gameState, setGameState] = useState<QuizState>('loading');
     const [questions, setQuestions] = useState<QuizQuestion[]>([]);
     const [currentIndex, setCurrentIndex] = useState(0);
@@ -49,7 +48,7 @@ export const QuizGame: React.FC<QuizGameProps> = ({ sheetGid, technologyName, le
 
             setGameState('loading');
             try {
-                const allQuestions = await fetchQuizData(sheetGid);
+                const allQuestions = await fetchQuizData(level ?? 'junior');
                 setQuestions(pickQuestions(allQuestions));
                 setGameState('playing');
             } catch (error) {
@@ -58,7 +57,7 @@ export const QuizGame: React.FC<QuizGameProps> = ({ sheetGid, technologyName, le
             }
         };
         loadQuestions();
-    }, [sheetGid, level, onExit]);
+    }, [level, onExit]);
 
     // Timer logic
     useEffect(() => {
@@ -127,7 +126,7 @@ export const QuizGame: React.FC<QuizGameProps> = ({ sheetGid, technologyName, le
         setSelectedAnswer(null);
         setIsAnswerRevealed(false);
         const loadQuestions = async () => {
-            const allQuestions = await fetchQuizData(sheetGid);
+            const allQuestions = await fetchQuizData(level ?? 'junior');
             setQuestions(pickQuestions(allQuestions));
             setGameState('playing');
         };
@@ -194,25 +193,33 @@ export const QuizGame: React.FC<QuizGameProps> = ({ sheetGid, technologyName, le
     const optionLabels = ['A', 'B', 'C', 'D'];
 
     return (
-        <div className="max-w-3xl mx-auto w-full min-h-[70vh] flex flex-col justify-center py-12">
-            {/* Header: Tech Name & Progress */}
-            <div className="flex flex-col md:flex-row justify-between items-center mb-8 px-4 gap-4">
+        <div className="max-w-3xl mx-auto w-full min-h-[70vh] flex flex-col justify-center py-12 px-4">
+            <div className="flex flex-col md:flex-row justify-between items-center mb-8 gap-4">
                 <div>
-                    <h2 className="text-2xl font-bold text-emerald-700">{technologyName} Quiz</h2>
+                    <h2 className="text-2xl font-bold text-emerald-900">Quiz</h2>
+                    <p className="text-sm text-emerald-900/55 mt-1 capitalize">{level ?? 'junior'} · ~30 mixed questions</p>
                 </div>
 
-                <div className="flex items-center gap-4">
-                    <div className="text-sm font-medium text-emerald-700 bg-emerald-50 border border-emerald-100 px-4 py-2 rounded-full">
+                <div className="flex items-center gap-3">
+                    <div className="text-sm font-medium text-emerald-800 bg-white/70 border border-emerald-900/10 px-4 py-2 rounded-full">
                         Question {currentIndex + 1} / {questions.length}
                     </div>
 
                     <div className={clsx(
-                        "flex items-center gap-2 font-mono text-lg font-bold transition-colors bg-white px-3 py-1 rounded-lg border",
-                        timeLeft <= 5 ? "text-red-600 border-red-100 animate-pulse" : "text-emerald-600 border-emerald-100"
+                        "flex items-center gap-2 font-mono text-lg font-bold transition-colors bg-white/80 px-3 py-1 rounded-lg border",
+                        timeLeft <= 5 ? "text-red-600 border-red-200 animate-pulse" : "text-emerald-700 border-emerald-200"
                     )}>
                         <Clock size={20} />
                         <span>00:{timeLeft.toString().padStart(2, '0')}</span>
                     </div>
+
+                    <button
+                        onClick={onExit}
+                        className="p-2 rounded-lg text-emerald-900/50 hover:text-red-700 hover:bg-red-50 transition-colors"
+                        aria-label="Exit quiz"
+                    >
+                        <LogOut size={18} />
+                    </button>
                 </div>
             </div>
 
@@ -224,9 +231,12 @@ export const QuizGame: React.FC<QuizGameProps> = ({ sheetGid, technologyName, le
                     animate={{ opacity: 1, x: 0 }}
                     exit={{ opacity: 0, x: -20 }}
                     transition={{ duration: 0.3 }}
-                    className="bg-white rounded-2xl shadow-lg border border-gray-100 p-8 mb-6"
+                    className="bg-white/90 backdrop-blur-sm rounded-2xl shadow-[0_18px_50px_rgba(15,80,60,0.10)] border border-emerald-900/10 p-8 mb-6"
                 >
-                    <h3 className="text-xl md:text-2xl font-bold text-gray-800 mb-8 leading-snug">
+                    <div className="mb-5">
+                        <TopicBadge section={currentQuestion.section} />
+                    </div>
+                    <h3 className="text-xl md:text-2xl font-bold text-emerald-950 mb-8 leading-snug">
                         {currentQuestion.question}
                     </h3>
 

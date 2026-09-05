@@ -8,7 +8,6 @@ import { RevisionModeSelection } from './RevisionModeSelection';
 import { clsx } from 'clsx';
 import { QuizGame } from './Quiz/QuizGame';
 import { FlashcardGame } from './Flashcard/FlashcardGame';
-import { SHEET_GID_MAP } from '../../data/sheetConfig';
 
 export const WizardContainer: React.FC = () => {
     const [step, setStep] = useState<Step>(1);
@@ -43,24 +42,17 @@ export const WizardContainer: React.FC = () => {
     };
 
     if (isFinished && selectedLevel && selectedMode) {
-        const sheetGid = SHEET_GID_MAP[selectedLevel][selectedMode];
-
         if (selectedMode === 'quiz') {
             return (
                 <QuizGame
-                    sheetGid={sheetGid}
-                    technologyName="General Architecture"
                     level={selectedLevel}
                     onExit={() => setIsFinished(false)}
                 />
             );
         }
 
-        // Flashcards mode
         return (
             <FlashcardGame
-                sheetGid={sheetGid}
-                technologyName="General Architecture"
                 level={selectedLevel}
                 onExit={() => setIsFinished(false)}
             />
@@ -70,10 +62,15 @@ export const WizardContainer: React.FC = () => {
     return (
         <div className="max-w-5xl mx-auto px-4 min-h-screen flex flex-col justify-center py-12 pb-32">
             <div className="text-center mb-10">
-                <h1 className="text-4xl font-extrabold text-gray-900 mb-3 bg-clip-text text-transparent bg-gradient-to-r from-emerald-600 to-teal-600">
-                    archace Learning Path
+                <p className="text-xs font-semibold tracking-[0.2em] uppercase text-emerald-800/70 mb-3">
+                    Architecture practice
+                </p>
+                <h1 className="text-4xl md:text-5xl font-extrabold mb-3 bg-clip-text text-transparent bg-gradient-to-r from-emerald-800 via-emerald-600 to-teal-600">
+                    ArchAce
                 </h1>
-                <p className="text-lg text-gray-600">Select your level and start practicing.</p>
+                <p className="text-lg text-emerald-950/70 max-w-xl mx-auto">
+                    Trade-offs, failure modes, and why a design holds up — not trivia.
+                </p>
             </div>
 
             <StepIndicator currentStep={step} />
@@ -104,7 +101,7 @@ export const WizardContainer: React.FC = () => {
             </div>
 
             {/* Sticky Bottom Navigation */}
-            <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 p-4 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.1)] z-50">
+            <div className="fixed bottom-0 left-0 right-0 bg-white/80 backdrop-blur-md border-t border-emerald-900/10 p-4 shadow-[0_-8px_30px_rgba(15,80,60,0.08)] z-50">
                 <div className="max-w-5xl mx-auto flex justify-between items-center">
                     <button
                         onClick={handleBack}

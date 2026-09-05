@@ -6,10 +6,9 @@ import { selectSessionItems } from '../../../services/questionSelector';
 import { lecturePathKey, loadPathProgress, markCorrect, progressSets } from '../../../services/progressStore';
 import { clsx } from 'clsx';
 import type { Level } from '../types';
+import { TopicBadge } from '../TopicBadge';
 
 interface FlashcardGameProps {
-    sheetGid: string;
-    technologyName: string;
     level: Level | null;
     onExit: () => void;
 }
@@ -18,7 +17,7 @@ type FlashcardState = 'loading' | 'playing';
 
 const FLASHCARDS_COUNT = 30;
 
-export const FlashcardGame: React.FC<FlashcardGameProps> = ({ sheetGid, technologyName, level, onExit }) => {
+export const FlashcardGame: React.FC<FlashcardGameProps> = ({ level, onExit }) => {
     const [gameState, setGameState] = useState<FlashcardState>('loading');
     const [cards, setCards] = useState<Flashcard[]>([]);
     const [currentIndex, setCurrentIndex] = useState(0);
@@ -40,7 +39,7 @@ export const FlashcardGame: React.FC<FlashcardGameProps> = ({ sheetGid, technolo
 
             setGameState('loading');
             try {
-                const allQuestions = await fetchFlashcardData(sheetGid);
+                const allQuestions = await fetchFlashcardData(level ?? 'junior');
                 setCards(pickCards(allQuestions));
                 setGameState('playing');
             } catch (error) {
@@ -49,7 +48,7 @@ export const FlashcardGame: React.FC<FlashcardGameProps> = ({ sheetGid, technolo
             }
         };
         loadCards();
-    }, [sheetGid, onExit]);
+    }, [level, onExit]);
 
     const goNext = () => {
         if (currentIndex < cards.length - 1) {
@@ -78,7 +77,7 @@ export const FlashcardGame: React.FC<FlashcardGameProps> = ({ sheetGid, technolo
         setIsFlipped(false);
         setKnownCount(0);
         try {
-            const allQuestions = await fetchFlashcardData(sheetGid);
+            const allQuestions = await fetchFlashcardData(level ?? 'junior');
             setCards(pickCards(allQuestions));
         } catch (error) {
             console.error("Failed to reload flashcards:", error);
@@ -119,7 +118,7 @@ export const FlashcardGame: React.FC<FlashcardGameProps> = ({ sheetGid, technolo
             {/* Header */}
             <div className="flex flex-col md:flex-row justify-between items-center mb-8 gap-4">
                 <div>
-                    <h2 className="text-2xl font-bold text-emerald-700">{technologyName} Flashcards</h2>
+                    <h2 className="text-2xl font-bold text-emerald-900">Flashcards</h2>
                     <p className="text-sm text-gray-500 mt-1">
                         Level: <span className="font-semibold text-emerald-600">{levelLabel}</span>
                     </p>
@@ -150,7 +149,7 @@ export const FlashcardGame: React.FC<FlashcardGameProps> = ({ sheetGid, technolo
                             className="cursor-pointer select-none"
                         >
                             <motion.div
-                                className="relative w-full min-h-[320px] rounded-2xl shadow-lg border border-gray-100"
+                                className="relative w-full min-h-[320px] rounded-2xl shadow-[0_18px_50px_rgba(15,80,60,0.10)] border border-emerald-900/10"
                                 animate={{ rotateY: isFlipped ? 180 : 0 }}
                                 transition={{ duration: 0.5, type: 'spring', stiffness: 300, damping: 30 }}
                                 style={{ transformStyle: 'preserve-3d' }}
@@ -160,10 +159,13 @@ export const FlashcardGame: React.FC<FlashcardGameProps> = ({ sheetGid, technolo
                                     className="absolute inset-0 bg-white rounded-2xl p-8 flex flex-col justify-center items-center text-center"
                                     style={{ backfaceVisibility: 'hidden' }}
                                 >
-                                    <div className="mb-4 px-3 py-1 rounded-full bg-emerald-50 text-emerald-600 text-xs font-semibold uppercase tracking-wider">
-                                        Question
+                                    <div className="mb-4 flex flex-col items-center gap-2">
+                                        <TopicBadge section={currentCard.section} />
+                                        <div className="px-3 py-1 rounded-full bg-emerald-50 text-emerald-800 text-xs font-semibold uppercase tracking-wider">
+                                            Question
+                                        </div>
                                     </div>
-                                    <h3 className="text-xl md:text-2xl font-bold text-gray-800 leading-relaxed mb-6">
+                                    <h3 className="text-xl md:text-2xl font-bold text-emerald-950 leading-relaxed mb-6">
                                         {currentCard.question}
                                     </h3>
 
@@ -181,8 +183,11 @@ export const FlashcardGame: React.FC<FlashcardGameProps> = ({ sheetGid, technolo
                                     className="absolute inset-0 bg-gradient-to-br from-emerald-50 to-teal-50 rounded-2xl p-8 flex flex-col justify-center items-center text-center"
                                     style={{ backfaceVisibility: 'hidden', transform: 'rotateY(180deg)' }}
                                 >
-                                    <div className="mb-4 px-3 py-1 rounded-full bg-emerald-100 text-emerald-700 text-xs font-semibold uppercase tracking-wider">
-                                        Answer
+                                    <div className="mb-4 flex flex-col items-center gap-2">
+                                        <TopicBadge section={currentCard.section} />
+                                        <div className="px-3 py-1 rounded-full bg-emerald-100 text-emerald-800 text-xs font-semibold uppercase tracking-wider">
+                                            Answer
+                                        </div>
                                     </div>
                                     <h3 className="text-xl md:text-2xl font-bold text-emerald-800 leading-relaxed">
                                         {currentCard.answer}
