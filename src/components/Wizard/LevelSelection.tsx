@@ -48,27 +48,27 @@ export const LevelSelection: React.FC<LevelSelectionProps> = ({ selectedLevel, o
                             className={clsx(
                                 "flex flex-col items-center p-8 rounded-2xl border-2 transition-all duration-300 relative overflow-hidden group text-left",
                                 isSelected
-                                    ? "border-emerald-600 bg-emerald-50/90 shadow-[0_16px_40px_rgba(16,185,129,0.18)]"
-                                    : "border-emerald-900/10 bg-white/80 backdrop-blur-sm hover:border-emerald-400 hover:shadow-lg"
+                                    ? "border-emerald-600 bg-white shadow-lg shadow-stone-200"
+                                    : "border-stone-200 bg-white hover:border-stone-300 hover:shadow-md"
                             )}
                         >
                             <div className={clsx(
                                 "w-16 h-16 rounded-2xl flex items-center justify-center mb-6 transition-colors duration-300",
-                                isSelected ? "bg-emerald-500 text-white" : "bg-gray-100 text-gray-500 group-hover:bg-emerald-100 group-hover:text-emerald-600"
+                                isSelected ? "bg-emerald-600 text-white" : "bg-stone-100 text-stone-500 group-hover:bg-stone-200 group-hover:text-stone-700"
                             )}>
                                 <Icon size={32} />
                             </div>
 
                             <h3 className={clsx(
                                 "text-xl font-bold mb-3 transition-colors",
-                                isSelected ? "text-emerald-800" : "text-gray-800"
+                                isSelected ? "text-stone-900" : "text-stone-800"
                             )}>
                                 {level.title}
                             </h3>
 
                             <p className={clsx(
                                 "text-sm leading-relaxed text-center",
-                                isSelected ? "text-emerald-700" : "text-gray-500"
+                                isSelected ? "text-stone-600" : "text-stone-500"
                             )}>
                                 {level.description}
                             </p>
@@ -76,7 +76,7 @@ export const LevelSelection: React.FC<LevelSelectionProps> = ({ selectedLevel, o
                             {isSelected && (
                                 <motion.div
                                     layoutId="outline"
-                                    className="absolute inset-0 border-2 border-emerald-500 rounded-2xl"
+                                    className="absolute inset-0 border-2 border-emerald-600 rounded-2xl"
                                     initial={false}
                                     transition={{ type: "spring", stiffness: 500, damping: 30 }}
                                 />

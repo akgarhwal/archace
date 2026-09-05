@@ -196,18 +196,18 @@ export const QuizGame: React.FC<QuizGameProps> = ({ level, onExit }) => {
         <div className="max-w-3xl mx-auto w-full min-h-[70vh] flex flex-col justify-center py-12 px-4">
             <div className="flex flex-col md:flex-row justify-between items-center mb-8 gap-4">
                 <div>
-                    <h2 className="text-2xl font-bold text-emerald-900">Quiz</h2>
-                    <p className="text-sm text-emerald-900/55 mt-1 capitalize">{level ?? 'junior'} · ~30 mixed questions</p>
+                    <h2 className="text-2xl font-bold text-stone-900">Quiz</h2>
+                    <p className="text-sm text-stone-500 mt-1 capitalize">{level ?? 'junior'} · ~30 mixed questions</p>
                 </div>
 
                 <div className="flex items-center gap-3">
-                    <div className="text-sm font-medium text-emerald-800 bg-white/70 border border-emerald-900/10 px-4 py-2 rounded-full">
+                    <div className="text-sm font-medium text-stone-700 bg-white border border-stone-200 px-4 py-2 rounded-full">
                         Question {currentIndex + 1} / {questions.length}
                     </div>
 
                     <div className={clsx(
                         "flex items-center gap-2 font-mono text-lg font-bold transition-colors bg-white/80 px-3 py-1 rounded-lg border",
-                        timeLeft <= 5 ? "text-red-600 border-red-200 animate-pulse" : "text-emerald-700 border-emerald-200"
+                        timeLeft <= 5 ? "text-red-600 border-red-200 animate-pulse" : "text-stone-700 border-stone-200"
                     )}>
                         <Clock size={20} />
                         <span>00:{timeLeft.toString().padStart(2, '0')}</span>
@@ -215,7 +215,7 @@ export const QuizGame: React.FC<QuizGameProps> = ({ level, onExit }) => {
 
                     <button
                         onClick={onExit}
-                        className="p-2 rounded-lg text-emerald-900/50 hover:text-red-700 hover:bg-red-50 transition-colors"
+                        className="p-2 rounded-lg text-stone-400 hover:text-red-700 hover:bg-red-50 transition-colors"
                         aria-label="Exit quiz"
                     >
                         <LogOut size={18} />
@@ -231,12 +231,12 @@ export const QuizGame: React.FC<QuizGameProps> = ({ level, onExit }) => {
                     animate={{ opacity: 1, x: 0 }}
                     exit={{ opacity: 0, x: -20 }}
                     transition={{ duration: 0.3 }}
-                    className="bg-white/90 backdrop-blur-sm rounded-2xl shadow-[0_18px_50px_rgba(15,80,60,0.10)] border border-emerald-900/10 p-8 mb-6"
+                    className="bg-white rounded-2xl shadow-lg shadow-stone-200/80 border border-stone-200 p-8 mb-6"
                 >
                     <div className="mb-5">
                         <TopicBadge section={currentQuestion.section} />
                     </div>
-                    <h3 className="text-xl md:text-2xl font-bold text-emerald-950 mb-8 leading-snug">
+                    <h3 className="text-xl md:text-2xl font-bold text-stone-900 mb-8 leading-snug">
                         {currentQuestion.question}
                     </h3>
 

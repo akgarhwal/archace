@@ -118,14 +118,14 @@ export const FlashcardGame: React.FC<FlashcardGameProps> = ({ level, onExit }) =
             {/* Header */}
             <div className="flex flex-col md:flex-row justify-between items-center mb-8 gap-4">
                 <div>
-                    <h2 className="text-2xl font-bold text-emerald-900">Flashcards</h2>
+                    <h2 className="text-2xl font-bold text-stone-900">Flashcards</h2>
                     <p className="text-sm text-gray-500 mt-1">
                         Level: <span className="font-semibold text-emerald-600">{levelLabel}</span>
                     </p>
                 </div>
 
                 <div className="flex items-center gap-3">
-                    <div className="text-sm font-medium text-emerald-700 bg-emerald-50 border border-emerald-100 px-4 py-2 rounded-full">
+                    <div className="text-sm font-medium text-stone-700 bg-white border border-stone-200 px-4 py-2 rounded-full">
                         {currentIndex + 1} / {cards.length}
                     </div>
                     <div className="text-sm font-medium text-blue-700 bg-blue-50 border border-blue-100 px-4 py-2 rounded-full">
@@ -149,7 +149,7 @@ export const FlashcardGame: React.FC<FlashcardGameProps> = ({ level, onExit }) =
                             className="cursor-pointer select-none"
                         >
                             <motion.div
-                                className="relative w-full min-h-[320px] rounded-2xl shadow-[0_18px_50px_rgba(15,80,60,0.10)] border border-emerald-900/10"
+                                className="relative w-full min-h-[320px] rounded-2xl shadow-lg shadow-stone-200/80 border border-stone-200"
                                 animate={{ rotateY: isFlipped ? 180 : 0 }}
                                 transition={{ duration: 0.5, type: 'spring', stiffness: 300, damping: 30 }}
                                 style={{ transformStyle: 'preserve-3d' }}
@@ -161,11 +161,11 @@ export const FlashcardGame: React.FC<FlashcardGameProps> = ({ level, onExit }) =
                                 >
                                     <div className="mb-4 flex flex-col items-center gap-2">
                                         <TopicBadge section={currentCard.section} />
-                                        <div className="px-3 py-1 rounded-full bg-emerald-50 text-emerald-800 text-xs font-semibold uppercase tracking-wider">
+                                        <div className="px-3 py-1 rounded-full bg-stone-100 text-stone-600 text-xs font-semibold uppercase tracking-wider">
                                             Question
                                         </div>
                                     </div>
-                                    <h3 className="text-xl md:text-2xl font-bold text-emerald-950 leading-relaxed mb-6">
+                                    <h3 className="text-xl md:text-2xl font-bold text-stone-900 leading-relaxed mb-6">
                                         {currentCard.question}
                                     </h3>
 
@@ -180,16 +180,16 @@ export const FlashcardGame: React.FC<FlashcardGameProps> = ({ level, onExit }) =
 
                                 {/* Back - Answer */}
                                 <div
-                                    className="absolute inset-0 bg-gradient-to-br from-emerald-50 to-teal-50 rounded-2xl p-8 flex flex-col justify-center items-center text-center"
+                                    className="absolute inset-0 bg-stone-50 rounded-2xl p-8 flex flex-col justify-center items-center text-center"
                                     style={{ backfaceVisibility: 'hidden', transform: 'rotateY(180deg)' }}
                                 >
                                     <div className="mb-4 flex flex-col items-center gap-2">
                                         <TopicBadge section={currentCard.section} />
-                                        <div className="px-3 py-1 rounded-full bg-emerald-100 text-emerald-800 text-xs font-semibold uppercase tracking-wider">
+                                        <div className="px-3 py-1 rounded-full bg-stone-200 text-stone-700 text-xs font-semibold uppercase tracking-wider">
                                             Answer
                                         </div>
                                     </div>
-                                    <h3 className="text-xl md:text-2xl font-bold text-emerald-800 leading-relaxed">
+                                    <h3 className="text-xl md:text-2xl font-bold text-stone-900 leading-relaxed">
                                         {currentCard.answer}
                                     </h3>
                                     <p className="mt-4 text-sm text-gray-400 flex items-center gap-1">
