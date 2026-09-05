@@ -41,8 +41,8 @@ export const RevisionModeSelection: React.FC<RevisionModeSelectionProps> = ({ se
                         className={clsx(
                             "cursor-pointer relative overflow-hidden rounded-2xl border-2 p-8 flex flex-col items-center text-center gap-6 transition-all duration-300 hover:shadow-xl group",
                             isSelected
-                                ? "border-emerald-600 bg-white/90 ring-4 ring-emerald-100 shadow-[0_16px_40px_rgba(16,185,129,0.16)]"
-                                : "border-emerald-900/10 bg-white/80 backdrop-blur-sm hover:border-emerald-400"
+                                ? "border-emerald-600 bg-white ring-4 ring-stone-100 shadow-lg"
+                                : "border-stone-200 bg-white hover:border-stone-300"
                         )}
                     >
                         {/* Background Decoration */}

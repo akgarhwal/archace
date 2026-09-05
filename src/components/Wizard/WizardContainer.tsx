@@ -62,13 +62,13 @@ export const WizardContainer: React.FC = () => {
     return (
         <div className="max-w-5xl mx-auto px-4 min-h-screen flex flex-col justify-center py-12 pb-32">
             <div className="text-center mb-10">
-                <p className="text-xs font-semibold tracking-[0.2em] uppercase text-emerald-800/70 mb-3">
+                <p className="text-xs font-semibold tracking-[0.2em] uppercase text-stone-400 mb-3">
                     Architecture practice
                 </p>
-                <h1 className="text-4xl md:text-5xl font-extrabold mb-3 bg-clip-text text-transparent bg-gradient-to-r from-emerald-800 via-emerald-600 to-teal-600">
+                <h1 className="text-4xl md:text-5xl font-extrabold mb-3 text-stone-900">
                     ArchAce
                 </h1>
-                <p className="text-lg text-emerald-950/70 max-w-xl mx-auto">
+                <p className="text-lg text-stone-500 max-w-xl mx-auto">
                     Trade-offs, failure modes, and why a design holds up — not trivia.
                 </p>
             </div>
@@ -101,7 +101,7 @@ export const WizardContainer: React.FC = () => {
             </div>
 
             {/* Sticky Bottom Navigation */}
-            <div className="fixed bottom-0 left-0 right-0 bg-white/80 backdrop-blur-md border-t border-emerald-900/10 p-4 shadow-[0_-8px_30px_rgba(15,80,60,0.08)] z-50">
+            <div className="fixed bottom-0 left-0 right-0 bg-white/90 backdrop-blur-md border-t border-stone-200 p-4 shadow-[0_-8px_24px_rgba(0,0,0,0.04)] z-50">
                 <div className="max-w-5xl mx-auto flex justify-between items-center">
                     <button
                         onClick={handleBack}
