@@ -2,6 +2,8 @@ import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Loader2, Clock, CheckCircle, XCircle, Trophy, RefreshCcw, LogOut } from 'lucide-react';
 import { fetchQuizData, type QuizQuestion } from '../../../services/sheetService';
+import { selectSessionItems } from '../../../services/questionSelector';
+import { lecturePathKey, loadPathProgress, markCorrect, markWrong, progressSets } from '../../../services/progressStore';
 import { clsx } from 'clsx';
 import type { Level } from '../types';
 
@@ -19,7 +21,7 @@ const TIMER_BY_LEVEL: Record<Level, number> = {
     senior: 45,  // Medium: 45 seconds
     staff: 60,  // Hard: 60 seconds
 };
-const QUESTIONS_COUNT = 20;
+const QUESTIONS_COUNT = 30;
 
 export const QuizGame: React.FC<QuizGameProps> = ({ sheetGid, technologyName, level, onExit }) => {
     const [gameState, setGameState] = useState<QuizState>('loading');
@@ -32,6 +34,12 @@ export const QuizGame: React.FC<QuizGameProps> = ({ sheetGid, technologyName, le
     const [isAnswerRevealed, setIsAnswerRevealed] = useState(false);
 
     const isInitialized = useRef(false);
+    const pathKey = lecturePathKey(level ?? 'junior', 'quiz');
+
+    const pickQuestions = (allQuestions: QuizQuestion[]) => {
+        const progress = progressSets(loadPathProgress(pathKey));
+        return selectSessionItems(allQuestions, progress, QUESTIONS_COUNT);
+    };
 
     // Fetch and prepare questions
     useEffect(() => {
@@ -42,17 +50,10 @@ export const QuizGame: React.FC<QuizGameProps> = ({ sheetGid, technologyName, le
             setGameState('loading');
             try {
                 const allQuestions = await fetchQuizData(sheetGid);
-
-                // No client-side difficulty filtering needed — each sheet GID
-                // already points to a sheet containing only that difficulty's questions.
-
-                // Shuffle and pick 20
-                const shuffled = [...allQuestions].sort(() => 0.5 - Math.random());
-                setQuestions(shuffled.slice(0, QUESTIONS_COUNT));
+                setQuestions(pickQuestions(allQuestions));
                 setGameState('playing');
             } catch (error) {
                 console.error("Failed to load quiz:", error);
-                // Handle error gracefully - maybe show an error state or exit
                 onExit();
             }
         };
@@ -104,10 +105,13 @@ export const QuizGame: React.FC<QuizGameProps> = ({ sheetGid, technologyName, le
 
         if (isCorrect) {
             setScore(prev => prev + 1);
+            markCorrect(pathKey, currentQuestion.id);
+        } else {
+            markWrong(pathKey, currentQuestion.id);
         }
 
         setTimeout(nextQuestion, 2000);
-    }, [isAnswerRevealed, questions, currentIndex, nextQuestion]);
+    }, [isAnswerRevealed, questions, currentIndex, nextQuestion, pathKey]);
 
     const handleTimeUp = useCallback(() => {
         if (!isAnswerRevealed) {
@@ -124,8 +128,7 @@ export const QuizGame: React.FC<QuizGameProps> = ({ sheetGid, technologyName, le
         setIsAnswerRevealed(false);
         const loadQuestions = async () => {
             const allQuestions = await fetchQuizData(sheetGid);
-            const shuffled = [...allQuestions].sort(() => 0.5 - Math.random());
-            setQuestions(shuffled.slice(0, QUESTIONS_COUNT));
+            setQuestions(pickQuestions(allQuestions));
             setGameState('playing');
         };
         loadQuestions();
@@ -167,6 +170,22 @@ export const QuizGame: React.FC<QuizGameProps> = ({ sheetGid, technologyName, le
                         Play Again
                     </button>
                 </div>
+            </div>
+        );
+    }
+
+    if (questions.length === 0) {
+        return (
+            <div className="flex flex-col items-center justify-center min-h-[50vh] text-center p-8">
+                <h2 className="text-2xl font-bold text-gray-900 mb-3">No questions available</h2>
+                <p className="text-gray-500 mb-6">This sheet did not return any valid questions.</p>
+                <button
+                    onClick={onExit}
+                    className="flex items-center gap-2 px-6 py-3 bg-gray-100 text-gray-700 rounded-lg font-medium hover:bg-gray-200 transition-colors"
+                >
+                    <LogOut size={20} />
+                    Exit
+                </button>
             </div>
         );
     }

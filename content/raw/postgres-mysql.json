@@ -1,0 +1,1134 @@
+{
+  "quiz": [
+    {
+      "section": "PostgreSQL",
+      "level": "junior",
+      "question": "A long-running report transaction sits idle in the same database as a busy OLTP table. Why can autovacuum fail to reclaim dead tuples on that table even after many updates?",
+      "optionA": "VACUUM cannot run while any other session holds a snapshot older than the dead tuples",
+      "optionB": "PostgreSQL never vacuums a table that still has indexes",
+      "optionC": "Dead tuples are only stored in WAL and never in heap pages",
+      "optionD": "Idle transactions automatically freeze all XIDs so vacuum has nothing to do",
+      "correct": "A"
+    },
+    {
+      "section": "PostgreSQL",
+      "level": "junior",
+      "question": "After an UPDATE that does not change any indexed column, you still see a new heap tuple. What MVCC behavior explains this?",
+      "optionA": "PostgreSQL always copies the whole row so readers of the old snapshot keep a consistent version",
+      "optionB": "Indexes store full row copies, so the heap is rewritten only for uniqueness checks",
+      "optionC": "MVCC reuses the same tuple slot in place and never creates a new version",
+      "optionD": "Updates are logged only in WAL; the heap is never rewritten until CHECKPOINT",
+      "correct": "A"
+    },
+    {
+      "section": "PostgreSQL",
+      "level": "junior",
+      "question": "A query plan shows Seq Scan on a 50-row lookup table that has a btree index on the filter column. When is the sequential scan often the better choice?",
+      "optionA": "When most of the table will be visited anyway, random index I/O costs more than reading the heap once",
+      "optionB": "When the index is unique, sequential scan is always preferred",
+      "optionC": "When work_mem is large, indexes are ignored",
+      "optionD": "When the column is NOT NULL, btree indexes cannot be used",
+      "correct": "A"
+    },
+    {
+      "section": "PostgreSQL",
+      "level": "junior",
+      "question": "You set synchronous_commit = off for a burst of non-critical inserts. What failure mode did you accept?",
+      "optionA": "A crash can lose recent committed transactions even though clients already saw COMMIT succeed",
+      "optionB": "Replicas will refuse to apply WAL until the master is restarted",
+      "optionC": "VACUUM will skip the table until the next CHECKPOINT",
+      "optionD": "Indexes become invalid because index WAL is not written",
+      "correct": "A"
+    },
+    {
+      "section": "PostgreSQL",
+      "level": "junior",
+      "question": "Connection pooling is added in front of PostgreSQL because each backend is a process. Which pooling mistake still exhausts the server?",
+      "optionA": "Opening a new server connection per client request and holding idle transactions open",
+      "optionB": "Using transaction pooling for sessions that never SET session state",
+      "optionC": "Capping pool size below max_connections",
+      "optionD": "Routing read-only queries to a hot standby",
+      "correct": "A"
+    },
+    {
+      "section": "PostgreSQL",
+      "level": "junior",
+      "question": "READ COMMITTED vs REPEATABLE READ: a counter is incremented by two concurrent transactions. Which isolation surprise is unique to READ COMMITTED?",
+      "optionA": "Each statement can see rows committed after the transaction started, so two increments can both succeed on different versions",
+      "optionB": "Dead tuples cannot be vacuumed until both transactions end",
+      "optionC": "WAL is written twice for the same tuple",
+      "optionD": "Indexes are locked in SHARE mode for the whole transaction",
+      "correct": "A"
+    },
+    {
+      "section": "PostgreSQL",
+      "level": "junior",
+      "question": "Streaming replication with a hot standby is lagging. Which primary-side behavior most directly grows replica apply delay?",
+      "optionA": "Long transactions on the primary that produce a large WAL burst the standby must replay in order",
+      "optionB": "Autovacuum on the standby rewriting the primary heap",
+      "optionC": "synchronous_commit = on on the standby only",
+      "optionD": "Creating a btree index on a temp table on the primary",
+      "correct": "A"
+    },
+    {
+      "section": "PostgreSQL",
+      "level": "junior",
+      "question": "You partition a large events table by day. Which query pattern fails to benefit and may get worse?",
+      "optionA": "Queries that filter on a non-partition key, forcing the planner to scan every partition",
+      "optionB": "Queries that constrain the partition key to a single day",
+      "optionC": "COPY into the current day's partition",
+      "optionD": "DROP of an old partition instead of DELETE",
+      "correct": "A"
+    },
+    {
+      "section": "PostgreSQL",
+      "level": "junior",
+      "question": "EXPLAIN (ANALYZE, BUFFERS) shows a Nested Loop with huge actual rows vs estimated rows. What is the most likely operational risk?",
+      "optionA": "The inner scan is executed far more times than planned, exploding I/O and runtime",
+      "optionB": "WAL volume drops because nested loops skip checkpoints",
+      "optionC": "VACUUM cannot run while Nested Loop is chosen",
+      "optionD": "synchronous_commit is forced off for the query",
+      "correct": "A"
+    },
+    {
+      "section": "PostgreSQL",
+      "level": "junior",
+      "question": "Table bloat after heavy UPDATE/DELETE is high, but pg_stat_user_tables.n_dead_tup is low. What can still make the table large on disk?",
+      "optionA": "Free space is fragmented inside pages that are not returned to the OS without a rewrite",
+      "optionB": "Dead tuples live only in indexes, never in the heap",
+      "optionC": "WAL files are counted as table size",
+      "optionD": "TOAST is never vacuumed so it always grows",
+      "correct": "A"
+    },
+    {
+      "section": "PostgreSQL",
+      "level": "junior",
+      "question": "HOT (Heap-Only Tuple) updates skip index maintenance. Which condition prevents HOT and causes extra index churn?",
+      "optionA": "The UPDATE changes a column that is part of an index, so a new index entry is required",
+      "optionB": "The table has no indexes at all",
+      "optionC": "fillfactor is 100 and there is free space on the page",
+      "optionD": "The transaction isolation level is READ COMMITTED",
+      "correct": "A"
+    },
+    {
+      "section": "PostgreSQL",
+      "level": "junior",
+      "question": "A btree index on a low-cardinality status column is used for WHERE status = 'active' on a table that is 90% active. Why can this index hurt?",
+      "optionA": "The index points at most heap pages, adding random I/O on top of reading nearly the whole table",
+      "optionB": "Btree cannot store boolean-like values",
+      "optionC": "MVCC visibility is checked only in indexes, never the heap",
+      "optionD": "Autovacuum refuses to analyze indexed columns",
+      "correct": "A"
+    },
+    {
+      "section": "PostgreSQL",
+      "level": "junior",
+      "question": "Why must VACUUM (not just autovacuum on one table) eventually freeze tuples cluster-wide?",
+      "optionA": "Transaction IDs wrap around; unfrozen tuples would look like they are in the future",
+      "optionB": "WAL cannot be recycled until every tuple is frozen",
+      "optionC": "Hot standbys cannot connect unless all tables are frozen",
+      "optionD": "Indexes become invalid when XIDs exceed 2 million",
+      "correct": "A"
+    },
+    {
+      "section": "PostgreSQL",
+      "level": "junior",
+      "question": "A client holds a session-level SET and a WITH HOLD cursor, then you switch the pooler to transaction pooling. What breaks?",
+      "optionA": "Session state and held cursors are not bound to a single backend across transactions",
+      "optionB": "WAL shipping to replicas stops",
+      "optionC": "MVCC snapshots become SERIALIZABLE automatically",
+      "optionD": "VACUUM FULL runs after every COMMIT",
+      "correct": "A"
+    },
+    {
+      "section": "PostgreSQL",
+      "level": "senior",
+      "question": "A write-heavy table never gets HOT updates even when indexed columns are unchanged. fillfactor is 100. What is the mechanism?",
+      "optionA": "No free space on the same page, so the new version is placed elsewhere and every index must be updated",
+      "optionB": "HOT requires synchronous_commit = off",
+      "optionC": "HOT only works on partitioned tables",
+      "optionD": "HOT is disabled when replication slots exist",
+      "correct": "A"
+    },
+    {
+      "section": "PostgreSQL",
+      "level": "senior",
+      "question": "You need replica lag under a few hundred milliseconds for failover. The workload is bursty WAL. Which trade-off is real with synchronous replication?",
+      "optionA": "Primary COMMIT waits on replica flush/apply, so a slow or dead replica stalls writes",
+      "optionB": "Synchronous replicas do not write WAL, so lag cannot exist",
+      "optionC": "VACUUM on the primary is skipped so the replica stays small",
+      "optionD": "Indexes are not replicated, reducing WAL volume",
+      "correct": "A"
+    },
+    {
+      "section": "PostgreSQL",
+      "level": "senior",
+      "question": "A replication slot is left unused after a forgotten subscriber. What operational failure follows?",
+      "optionA": "WAL is retained forever for that slot until disk fills and the primary can no longer write",
+      "optionB": "Autovacuum freezes all tables immediately",
+      "optionC": "Hot updates become sequential scans",
+      "optionD": "max_connections is reduced to 1",
+      "correct": "A"
+    },
+    {
+      "section": "PostgreSQL",
+      "level": "senior",
+      "question": "EXPLAIN shows Bitmap Heap Scan with Recheck Cond and lossy pages under memory pressure. What happened?",
+      "optionA": "The bitmap did not fit in work_mem, so some pages are rechecked row-by-row after a coarse page bitmap",
+      "optionB": "The index was corrupt and PostgreSQL fell back to sequential scan mid-query",
+      "optionC": "HOT chains cannot be followed in bitmap scans",
+      "optionD": "synchronous_commit forced a recheck of WAL before visibility",
+      "correct": "A"
+    },
+    {
+      "section": "PostgreSQL",
+      "level": "senior",
+      "question": "SERIALIZABLE isolation reports a serialization failure on a read-only transaction. Why is that possible in PostgreSQL SSI?",
+      "optionA": "The read-only snapshot participated in a dangerous rw-dependency cycle with concurrent writers",
+      "optionB": "Read-only transactions always take predicate locks on the whole database",
+      "optionC": "VACUUM cannot freeze while SERIALIZABLE is used",
+      "optionD": "SSI requires synchronous_commit = remote_apply",
+      "correct": "A"
+    },
+    {
+      "section": "PostgreSQL",
+      "level": "senior",
+      "question": "You add a btree index to accelerate a JOIN, but INSERTs slow more than the SELECT savings. Which cost is easy to miss?",
+      "optionA": "Every heap insert/update/delete must maintain the index, plus WAL for index pages, plus extra vacuum work",
+      "optionB": "Indexes disable HOT even when the indexed column is unchanged",
+      "optionC": "Btree indexes prevent TOAST compression",
+      "optionD": "The planner cannot use an index together with a sequential scan of another table",
+      "correct": "A"
+    },
+    {
+      "section": "PostgreSQL",
+      "level": "senior",
+      "question": "Partition-wise joins are not used between two partitioned tables. What typically blocks them?",
+      "optionA": "Partition keys and bounds do not line up, so the planner cannot join matching partitions independently",
+      "optionB": "Both tables use btree indexes",
+      "optionC": "synchronous_commit is on",
+      "optionD": "The tables are in the same schema",
+      "correct": "A"
+    },
+    {
+      "section": "PostgreSQL",
+      "level": "senior",
+      "question": "xid wraparound autovacuum is running and blocking DDL. Application writes still succeed but get slower. What is going on?",
+      "optionA": "Anti-wraparound vacuum must scan tables to freeze, competing for I/O and holding locks that conflict with some DDL",
+      "optionB": "PostgreSQL pauses WAL until freeze completes",
+      "optionC": "All indexes are rebuilt during wraparound vacuum",
+      "optionD": "Hot standbys take exclusive locks on the primary",
+      "correct": "A"
+    },
+    {
+      "section": "PostgreSQL",
+      "level": "senior",
+      "question": "A covering index (INCLUDE) is created for a read-heavy query. When does INCLUDE still fail to make an index-only scan effective?",
+      "optionA": "The visibility map is not all-visible, so heap fetches still occur for many tuples",
+      "optionB": "INCLUDE columns cannot be TOASTed",
+      "optionC": "Index-only scans require SERIALIZABLE",
+      "optionD": "INCLUDE disables HOT on the table",
+      "correct": "A"
+    },
+    {
+      "section": "PostgreSQL",
+      "level": "senior",
+      "question": "PgBouncer transaction pooling plus prepared statements on the client. What failure mode appears?",
+      "optionA": "Prepared statements are backend-local, so the next transaction may hit a different server process that does not have them",
+      "optionB": "WAL is not flushed on COMMIT in transaction pooling",
+      "optionC": "MVCC snapshots leak across pooled clients",
+      "optionD": "VACUUM cannot run while PgBouncer is used",
+      "correct": "A"
+    },
+    {
+      "section": "PostgreSQL",
+      "level": "senior",
+      "question": "You set synchronous_commit = remote_apply for a reporting replica. Compared with on (local flush), what extra wait is introduced?",
+      "optionA": "The primary waits until the standby has replayed the WAL, not merely received or flushed it",
+      "optionB": "The primary waits only for local fsync, same as default",
+      "optionC": "The replica must VACUUM before ACK",
+      "optionD": "Index builds on the primary become non-transactional",
+      "correct": "A"
+    },
+    {
+      "section": "PostgreSQL",
+      "level": "senior",
+      "question": "A GIN index on jsonb speeds @> queries but INSERTs and VACUUM become expensive. Why?",
+      "optionA": "GIN stores many posting-list entries per row and pending lists must be merged, amplifying WAL and cleanup",
+      "optionB": "GIN disables MVCC visibility checks",
+      "optionC": "jsonb cannot be TOASTed when GIN exists",
+      "optionD": "GIN requires sequential scans for all other predicates",
+      "correct": "A"
+    },
+    {
+      "section": "PostgreSQL",
+      "level": "senior",
+      "question": "Logical replication of a table with frequent UPDATEs of large rows. Replica apply is CPU-bound. What is a common cause?",
+      "optionA": "Row images in WAL plus replica replay of full-row UPDATEs, especially without replica identity index lookups being cheap",
+      "optionB": "Logical replication ships only HOT chains, which the replica must rebuild",
+      "optionC": "The subscriber runs VACUUM FULL after every message",
+      "optionD": "Partitioning is required for logical decoding",
+      "correct": "A"
+    },
+    {
+      "section": "PostgreSQL",
+      "level": "senior",
+      "question": "Bloat in a btree index grows even though the heap was recently vacuumed. What index-specific issue remains?",
+      "optionA": "Index pages are not fully recycled by ordinary vacuum; deleted keys can leave poorly reusable space until REINDEX or vacuuming that can recycle pages",
+      "optionB": "Btree indexes store heap tuple copies that vacuum never visits",
+      "optionC": "HOT updates always bloat indexes first",
+      "optionD": "Indexes are only compacted at xid freeze time",
+      "correct": "A"
+    },
+    {
+      "section": "PostgreSQL",
+      "level": "staff",
+      "question": "A multi-master-like design uses logical replication with conflict avoidance by partitioning key ranges per node. An UPDATE moves a row across ranges. What breaks?",
+      "optionA": "The UPDATE is not a DELETE+INSERT across publications, so the row can vanish or duplicate depending on replica identity and filters",
+      "optionB": "PostgreSQL converts the UPDATE into a HOT update on the subscriber automatically",
+      "optionC": "WAL is not generated for cross-range updates",
+      "optionD": "synchronous_commit ignores logical slots for such rows",
+      "correct": "A"
+    },
+    {
+      "section": "PostgreSQL",
+      "level": "staff",
+      "question": "On a huge append-only table, aggressive autovacuum still scans endlessly. What freeze/visibility-map strategy actually reduces that work?",
+      "optionA": "Insert-only vacuum and freezing new pages so the visibility map stays all-visible and future vacuums skip them",
+      "optionB": "Disable freeze because append-only tables never wrap XIDs",
+      "optionC": "Create more btree indexes so vacuum can skip the heap",
+      "optionD": "Set synchronous_commit = off to skip freezing",
+      "correct": "A"
+    },
+    {
+      "section": "PostgreSQL",
+      "level": "staff",
+      "question": "You observe subtransaction overflow (pg_subtrans) under a PL/pgSQL loop of SAVEPOINTs. What is the failure mode?",
+      "optionA": "Hint-bit and snapshot checks degrade because subxids no longer fit in the in-memory cache, causing pg_subtrans I/O",
+      "optionB": "WAL is discarded for nested subtransactions",
+      "optionC": "HOT updates are forced for every SAVEPOINT",
+      "optionD": "The backend switches isolation to READ UNCOMMITTED",
+      "correct": "A"
+    },
+    {
+      "section": "PostgreSQL",
+      "level": "staff",
+      "question": "A BRIN index is chosen for a time-series table that is updated in the middle of the key range. Why does BRIN degrade?",
+      "optionA": "BRIN summarizes page ranges; random updates destroy correlation so range summaries become too wide to prune",
+      "optionB": "BRIN cannot coexist with WAL",
+      "optionC": "BRIN requires SERIALIZABLE to return correct results",
+      "optionD": "BRIN stores one pointer per tuple like btree",
+      "correct": "A"
+    },
+    {
+      "section": "PostgreSQL",
+      "level": "staff",
+      "question": "During a crash recovery, redo is slow because of a huge uncheckpointed WAL volume after a bulk load with few checkpoints. What is the trade-off you mis-set?",
+      "optionA": "High max_wal_size / checkpoint_timeout reduced checkpoint I/O during the load but lengthened crash recovery",
+      "optionB": "synchronous_commit = off disables redo entirely",
+      "optionC": "full_page_writes = on prevents recovery from using WAL",
+      "optionD": "HOT updates cannot be redone, so recovery rebuilds indexes from scratch",
+      "correct": "A"
+    },
+    {
+      "section": "PostgreSQL",
+      "level": "staff",
+      "question": "full_page_writes is on (default). After a checkpoint, the first change to a page writes a full page image. How does this interact with a storage that already does atomic 8K writes?",
+      "optionA": "You still pay WAL amplification to protect against torn pages on typical hardware; turning it off is only safe on systems that guarantee atomic page writes",
+      "optionB": "full_page_writes is redundant with MVCC and can always be off",
+      "optionC": "full_page_writes only applies to indexes, not heap",
+      "optionD": "Replicas ignore full page images and reconstruct pages from btree",
+      "correct": "A"
+    },
+    {
+      "section": "PostgreSQL",
+      "level": "staff",
+      "question": "A query uses a GiST index on a range type. Concurrent updates cause a lot of page splits. Which correctness vs performance tension exists?",
+      "optionA": "GiST must maintain balanced predicate trees under MVCC, so splits WAL-log internal pages and can bloat faster than btree on overlapping ranges",
+      "optionB": "GiST updates are never WAL-logged, risking replica divergence",
+      "optionC": "GiST ignores isolation levels by design",
+      "optionD": "VACUUM cannot recycle GiST pages without REINDEX CONCURRENTLY plus a restart",
+      "correct": "A"
+    },
+    {
+      "section": "PostgreSQL",
+      "level": "staff",
+      "question": "You need zero-downtime DDL that rewrites a table (type change). Why is CREATE TABLE new + concurrent backfill + swap still hard in PostgreSQL?",
+      "optionA": "In-flight writes, identity/serial sequences, FK/triggers, and logical replica identity must be dual-written or locked around cutover or rows are lost",
+      "optionB": "PostgreSQL cannot CREATE INDEX CONCURRENTLY on the new table",
+      "optionC": "MVCC prevents INSERT into two tables in one transaction",
+      "optionD": "WAL cannot contain both old and new row formats",
+      "correct": "A"
+    },
+    {
+      "section": "PostgreSQL",
+      "level": "staff",
+      "question": "A standby is used for read scaling. A long reporting query on the standby conflicts with WAL replay of a VACUUM that wants to remove tuples still visible to the query. What happens if hot_standby_feedback is off and max_standby_streaming_delay is short?",
+      "optionA": "The standby cancels the query so replay can proceed, or replay waits then cancels—reads are sacrificed to keep apply moving",
+      "optionB": "The primary automatically delays VACUUM until the standby query ends, with no configuration",
+      "optionC": "The standby silently returns wrong results for removed tuples",
+      "optionD": "HOT chains are rebuilt on the standby without canceling queries",
+      "correct": "A"
+    },
+    {
+      "section": "PostgreSQL",
+      "level": "staff",
+      "question": "hot_standby_feedback = on protects standby queries from replay conflict. What cost does the primary pay?",
+      "optionA": "Vacuum on the primary cannot remove tuples still needed by standby snapshots, so bloat and wraparound risk grow with long standby queries",
+      "optionB": "The primary disables HOT updates",
+      "optionC": "synchronous_commit is forced to remote_apply",
+      "optionD": "Indexes on the primary cannot be used until feedback ACKs",
+      "correct": "A"
+    },
+    {
+      "section": "PostgreSQL",
+      "level": "staff",
+      "question": "A connection pooler in session mode plus thousands of idle-in-transaction sessions. Memory on the database host climbs. Why is this worse than idle (not in transaction)?",
+      "optionA": "Each idle-in-transaction backend holds a snapshot, preventing xmin advancement, vacuum, and releasing of catalog caches tied to that snapshot",
+      "optionB": "Idle-in-transaction sessions do not use a backend process",
+      "optionC": "PostgreSQL automatically sets synchronous_commit = off for idle transactions",
+      "optionD": "WAL is fsynced continuously for idle snapshots",
+      "correct": "A"
+    },
+    {
+      "section": "PostgreSQL",
+      "level": "staff",
+      "question": "Hash partitioning vs range partitioning for a multi-tenant id. Queries always filter by tenant_id. Why might hash still be the wrong choice at staff scale?",
+      "optionA": "You cannot drop a tenant by detaching one partition; data for one tenant is scattered, so retention and locality suffer",
+      "optionB": "Hash partitions cannot have indexes",
+      "optionC": "The planner cannot prune hash partitions even with equality on the partition key",
+      "optionD": "HOT updates are impossible on hash partitions",
+      "correct": "A"
+    },
+    {
+      "section": "PostgreSQL",
+      "level": "staff",
+      "question": "You enable checksums after seeing silent corruption on a replica. What operational cost is now permanent?",
+      "optionA": "Every heap/index page read verifies checksums and writes pay to maintain them, adding CPU; enabling later still requires a rewrite of all files",
+      "optionB": "Checksums replace WAL, so crash recovery is skipped",
+      "optionC": "Checksums only apply when synchronous_commit is off",
+      "optionD": "MVCC visibility is stored in checksums instead of hint bits",
+      "correct": "A"
+    },
+    {
+      "section": "PostgreSQL",
+      "level": "staff",
+      "question": "A partial index WHERE deleted_at IS NULL becomes huge despite few live rows. What went wrong?",
+      "optionA": "Updates that set deleted_at still leave index entries for old MVCC versions until vacuum; a long xmin horizon prevents cleanup",
+      "optionB": "Partial indexes index every row regardless of predicate",
+      "optionC": "IS NULL predicates cannot be used in partial indexes",
+      "optionD": "HOT updates duplicate partial index entries on purpose",
+      "correct": "A"
+    },
+    {
+      "section": "MySQL",
+      "level": "junior",
+      "question": "InnoDB stores the clustered index as the table. Why is a random UUID primary key often a scaling problem?",
+      "optionA": "Inserts scatter across leaf pages, causing page splits, fragmentation, and poor buffer-pool locality",
+      "optionB": "UUID values cannot be indexed in InnoDB",
+      "optionC": "Secondary indexes cannot point at a UUID clustered key",
+      "optionD": "Gap locks are disabled when the PK is not numeric",
+      "correct": "A"
+    },
+    {
+      "section": "MySQL",
+      "level": "junior",
+      "question": "A secondary index in InnoDB does not store the row. How are remaining columns fetched?",
+      "optionA": "The secondary index leaf holds the primary key, then InnoDB looks up the clustered index",
+      "optionB": "InnoDB always does a table scan after a secondary index match",
+      "optionC": "Secondary indexes store a row pointer like MyISAM heap address",
+      "optionD": "The buffer pool reconstructs rows from the binary log",
+      "correct": "A"
+    },
+    {
+      "section": "MySQL",
+      "level": "junior",
+      "question": "REPEATABLE READ in InnoDB uses next-key (record + gap) locks for many UPDATE/SELECT ... FOR UPDATE scans. What anomaly is this trying to prevent?",
+      "optionA": "Phantoms: another transaction inserting a row into the scanned range",
+      "optionB": "Dirty reads of uncommitted data from other transactions",
+      "optionC": "Loss of the clustered index after COMMIT",
+      "optionD": "Replica lag on statement-based binlog",
+      "correct": "A"
+    },
+    {
+      "section": "MySQL",
+      "level": "junior",
+      "question": "You run SELECT ... FOR UPDATE WHERE id < 100 on a sparse PK. Why can concurrent inserts of id=50 block even if 50 did not exist?",
+      "optionA": "Gap locks cover the gaps between existing records in the scanned range",
+      "optionB": "InnoDB locks the entire table for any range WHERE",
+      "optionC": "UUID primary keys disable row locks",
+      "optionD": "The binary log must serialize all inserts under RR",
+      "correct": "A"
+    },
+    {
+      "section": "MySQL",
+      "level": "junior",
+      "question": "Statement-based binlog vs row-based. A statement uses UUID() or a non-deterministic UDF. What is the replica risk with SBR?",
+      "optionA": "The replica executes the statement again and can produce different row values than the source",
+      "optionB": "Row-based logging cannot replicate UPDATEs",
+      "optionC": "Gap locks are not written to the binlog",
+      "optionD": "The buffer pool is not updated on the replica",
+      "correct": "A"
+    },
+    {
+      "section": "MySQL",
+      "level": "junior",
+      "question": "A replica shows Seconds_Behind_Source growing during a long transaction on the source. Why can lag jump at COMMIT rather than during the transaction?",
+      "optionA": "Binlog events for the transaction are dumped as a unit at commit, so the replica applier sees a burst only then",
+      "optionB": "InnoDB on the source does not write undo until COMMIT",
+      "optionC": "Gap locks are replayed only after the replica VACUUM",
+      "optionD": "The replica buffer pool is flushed at every source statement",
+      "correct": "A"
+    },
+    {
+      "section": "MySQL",
+      "level": "junior",
+      "question": "The InnoDB buffer pool is smaller than the working set of clustered + secondary indexes. What is the first performance failure?",
+      "optionA": "Page misses cause read I/O on both index trees, and eviction of dirty pages adds write I/O",
+      "optionB": "InnoDB falls back to MyISAM for those tables",
+      "optionC": "Gap locks are released immediately to save memory",
+      "optionD": "The binary log is disabled automatically",
+      "correct": "A"
+    },
+    {
+      "section": "MySQL",
+      "level": "junior",
+      "question": "A covering secondary index includes every column the query needs. Why does this avoid the clustered lookup?",
+      "optionA": "The leaf already contains the needed values, so InnoDB need not use the PK to fetch the full row",
+      "optionB": "Covering indexes store a copy of the entire clustered page",
+      "optionC": "InnoDB skips MVCC checks on covering indexes",
+      "optionD": "Gap locks are not taken when an index covers",
+      "correct": "A"
+    },
+    {
+      "section": "MySQL",
+      "level": "junior",
+      "question": "Online DDL (INPLACE/INSTANT) still fails or blocks writes for some ALTER types. Which change is least likely to stay fully online?",
+      "optionA": "Changing a column type in a way that requires a table rebuild and row conversion",
+      "optionB": "Adding a nullable column with INSTANT metadata-only support on a compatible version",
+      "optionC": "Adding a secondary index with INPLACE",
+      "optionD": "Dropping a secondary index",
+      "correct": "A"
+    },
+    {
+      "section": "MySQL",
+      "level": "junior",
+      "question": "Under InnoDB REPEATABLE READ, a consistent snapshot SELECT (no FOR UPDATE) can still miss rows inserted and committed by others after your snapshot. That is expected MVCC. When do people still get surprised by phantoms?",
+      "optionA": "When they mix snapshot reads with locking reads, or assume RR plus locks behaves like SERIALIZABLE for all statements",
+      "optionB": "When the buffer pool is fully warmed",
+      "optionC": "When the primary key is sequential",
+      "optionD": "When row-based binlog is enabled",
+      "correct": "A"
+    },
+    {
+      "section": "MySQL",
+      "level": "junior",
+      "question": "Why does a wide PRIMARY KEY make every secondary index larger in InnoDB?",
+      "optionA": "Each secondary leaf stores the full clustered key as the row locator",
+      "optionB": "Secondary indexes duplicate every column of the table",
+      "optionC": "InnoDB compresses only the primary key",
+      "optionD": "Gap locks require the PK to be stored twice",
+      "correct": "A"
+    },
+    {
+      "section": "MySQL",
+      "level": "junior",
+      "question": "READ COMMITTED in InnoDB uses fewer gap locks than REPEATABLE READ for many statements. What trade-off do you accept?",
+      "optionA": "Each statement sees a new snapshot, so non-repeatable reads and some write skew patterns become possible",
+      "optionB": "Dirty reads of uncommitted data become allowed",
+      "optionC": "The binary log can only be STATEMENT",
+      "optionD": "The clustered index is no longer used",
+      "correct": "A"
+    },
+    {
+      "section": "MySQL",
+      "level": "junior",
+      "question": "A huge DELETE of old rows on a clustered PK range is slow and bloated. Why is this heavier than it looks?",
+      "optionA": "Each delete maintains the clustered index, secondary indexes, undo, and binlog row events, and purge lags behind",
+      "optionB": "DELETE in InnoDB is always a full table rebuild",
+      "optionC": "Gap locks prevent purge forever after DELETE",
+      "optionD": "The buffer pool cannot cache deleted pages",
+      "correct": "A"
+    },
+    {
+      "section": "MySQL",
+      "level": "junior",
+      "question": "You add an index to fix a slow WHERE, but writes to that table drop in throughput. What is the direct cause?",
+      "optionA": "Every INSERT/UPDATE/DELETE must maintain another btree, with extra undo, redo, and change-buffer or page-split work",
+      "optionB": "InnoDB allows only one secondary index per table at runtime",
+      "optionC": "Covering indexes disable the buffer pool",
+      "optionD": "Online DDL remains running in the background forever",
+      "correct": "A"
+    },
+    {
+      "section": "MySQL",
+      "level": "senior",
+      "question": "Row-based replication plus a table without a primary key. Why does replica apply become extremely slow?",
+      "optionA": "Each row event may require a table scan or hidden index lookup to find the row, instead of a clustered PK point lookup",
+      "optionB": "RBR refuses to replicate tables without a PK",
+      "optionC": "Gap locks cannot be reconstructed without a PK",
+      "optionD": "The buffer pool disables change buffering on those tables",
+      "correct": "A"
+    },
+    {
+      "section": "MySQL",
+      "level": "senior",
+      "question": "You switch binlog_format to ROW to make replicas match. Which source-side cost appears?",
+      "optionA": "Binlog volume grows because before/after row images are written, especially for wide rows and bulk updates",
+      "optionB": "InnoDB disables the redo log",
+      "optionC": "Gap locks are written into the binlog for every SELECT",
+      "optionD": "Online DDL becomes COPY-only",
+      "correct": "A"
+    },
+    {
+      "section": "MySQL",
+      "level": "senior",
+      "question": "A locking range scan on a non-unique secondary index under RR deadlocks with inserts. What is a typical lock pattern?",
+      "optionA": "Next-key locks on the secondary index plus clustered lookups, colliding with insert intention locks in the same gaps",
+      "optionB": "Metadata locks on mysql.user taken by every INSERT",
+      "optionC": "Buffer pool mutexes held across network round-trips",
+      "optionD": "Statement-based binlog locking the entire schema",
+      "correct": "A"
+    },
+    {
+      "section": "MySQL",
+      "level": "senior",
+      "question": "innodb_flush_log_at_trx_commit = 2 improves COMMIT latency. What durability did you give up?",
+      "optionA": "A host crash can lose the last second of committed transactions even though clients saw COMMIT",
+      "optionB": "Replicas will diverge on every DDL",
+      "optionC": "Gap locks are not released at COMMIT",
+      "optionD": "The clustered index can tear pages without redo",
+      "correct": "A"
+    },
+    {
+      "section": "MySQL",
+      "level": "senior",
+      "question": "Change buffering speeds secondary-index maintenance for deferred writes. When does it not help (or hurt) a workload?",
+      "optionA": "When the working set already fits in the buffer pool, or unique secondary indexes that must be checked immediately",
+      "optionB": "When the table has a clustered primary key",
+      "optionC": "When row-based binlog is enabled",
+      "optionD": "When isolation is READ COMMITTED",
+      "correct": "A"
+    },
+    {
+      "section": "MySQL",
+      "level": "senior",
+      "question": "Online ALTER adding a secondary index still causes replication lag. Why?",
+      "optionA": "The DDL is logged and applied on the replica as a similar build, or DML during the build is queued, so apply falls behind",
+      "optionB": "INSTANT DDL always rewrites the clustered index on replicas only",
+      "optionC": "Replicas cannot have secondary indexes",
+      "optionD": "Gap locks on the source are replayed as table locks",
+      "correct": "A"
+    },
+    {
+      "section": "MySQL",
+      "level": "senior",
+      "question": "A covering index looks perfect in EXPLAIN (Using index) but the query is still slow. Which InnoDB reason is plausible?",
+      "optionA": "The index is huge and not in the buffer pool, so you traded clustered lookups for lots of cold secondary-leaf I/O",
+      "optionB": "Using index means a full table scan of the clustered index",
+      "optionC": "Covering indexes disable MVCC and scan undo history",
+      "optionD": "EXPLAIN Using index always implies a temporary table",
+      "correct": "A"
+    },
+    {
+      "section": "MySQL",
+      "level": "senior",
+      "question": "You need to purge millions of rows without stalling the replica. Why is DELETE in small PK batches often preferred over one huge transaction?",
+      "optionA": "A huge transaction delays binlog dump until commit, holds undo, and creates a massive apply burst; batches bound lag and purge history",
+      "optionB": "InnoDB cannot DELETE more than 1000 rows in one statement",
+      "optionC": "Gap locks are only taken on small batches",
+      "optionD": "Row-based binlog ignores large transactions",
+      "correct": "A"
+    },
+    {
+      "section": "MySQL",
+      "level": "senior",
+      "question": "History list length (undo) grows because a session left a long-running snapshot. What fails next?",
+      "optionA": "Purge cannot reclaim undo; secondaries and clustered pages stay old versions, growing space and slowing reads that walk version chains",
+      "optionB": "The binary log rotates every statement",
+      "optionC": "Gap locks upgrade to table locks automatically",
+      "optionD": "The buffer pool evicts only clean pages forever",
+      "correct": "A"
+    },
+    {
+      "section": "MySQL",
+      "level": "senior",
+      "question": "MIXED binlog format logs some statements as STATEMENT and some as ROW. When is MIXED still dangerous?",
+      "optionA": "When the optimizer or a stored routine is non-deterministic in a way MIXED does not promote to ROW",
+      "optionB": "When all tables have primary keys",
+      "optionC": "When the replica is read-only",
+      "optionD": "When innodb_file_per_table is on",
+      "correct": "A"
+    },
+    {
+      "section": "MySQL",
+      "level": "senior",
+      "question": "SELECT ... FOR SHARE under RR on a parent row is used to prevent orphan children. An INSERT child still races. What lock gap exists?",
+      "optionA": "Without proper FK locking or locking the gap/index on the parent key the INSERT expects, a concurrent DELETE/UPDATE of parent can interleave depending on lock type",
+      "optionB": "FOR SHARE always equivalent to SERIALIZABLE table lock",
+      "optionC": "Child inserts never take locks on parent indexes",
+      "optionD": "InnoDB foreign keys are enforced only at replica apply",
+      "correct": "A"
+    },
+    {
+      "section": "MySQL",
+      "level": "senior",
+      "question": "A UUID PK was replaced by a sequential bigint PK, with UUID moved to a unique secondary index. What improved, and what remains?",
+      "optionA": "Clustered inserts become sequential and cache-friendly; the unique UUID index still random-inserts but is narrower than clustering on UUID",
+      "optionB": "Secondary unique indexes on UUID are free because they do not store the PK",
+      "optionC": "Gap locks disappear once the PK is sequential",
+      "optionD": "Row-based replication no longer needs before images",
+      "correct": "A"
+    },
+    {
+      "section": "MySQL",
+      "level": "senior",
+      "question": "Parallel replica workers (logical clock / WRITESET) still serialize on one table. Why?",
+      "optionA": "Transactions that touch overlapping rows or lack writeset information cannot be applied concurrently without violating commit order",
+      "optionB": "Parallel apply requires statement-based binlog",
+      "optionC": "Gap locks on the source are applied as global locks on the replica",
+      "optionD": "The buffer pool allows only one dirty page at a time on replicas",
+      "correct": "A"
+    },
+    {
+      "section": "MySQL",
+      "level": "senior",
+      "question": "INSTANT ADD COLUMN succeeds on the source but an older replica breaks. What is the operational lesson?",
+      "optionA": "INSTANT metadata row format must be supported on every replica; otherwise apply fails or the table is rebuilt incompatibly",
+      "optionB": "INSTANT DDL is never written to the binlog",
+      "optionC": "Replicas ignore DDL and copy data files from the source",
+      "optionD": "Gap locks prevent INSTANT DDL from replicating",
+      "correct": "A"
+    },
+    {
+      "section": "MySQL",
+      "level": "staff",
+      "question": "InnoDB RR phantom protection uses next-key locks, but a SELECT without FOR UPDATE uses MVCC snapshots. A read-then-write transaction still commits a write skew. Why is RR not SERIALIZABLE here?",
+      "optionA": "Snapshot reads do not set predicate/gap locks, so two transactions can each read a disjoint set and write based on a condition that would not hold under true serial order",
+      "optionB": "InnoDB REPEATABLE READ always takes table locks on writes",
+      "optionC": "Write skew is prevented by the clustered index automatically",
+      "optionD": "The binary log serializes all snapshot reads",
+      "correct": "A"
+    },
+    {
+      "section": "MySQL",
+      "level": "staff",
+      "question": "You enable binlog_row_image = FULL for audit, then switch to MINIMAL to cut WAL-like binlog volume. What replica/trigger failure can MINIMAL cause?",
+      "optionA": "Replicas, row-based triggers, or tools that need unchanged columns cannot reconstruct the full before image",
+      "optionB": "MINIMAL disables crash recovery in InnoDB",
+      "optionC": "Gap locks are omitted from redo",
+      "optionD": "Covering indexes become invalid on replicas",
+      "correct": "A"
+    },
+    {
+      "section": "MySQL",
+      "level": "staff",
+      "question": "A hot row (counter) is updated by many sessions. InnoDB exhibits severe mutex/lock waits despite a tiny row. Which design actually scales?",
+      "optionA": "Sharding the counter into many rows or moving increments to a log/queue so clustered-record lock contention is spread",
+      "optionB": "Adding more secondary indexes on the counter column",
+      "optionC": "Switching binlog to STATEMENT so updates merge",
+      "optionD": "Raising the buffer pool so row locks are not taken",
+      "correct": "A"
+    },
+    {
+      "section": "MySQL",
+      "level": "staff",
+      "question": "Group Replication / a source-replica topology hits flow control because one replica's applier is slower. What is the real availability trade-off?",
+      "optionA": "The source throttles or the lagging member is expelled; you choose between write stalls and weaker durability/consistency of the set",
+      "optionB": "Flow control only affects SELECT on the source",
+      "optionC": "InnoDB stops taking gap locks during flow control",
+      "optionD": "The buffer pool is automatically resized to zero on slow members",
+      "correct": "A"
+    },
+    {
+      "section": "MySQL",
+      "level": "staff",
+      "question": "A generated column stored in the clustered index is used to index JSON. Why can this still be a write-amplification trap?",
+      "optionA": "Every base-column update rewrites the clustered row and maintains the generated value plus any indexes on it, inflating undo and binlog images",
+      "optionB": "Generated columns cannot be part of a secondary index",
+      "optionC": "JSON updates skip redo logging when generated columns exist",
+      "optionD": "Gap locks are taken on every JSON path globally",
+      "correct": "A"
+    },
+    {
+      "section": "MySQL",
+      "level": "staff",
+      "question": "During online rebuild DDL, concurrent DML is logged to an online log. What failure mode appears if that log overflows or the table is extremely hot?",
+      "optionA": "The ALTER fails or throttles; concurrent writes either abort the DDL or stall until the sort/apply of DML can catch up",
+      "optionB": "InnoDB silently drops DML that occurred during DDL",
+      "optionC": "The replica applies DDL without the concurrent DML",
+      "optionD": "Gap locks are converted to checksums in the online log",
+      "correct": "A"
+    },
+    {
+      "section": "MySQL",
+      "level": "staff",
+      "question": "You set replica_preserve_commit_order = ON with parallel workers. Throughput drops vs unordered apply. Why is that the correct default for many systems?",
+      "optionA": "Readers and cascading replicas observe the same commit order as the source, avoiding anomalies that cheaper parallel apply would allow",
+      "optionB": "Commit order preservation disables the redo log on the replica",
+      "optionC": "It is required for covering indexes to work",
+      "optionD": "It prevents gap locks on the source",
+      "correct": "A"
+    },
+    {
+      "section": "MySQL",
+      "level": "staff",
+      "question": "A descending scan of a secondary index plus clustered lookups causes 'random' primary-key I/O. How does a covering index or clustering change the shape?",
+      "optionA": "Covering avoids PK jumps; alternatively, designing the clustered key to match the access order turns random lookups into range reads",
+      "optionB": "InnoDB always stores secondary indexes in PK order",
+      "optionC": "Buffer pool prefetch only works on UUID keys",
+      "optionD": "Gap locks force sequential PK access regardless of index",
+      "correct": "A"
+    },
+    {
+      "section": "MySQL",
+      "level": "staff",
+      "question": "Crash recovery after a huge dirty buffer pool is slow even with a healthy redo log. Which setting tension is this?",
+      "optionA": "A large buffer pool with infrequent checkpoints / large max redo means more redo to apply and more dirty pages to flush on recovery",
+      "optionB": "innodb_flush_log_at_trx_commit = 1 disables recovery",
+      "optionC": "Row-based binlog replaces InnoDB redo, so recovery replays the binlog only",
+      "optionD": "Gap locks must be rebuilt from the binary log before the server opens",
+      "correct": "A"
+    },
+    {
+      "section": "MySQL",
+      "level": "staff",
+      "question": "A multi-table UPDATE with a join under RR locks more gaps than the business key suggests. What planner/lock interaction is involved?",
+      "optionA": "The chosen index and scan direction determine next-key lock ranges, including extra gaps if the access path is not a precise unique PK lookup",
+      "optionB": "Joins always take a global metadata lock instead of row locks",
+      "optionC": "RR disables index condition pushdown so locks cover the table",
+      "optionD": "Binlog row events take the locks on the replica only",
+      "correct": "A"
+    },
+    {
+      "section": "MySQL",
+      "level": "staff",
+      "question": "You split a hotspot table by hash of tenant_id into multiple tables to reduce clustered-page contention. Which cost did you just accept?",
+      "optionA": "Cross-tenant queries, FKs, and online DDL become N-way operations; replication parallelism may improve only if transactions do not touch many shards",
+      "optionB": "InnoDB can no longer use secondary indexes",
+      "optionC": "Gap locks disappear because hash tables have no order",
+      "optionD": "The buffer pool cannot cache more than one shard",
+      "correct": "A"
+    },
+    {
+      "section": "MySQL",
+      "level": "staff",
+      "question": "A point-in-time restore uses binlog + a backup taken with a snapshot. Restored data has extra or missing rows around the snapshot LSN. What was likely misaligned?",
+      "optionA": "The backup's InnoDB LSN / GTID set was not consistent with the binlog position applied, so recovery replayed the wrong range of row events",
+      "optionB": "Gap locks from the snapshot were not restored",
+      "optionC": "Covering indexes cannot be recovered from binlog",
+      "optionD": "READ COMMITTED backups skip the redo log",
+      "correct": "A"
+    },
+    {
+      "section": "MySQL",
+      "level": "staff",
+      "question": "temp tables in a transaction with binlog ROW and a rollback. Why can disk and replication still surprise you?",
+      "optionA": "Some temp-table patterns still write row events or consume undo/ibtmp; rollback does not shrink files, and mixed temp usage can desync replicas if logged incorrectly",
+      "optionB": "Temporary tables are always replicated as CREATE TABLE on disk",
+      "optionC": "Rollback of temp tables requires a full clustered rebuild of user tables",
+      "optionD": "Gap locks on temp tables are copied to the replica",
+      "correct": "A"
+    },
+    {
+      "section": "MySQL",
+      "level": "staff",
+      "question": "You consider SERIALIZABLE in InnoDB to kill write-skew. What operational price shows up under high read concurrency?",
+      "optionA": "Even plain SELECTs become locking reads (in InnoDB's SERIALIZABLE), exploding next-key lock conflicts and deadlocks versus RR snapshot reads",
+      "optionB": "SERIALIZABLE disables the buffer pool for reads",
+      "optionC": "SERIALIZABLE forces statement-based binlog",
+      "optionD": "Secondary indexes are ignored to make scans lock the clustered tree only",
+      "correct": "A"
+    }
+  ],
+  "flashcards": [
+    {
+      "section": "PostgreSQL",
+      "level": "junior",
+      "question": "Why does PostgreSQL MVCC make UPDATEs create a new heap tuple instead of overwriting in place?",
+      "answer": "Concurrent snapshots must still see the old row version until their xmin/xmax visibility rules allow the new one. Overwriting would make readers observe uncommitted or future states. The cost is dead tuples that VACUUM must later reclaim."
+    },
+    {
+      "section": "PostgreSQL",
+      "level": "junior",
+      "question": "What does WAL give you, and what does a CHECKPOINT change about crash recovery?",
+      "answer": "WAL records every change so a crash can redo work since the last consistent point. A checkpoint flushes dirty pages so older WAL can be recycled. Larger gaps between checkpoints speed normal writes but lengthen recovery."
+    },
+    {
+      "section": "PostgreSQL",
+      "level": "junior",
+      "question": "When does a btree index help a query, and when does it hurt?",
+      "answer": "It helps when the predicate is selective and avoids reading most heap pages. It hurts when it matches a large fraction of the table, adding random I/O on top of a cheaper sequential heap read, and it always adds write and vacuum cost."
+    },
+    {
+      "section": "PostgreSQL",
+      "level": "junior",
+      "question": "Why can a single idle-in-transaction session block autovacuum cleanup?",
+      "answer": "VACUUM cannot remove tuple versions still visible to any running snapshot. An old idle transaction holds back xmin, so dead rows pile up, tables bloat, and query plans degrade until that session ends."
+    },
+    {
+      "section": "PostgreSQL",
+      "level": "junior",
+      "question": "What is the practical difference between session pooling and transaction pooling?",
+      "answer": "Session pooling keeps session state (SET, prepared statements, WITH HOLD cursors) on one backend. Transaction pooling returns the backend at COMMIT, which multiplies capacity but breaks anything that assumes session affinity."
+    },
+    {
+      "section": "PostgreSQL",
+      "level": "junior",
+      "question": "How does a HOT update avoid touching indexes?",
+      "answer": "If indexed columns are unchanged and the new version fits on the same heap page, PostgreSQL links a heap-only tuple and leaves index pointers at the old line pointer. No free space or an indexed-column change forces a non-HOT update and index WAL."
+    },
+    {
+      "section": "PostgreSQL",
+      "level": "junior",
+      "question": "What does partition pruning need in order to actually reduce I/O?",
+      "answer": "The query must constrain the partition key with a planner-visible predicate (not hidden in a wrapper). Otherwise every partition is opened and planned, which can be slower than an unpartitioned table."
+    },
+    {
+      "section": "PostgreSQL",
+      "level": "junior",
+      "question": "What does synchronous_commit = off actually risk?",
+      "answer": "COMMIT returns before WAL is flushed to disk. After a crash, recently 'committed' transactions can vanish. You trade durability of the last moments of writes for lower COMMIT latency on data you can afford to lose."
+    },
+    {
+      "section": "PostgreSQL",
+      "level": "senior",
+      "question": "Why can index-only scans still hit the heap even with a covering INCLUDE index?",
+      "answer": "Visibility is stored in the heap, not the index. The visibility map lets PostgreSQL skip heap fetches only for all-visible pages. Without aggressive vacuum/freeze, an index-only plan still random-reads the table."
+    },
+    {
+      "section": "PostgreSQL",
+      "level": "senior",
+      "question": "How can a forgotten replication slot take down a primary?",
+      "answer": "The slot pins WAL (and for logical slots, catalog xmin) until the consumer acks. If the consumer dies, WAL accumulates until the disk fills and the primary cannot write. Monitor slot lag and drop unused slots."
+    },
+    {
+      "section": "PostgreSQL",
+      "level": "senior",
+      "question": "What is the durability vs latency ladder of synchronous_commit values with streaming replicas?",
+      "answer": "off/local control only local flush. on waits for a synchronous standby to flush WAL. remote_apply waits until replay has occurred. Each step reduces data-loss window and increases COMMIT stalls when the standby is slow."
+    },
+    {
+      "section": "PostgreSQL",
+      "level": "senior",
+      "question": "Why do GIN indexes on jsonb or arrays punish write-heavy tables?",
+      "answer": "One row produces many key postings. Pending lists, page merges, and vacuum of those postings generate more WAL and CPU than a single btree key. They shine for containment reads, not for high-rate updates of the documents."
+    },
+    {
+      "section": "PostgreSQL",
+      "level": "senior",
+      "question": "What does a Nested Loop with a bad row estimate do to runtime?",
+      "answer": "The inner plan runs once per outer row. If actual rows are orders of magnitude above estimate, you get nested explosions of index lookups or worse. Recheck statistics, correlated columns, and whether a hash or merge join would bound the work."
+    },
+    {
+      "section": "PostgreSQL",
+      "level": "senior",
+      "question": "How does bloat persist after n_dead_tup looks healthy?",
+      "answer": "VACUUM marks free space on pages for reuse but does not return pages to the OS. Fragmented fill and bloated indexes keep relation size high until CLUSTER, VACUUM FULL, or pg_repack rewrites the file."
+    },
+    {
+      "section": "PostgreSQL",
+      "level": "senior",
+      "question": "Why is CREATE INDEX CONCURRENTLY safer for uptime, and what can still go wrong?",
+      "answer": "It avoids a long ACCESS EXCLUSIVE lock by scanning twice and waiting out old snapshots. It can still fail if invalid indexes remain, if waiting transactions never end, or if it consumes enough I/O to impact production."
+    },
+    {
+      "section": "PostgreSQL",
+      "level": "senior",
+      "question": "What conflict happens when a hot standby query meets VACUUM replay?",
+      "answer": "Replay may need to remove tuple versions the standby query still sees. With short max_standby_streaming_delay the query is canceled; with hot_standby_feedback the primary delays cleanup and can bloat instead."
+    },
+    {
+      "section": "PostgreSQL",
+      "level": "staff",
+      "question": "How do full_page_writes and torn pages interact with WAL volume after checkpoints?",
+      "answer": "The first modification of a page after a checkpoint logs a full page image so recovery can rebuild a torn 8K write. That spikes WAL after each checkpoint. Disabling FPW is only safe if the storage truly writes pages atomically."
+    },
+    {
+      "section": "PostgreSQL",
+      "level": "staff",
+      "question": "Why can SSI abort a read-only transaction?",
+      "answer": "Serializable Snapshot Isolation tracks rw-conflicts. A read-only snapshot can complete a dangerous cycle with concurrent writes, so PostgreSQL aborts one participant. Retry is part of the model, not an engine bug."
+    },
+    {
+      "section": "PostgreSQL",
+      "level": "staff",
+      "question": "What goes wrong when a PL/pgSQL loop creates huge numbers of subtransactions?",
+      "answer": "Subxids overflow the in-memory cache and spill to pg_subtrans. Snapshot and hint-bit checks then do extra I/O, and a rollback of a deep subtransaction stack is expensive. Batch work instead of per-row SAVEPOINTs."
+    },
+    {
+      "section": "PostgreSQL",
+      "level": "staff",
+      "question": "When is BRIN the right index, and when does it become a lie?",
+      "answer": "BRIN is cheap and effective when physical order correlates with the indexed key (append-mostly time series). Random updates and heap-only churn widen range summaries until pruning stops working and you wanted btree or clustering."
+    },
+    {
+      "section": "PostgreSQL",
+      "level": "staff",
+      "question": "Why is a logical UPDATE that changes a replicated identity or row-filter key so dangerous?",
+      "answer": "Logical decoding emits an UPDATE, not a coordinated DELETE+INSERT across publications. Filters, partitions, and replica identity can drop the old key and never insert the new one, causing silent drift between nodes."
+    },
+    {
+      "section": "PostgreSQL",
+      "level": "staff",
+      "question": "How should insert-only tables be frozen so autovacuum does not rescan them forever?",
+      "answer": "Freeze tuples and set visibility-map bits on newly written pages so later vacuums skip all-visible ranges. Without that, wraparound vacuums repeatedly read terabytes of immutable history."
+    },
+    {
+      "section": "PostgreSQL",
+      "level": "staff",
+      "question": "What makes a table-rewrite DDL cutover fail even if you copy rows in batches?",
+      "answer": "Concurrent writes must be dual-written or paused; sequences, FKs, triggers, TOAST, and replica identity must stay consistent. A swap without a lock window or trigger-based backfill loses or duplicates rows at the boundary."
+    },
+    {
+      "section": "PostgreSQL",
+      "level": "staff",
+      "question": "How do hash vs range partitions differ for tenant retention and pruning?",
+      "answer": "Equality on the hash key still prunes, but a tenant's rows are scattered so you cannot detach one tenant cheaply. Range or list on tenant_id makes drop/archive a partition detach, at the cost of skew if some tenants are huge."
+    },
+    {
+      "section": "MySQL",
+      "level": "junior",
+      "question": "Why is InnoDB's primary key the table?",
+      "answer": "Rows live in the clustered B+tree ordered by the PK. Secondary indexes store the PK as the locator and then look up the clustered row. A random or very wide PK therefore slows inserts and inflates every secondary index."
+    },
+    {
+      "section": "MySQL",
+      "level": "junior",
+      "question": "What is a gap lock and why does it block inserts of keys that do not exist yet?",
+      "answer": "Under REPEATABLE READ, next-key locking locks the record and the gap before it so no one can insert into a scanned range. That prevents phantoms for locking reads, but concurrent inserts into those gaps wait or deadlock."
+    },
+    {
+      "section": "MySQL",
+      "level": "junior",
+      "question": "When is a covering secondary index worth the extra write cost?",
+      "answer": "When a frequent query can be satisfied from the secondary leaf alone, you avoid a clustered lookup per row. You pay for maintaining another tree on every write, so it should match a real hot path, not every column you might select."
+    },
+    {
+      "section": "MySQL",
+      "level": "junior",
+      "question": "Why can statement-based replication diverge while row-based does not?",
+      "answer": "SBR re-executes SQL on the replica, so non-deterministic functions, different optimizer choices, or data drift produce different rows. RBR ships row images, so the replica applies the same changes at higher binlog volume."
+    },
+    {
+      "section": "MySQL",
+      "level": "junior",
+      "question": "Why does replica lag often jump when a long source transaction commits?",
+      "answer": "The source writes the transaction to the binlog at commit, then the replica fetches and applies a burst of events. During the open transaction the replica can look caught up even though a large apply queue is about to arrive."
+    },
+    {
+      "section": "MySQL",
+      "level": "junior",
+      "question": "What does the InnoDB buffer pool cache, and what happens when it is too small?",
+      "answer": "It caches data and index pages (and related structures). If the working set misses, you pay disk reads and dirty-page flushes. Size it for clustered leaves plus the secondary indexes your workload actually touches."
+    },
+    {
+      "section": "MySQL",
+      "level": "junior",
+      "question": "Why are some ALTERs 'online' and others a table rebuild?",
+      "answer": "INSTANT/INPLACE changes that are metadata-only or can build a secondary index without copying the clustered table avoid a full rewrite. Changing types or some nullability still rebuilds rows, copies the table, and blocks or lags more."
+    },
+    {
+      "section": "MySQL",
+      "level": "junior",
+      "question": "How can REPEATABLE READ still surprise you with phantom-like behavior?",
+      "answer": "Plain SELECTs use a consistent MVCC snapshot and do not lock gaps. Mixing snapshot reads with later writes, or assuming RR is SERIALIZABLE, lets concurrent inserts change outcomes you thought were frozen."
+    },
+    {
+      "section": "MySQL",
+      "level": "senior",
+      "question": "Why must replicated InnoDB tables have an explicit primary key for RBR performance?",
+      "answer": "Row events locate the target row by PK (or a unique key). Without one, apply may scan the table per event. A hidden clustered key on the source does not give the replica a stable, efficient lookup."
+    },
+    {
+      "section": "MySQL",
+      "level": "senior",
+      "question": "What durability do you lose with innodb_flush_log_at_trx_commit = 2?",
+      "answer": "Redo is flushed about once per second rather than at every COMMIT. A crash of the OS or host can drop recent committed transactions. You keep protection against mysqld process death if the OS still flushed the file."
+    },
+    {
+      "section": "MySQL",
+      "level": "senior",
+      "question": "How do next-key locks on a secondary index deadlock with inserts?",
+      "answer": "A range locking read holds record plus gap locks on the secondary, then clustered rows. An insert takes an insert-intention lock in the same gap and needs the clustered slot. Lock order differs, so two sessions can cycle."
+    },
+    {
+      "section": "MySQL",
+      "level": "senior",
+      "question": "When does InnoDB change buffering help, and when is it useless?",
+      "answer": "It defers secondary-index updates when those pages are not in the buffer pool, absorbing random writes. Unique checks that must see the index immediately, and a fully cached working set, get little benefit and can hide a later merge storm."
+    },
+    {
+      "section": "MySQL",
+      "level": "senior",
+      "question": "Why do huge DELETEs create both source stalls and replica lag?",
+      "answer": "One transaction holds undo until commit, writes a massive RBR stream at once, and leaves purge to catch up. Batches bound undo, binlog bursts, and apply time so replicas and purge stay even."
+    },
+    {
+      "section": "MySQL",
+      "level": "senior",
+      "question": "What does a growing undo history list length mean for reads?",
+      "answer": "Purge cannot remove old row versions while some snapshot still needs them. Readers walk longer version chains, tablespaces grow, and eventually you hit rollback-segment pressure. Kill old snapshots; do not just add disk."
+    },
+    {
+      "section": "MySQL",
+      "level": "senior",
+      "question": "Why can parallel replica workers still run as if single-threaded?",
+      "answer": "Apply must respect conflicts: overlapping rows, missing writesets, or commit-order constraints serialize those transactions. Hot tables or one giant transaction become the bottleneck no matter how many workers you start."
+    },
+    {
+      "section": "MySQL",
+      "level": "senior",
+      "question": "What replica risk comes with INSTANT DDL?",
+      "answer": "The binlog records a DDL that only newer engines can apply as metadata. Older replicas fail to apply or rebuild differently. Rolling upgrades must keep replica versions capable of the same INSTANT row format."
+    },
+    {
+      "section": "MySQL",
+      "level": "staff",
+      "question": "Why does InnoDB REPEATABLE READ not prevent write skew the way SERIALIZABLE does?",
+      "answer": "Snapshot reads take no predicate locks, so two transactions can each read data that would forbid the other's write and both commit. SERIALIZABLE turns those reads into locking reads, which serializes but deadlocks more under load."
+    },
+    {
+      "section": "MySQL",
+      "level": "staff",
+      "question": "What breaks if you set binlog_row_image = MINIMAL to save space?",
+      "answer": "Only changed columns (plus keys) are logged. Tools, row triggers, or replicas that need full before-images cannot reconstruct the old row. FULL is safer for audit and some CDC; MINIMAL is a measured bandwidth trade."
+    },
+    {
+      "section": "MySQL",
+      "level": "staff",
+      "question": "How do you scale a single hot clustered row that every session updates?",
+      "answer": "Record locks on that clustered leaf serialize writers; a bigger buffer pool does not help. Split the counter into many rows, append events to a log, or move contention out of InnoDB. Indexes on the counter only add more work."
+    },
+    {
+      "section": "MySQL",
+      "level": "staff",
+      "question": "What is the availability vs consistency choice when Group Replication flow-controls a slow member?",
+      "answer": "The set can throttle writers to let the slow member catch up, or expel it and keep taking writes with a smaller, sometimes less durable, group. Ignoring lag silently risks divergence and long recovery."
+    },
+    {
+      "section": "MySQL",
+      "level": "staff",
+      "question": "Why can online rebuild DDL fail on a very hot table even when the algorithm is INPLACE?",
+      "answer": "Concurrent DML is buffered in an online log that must be applied at the end. If the table is too write-heavy the log overflows or catch-up never finishes, so ALTER aborts or writes stall. Schedule rebuilds or throttle DML."
+    },
+    {
+      "section": "MySQL",
+      "level": "staff",
+      "question": "Why keep replica_preserve_commit_order on when it slows parallel apply?",
+      "answer": "Without it, a replica can expose a commit order the source never had, breaking read-your-writes for apps on the replica and confusing cascading replicas. You buy apply throughput by giving up that observed serial order."
+    },
+    {
+      "section": "MySQL",
+      "level": "staff",
+      "question": "How should backup LSN/GTID and binlog position relate for a correct PITR?",
+      "answer": "The snapshot must be a consistent InnoDB LSN/GTID set, and restore must apply binlog from exactly that point. A file copy without redo recovery, or applying from the wrong GTID, duplicates or skips row events around the cut."
+    },
+    {
+      "section": "MySQL",
+      "level": "staff",
+      "question": "How do join-based multi-table updates acquire surprisingly wide next-key locks?",
+      "answer": "Locks follow the actual access method: whichever index and range the optimizer scans, including extra gaps if it is not a unique PK point lookup. Rewriting to precise PK updates shrinks lock ranges and deadlock surface."
+    }
+  ]
+}

@@ -1,0 +1,1698 @@
+{
+  "quiz": [
+    {
+      "section": "DynamoDB",
+      "level": "Beginner",
+      "question": "A product table uses status as the partition key, and almost every item is ACTIVE. Writes start throttling even though table-level capacity looks unused. What is the real problem?",
+      "optionA": "DynamoDB cannot store more than one item per partition key",
+      "optionB": "A low-cardinality partition key funnels traffic onto too few partitions (hot keys)",
+      "optionC": "On-demand mode ignores partition keys",
+      "optionD": "Sort keys are required for every write",
+      "correct": "B"
+    },
+    {
+      "section": "DynamoDB",
+      "level": "Beginner",
+      "question": "Why do engineers treat the 400KB item size cap as a modeling constraint, not just a storage limit?",
+      "optionA": "Larger items must be split across partitions automatically",
+      "optionB": "Every read and write moves the whole item, so fat items amplify latency, cost, and hot-partition risk",
+      "optionC": "Secondary indexes cannot project attributes under 400KB",
+      "optionD": "Transactions fail if any item is under 400KB",
+      "correct": "B"
+    },
+    {
+      "section": "DynamoDB",
+      "level": "Beginner",
+      "question": "A dashboard needs every order from last year with no known user or order id. Why is a table Scan usually the wrong first design?",
+      "optionA": "Scan can only return one item",
+      "optionB": "Scan walks the whole table, burns read capacity on irrelevant items, and gets slower as data grows",
+      "optionC": "Scan is strongly consistent and therefore forbidden",
+      "optionD": "Scan cannot paginate",
+      "correct": "B"
+    },
+    {
+      "section": "DynamoDB",
+      "level": "Beginner",
+      "question": "When should you choose a strongly consistent read over the default eventually consistent read?",
+      "optionA": "Whenever you want cheaper reads",
+      "optionB": "When the next decision cannot tolerate a replica that has not yet seen the latest write to that item",
+      "optionC": "When reading from a global secondary index",
+      "optionD": "When the item is larger than 400KB",
+      "correct": "B"
+    },
+    {
+      "section": "DynamoDB",
+      "level": "Beginner",
+      "question": "On-demand vs provisioned capacity is mainly a statement about workload shape. Which pairing is right?",
+      "optionA": "On-demand for spiky or unknown traffic; provisioned for steady, forecastable load",
+      "optionB": "On-demand only for strongly consistent reads",
+      "optionC": "Provisioned only for tables without sort keys",
+      "optionD": "On-demand removes partition-key hotspots",
+      "correct": "A"
+    },
+    {
+      "section": "DynamoDB",
+      "level": "Beginner",
+      "question": "What does a well-chosen partition key actually control?",
+      "optionA": "Which AWS region stores the table",
+      "optionB": "How traffic is spread across storage partitions",
+      "optionC": "Whether reads are strongly consistent",
+      "optionD": "The maximum item size",
+      "correct": "B"
+    },
+    {
+      "section": "DynamoDB",
+      "level": "Beginner",
+      "question": "You know userId and want that user's orders in a time range. Which operation matches the data model?",
+      "optionA": "Scan with a filter on userId",
+      "optionB": "Query on partition key userId and a sort-key condition on timestamp",
+      "optionC": "GetItem with only the timestamp",
+      "optionD": "BatchWriteItem to read",
+      "correct": "B"
+    },
+    {
+      "section": "DynamoDB",
+      "level": "Beginner",
+      "question": "A single celebrity userId receives a huge fraction of likes. Adaptive capacity cannot fully save you because:",
+      "optionA": "All items for one partition key still share that key's throughput ceiling",
+      "optionB": "DynamoDB forbids popular keys",
+      "optionC": "On-demand tables do not shard",
+      "optionD": "GSIs ignore partition keys",
+      "correct": "A"
+    },
+    {
+      "section": "DynamoDB",
+      "level": "Beginner",
+      "question": "Why store a profile photo URL (or S3 key) in DynamoDB instead of the image bytes?",
+      "optionA": "URLs are the only string type DynamoDB allows",
+      "optionB": "Images blow past the item-size model, make every user read heavier, and turn a metadata store into blob storage",
+      "optionC": "S3 cannot store images",
+      "optionD": "Binary attributes are eventually consistent only",
+      "correct": "B"
+    },
+    {
+      "section": "DynamoDB",
+      "level": "Beginner",
+      "question": "Filter expressions on a Scan or Query run after capacity is consumed. What does that imply?",
+      "optionA": "Filters are a substitute for a good key design",
+      "optionB": "You still pay to read items that the filter later throws away",
+      "optionC": "Filters make the operation strongly consistent",
+      "optionD": "Filters avoid partition throttling",
+      "correct": "B"
+    },
+    {
+      "section": "DynamoDB",
+      "level": "Beginner",
+      "question": "Eventually consistent reads are the default because they:",
+      "optionA": "Always return stale data",
+      "optionB": "Cost less and are enough when the client can tolerate a brief lag after a write",
+      "optionC": "Bypass partition limits",
+      "optionD": "Are the only option for GetItem",
+      "correct": "B"
+    },
+    {
+      "section": "DynamoDB",
+      "level": "Beginner",
+      "question": "A table has a sharp weekday peak and near-zero nights. What capacity shape fits without overpaying all week?",
+      "optionA": "Provisioned at the peak 24/7",
+      "optionB": "On-demand, or provisioned with auto scaling that tracks the daily curve",
+      "optionC": "A global table in every region",
+      "optionD": "A Scan instead of Query",
+      "correct": "B"
+    },
+    {
+      "section": "DynamoDB",
+      "level": "Beginner",
+      "question": "What is the practical difference between GetItem and Query?",
+      "optionA": "GetItem needs the full primary key for one item; Query reads a partition (optionally a sort-key range)",
+      "optionB": "Query cannot use a sort key",
+      "optionC": "GetItem always scans the table",
+      "optionD": "They are identical if eventual consistency is on",
+      "correct": "A"
+    },
+    {
+      "section": "DynamoDB",
+      "level": "Beginner",
+      "question": "High partition-key cardinality matters because:",
+      "optionA": "DynamoDB only allows 10 distinct keys",
+      "optionB": "Many distinct, relatively even keys let the service spread load; a handful of keys cannot",
+      "optionC": "Cardinality enables strongly consistent GSIs",
+      "optionD": "Cardinality removes the 400KB limit",
+      "correct": "B"
+    },
+    {
+      "section": "DynamoDB",
+      "level": "Intermediate",
+      "question": "A GSI uses email as its partition key. Some emails are extremely popular write targets. What happens?",
+      "optionA": "Only the base table can throttle; GSIs share infinite capacity",
+      "optionB": "The GSI can hot-partition and backpressure base-table writes that must update that index",
+      "optionC": "DynamoDB silently drops GSI updates",
+      "optionD": "Email keys are automatically sharded",
+      "correct": "B"
+    },
+    {
+      "section": "DynamoDB",
+      "level": "Intermediate",
+      "question": "Why are GSI reads eventually consistent even if you request strong consistency on the table?",
+      "optionA": "GSIs live in a separate replication path; they are not a strongly consistent projection of the base item",
+      "optionB": "GSIs are stored on the client",
+      "optionC": "Strong consistency is deprecated",
+      "optionD": "GSIs only support Scan",
+      "correct": "A"
+    },
+    {
+      "section": "DynamoDB",
+      "level": "Intermediate",
+      "question": "You need to query users by status, but 95% of users are ACTIVE. Why is a GSI on status a poor partition design?",
+      "optionA": "GSIs cannot use strings",
+      "optionB": "Status has almost no cardinality, so the ACTIVE partition becomes a hotspot",
+      "optionC": "GSIs require numeric keys",
+      "optionD": "Status attributes cannot be projected",
+      "correct": "B"
+    },
+    {
+      "section": "DynamoDB",
+      "level": "Intermediate",
+      "question": "Each order item also updates two GSIs. Under a write-heavy workload this matters because:",
+      "optionA": "GSIs are read-only",
+      "optionB": "Every base write fans out extra index writes, so write amplification and index hot keys become the limiter",
+      "optionC": "GSIs batch all writes into one WCU",
+      "optionD": "Index writes are free if the table is on-demand",
+      "correct": "B"
+    },
+    {
+      "section": "DynamoDB",
+      "level": "Intermediate",
+      "question": "A session blob is approaching a few hundred KB and is read on every API call. Best modeling move?",
+      "optionA": "Keep growing the item; 400KB is a soft guideline",
+      "optionB": "Move the blob to object storage and keep a pointer plus small, frequently read fields in DynamoDB",
+      "optionC": "Store the blob as the partition key",
+      "optionD": "Use Scan to fetch only one attribute",
+      "correct": "B"
+    },
+    {
+      "section": "DynamoDB",
+      "level": "Intermediate",
+      "question": "Provisioned capacity is set high at the table, but one partition key still throttles. What is the lesson?",
+      "optionA": "Table-level capacity is not a guarantee for a single hot key",
+      "optionB": "Throttling always means the account is out of quota",
+      "optionC": "You must switch to Scan",
+      "optionD": "Strongly consistent reads ignore throttling",
+      "correct": "A"
+    },
+    {
+      "section": "DynamoDB",
+      "level": "Intermediate",
+      "question": "Sparse GSIs (only items that have the index keys) are useful because:",
+      "optionA": "They make every item strongly consistent",
+      "optionB": "They keep the index small and aligned to a real access path instead of indexing the whole table",
+      "optionC": "They disable throttling",
+      "optionD": "They allow items larger than 400KB",
+      "correct": "B"
+    },
+    {
+      "section": "DynamoDB",
+      "level": "Intermediate",
+      "question": "Write sharding (userId#0 .. userId#N) helps a hot key. What cost do you accept?",
+      "optionA": "No cost; it is free",
+      "optionB": "Reads that need the full picture must fan in across shards, and shard count becomes part of the model",
+      "optionC": "Sort keys no longer work",
+      "optionD": "You lose eventual consistency",
+      "correct": "B"
+    },
+    {
+      "section": "DynamoDB",
+      "level": "Intermediate",
+      "question": "A reporting job Scans nightly 'because it is off-peak'. Why can this still hurt production?",
+      "optionA": "Scans take a global lock",
+      "optionB": "Scan still consumes read capacity and can steal throughput from live partitions if not isolated (separate table/export/on-demand job design)",
+      "optionC": "Scans convert the table to provisioned",
+      "optionD": "Nightly jobs cannot use IAM",
+      "correct": "B"
+    },
+    {
+      "section": "DynamoDB",
+      "level": "Intermediate",
+      "question": "You need 'read my write' on the same item in one request path. Which read should you use?",
+      "optionA": "Eventually consistent GetItem on a GSI",
+      "optionB": "Strongly consistent GetItem/Query on the base table",
+      "optionC": "Scan with a filter",
+      "optionD": "Any GSI Query",
+      "correct": "B"
+    },
+    {
+      "section": "DynamoDB",
+      "level": "Intermediate",
+      "question": "Steady 5k QPS all day vs a flash-sale spike to 80k for 20 minutes. Capacity modes?",
+      "optionA": "Both must be provisioned at 80k",
+      "optionB": "Steady load often fits provisioned; the flash-sale shape is why on-demand (or a big scale-up plan) exists",
+      "optionC": "On-demand cannot handle 80k",
+      "optionD": "Provisioned ignores partition keys during spikes",
+      "correct": "B"
+    },
+    {
+      "section": "DynamoDB",
+      "level": "Intermediate",
+      "question": "Projecting ALL attributes into a GSI is convenient. The downside is:",
+      "optionA": "Queries become strongly consistent",
+      "optionB": "Index storage and write cost track the full item, so fat items make the GSI expensive and slower to update",
+      "optionC": "You can no longer Query the GSI",
+      "optionD": "The 400KB limit disappears",
+      "correct": "B"
+    },
+    {
+      "section": "DynamoDB",
+      "level": "Intermediate",
+      "question": "A Query without a partition key is invalid because:",
+      "optionA": "Query is just a slower Scan",
+      "optionB": "Query is defined as 'read this partition (and maybe a sort-key slice)', not 'search the table'",
+      "optionC": "Partition keys are optional on tables",
+      "optionD": "Query only works on GSIs",
+      "correct": "B"
+    },
+    {
+      "section": "DynamoDB",
+      "level": "Intermediate",
+      "question": "Condition checks (optimistic locking with a version attribute) exist because:",
+      "optionA": "PutItem always appends",
+      "optionB": "Two writers can overwrite the same item; you need a predicate so the second write fails instead of clobbering",
+      "optionC": "GSIs cannot update",
+      "optionD": "Strongly consistent reads lock the item",
+      "correct": "B"
+    },
+    {
+      "section": "DynamoDB",
+      "level": "Advanced",
+      "question": "Adaptive capacity moved extra throughput toward a hot partition, but p99 still collapses on one productId. What is left?",
+      "optionA": "Buy more table-level RCUs only",
+      "optionB": "Change the key (shard, invert access pattern, or cache) because one key is a physical bottleneck",
+      "optionC": "Enable strongly consistent GSIs",
+      "optionD": "Switch every read to Scan",
+      "correct": "B"
+    },
+    {
+      "section": "DynamoDB",
+      "level": "Advanced",
+      "question": "A leaderboard GSI partition key is the constant LEADERBOARD. Why will this fail at scale?",
+      "optionA": "Constants are not valid attribute names",
+      "optionB": "Every write lands on one index partition; you modeled a global hot key",
+      "optionC": "GSIs cannot sort",
+      "optionD": "Leaderboards require strongly consistent scans",
+      "correct": "B"
+    },
+    {
+      "section": "DynamoDB",
+      "level": "Advanced",
+      "question": "Single-table design is not 'put everything in one table'. The actual rule is:",
+      "optionA": "Minimize the number of AWS resources on the bill",
+      "optionB": "Shape items and keys so each access pattern is a Query on a partition, not a Scan across entity types",
+      "optionC": "Never use GSIs",
+      "optionD": "Store blobs inline to avoid joins",
+      "correct": "B"
+    },
+    {
+      "section": "DynamoDB",
+      "level": "Advanced",
+      "question": "A 350KB item is updated 20 times a second to flip one flag. Why is this an incident waiting to happen?",
+      "optionA": "Flags cannot live in DynamoDB",
+      "optionB": "Each update rewrites the whole large item, multiplying write cost and making that key hotter than the business change requires",
+      "optionC": "Updates are eventually consistent only",
+      "optionD": "On-demand forbids updates",
+      "correct": "B"
+    },
+    {
+      "section": "DynamoDB",
+      "level": "Advanced",
+      "question": "You need atomic debit of account A and credit of account B. Why is 'two PutItems' insufficient?",
+      "optionA": "PutItem cannot write numbers",
+      "optionB": "Each item write is atomic alone; a crash between them can strand money unless you use a transaction or a modeled workflow",
+      "optionC": "Accounts must share a partition key always",
+      "optionD": "Strongly consistent reads provide atomic multi-item writes",
+      "correct": "B"
+    },
+    {
+      "section": "DynamoDB",
+      "level": "Advanced",
+      "question": "Global tables give you multi-region copies. What do they not give you?",
+      "optionA": "Lower read latency near a replica",
+      "optionB": "A single globally strongly consistent item view for every read",
+      "optionC": "Regional isolation if you design for it",
+      "optionD": "The same partition-key model in each region",
+      "correct": "B"
+    },
+    {
+      "section": "DynamoDB",
+      "level": "Advanced",
+      "question": "A GSI is KEYS_ONLY. A query against it still needs five large attributes. Tradeoff?",
+      "optionA": "The GSI returns those attributes for free",
+      "optionB": "You do a cheap index Query then GetItem the base rows; you avoided write amplification at the cost of extra reads",
+      "optionC": "KEYS_ONLY implies strong consistency",
+      "optionD": "You must Scan the base table",
+      "correct": "B"
+    },
+    {
+      "section": "DynamoDB",
+      "level": "Advanced",
+      "question": "Time-series data with PK = today's date concentrates today's writes. A better key shape is:",
+      "optionA": "PK = a single string 'timeseries'",
+      "optionB": "Shard by a high-cardinality id (device, customer, or time bucket + shard) so ingests spread, and query by the access pattern you actually have",
+      "optionC": "PK = status ACTIVE",
+      "optionD": "No partition key, sort key only",
+      "correct": "B"
+    },
+    {
+      "section": "DynamoDB",
+      "level": "Advanced",
+      "question": "On-demand still throttles a partition. Why are people surprised?",
+      "optionA": "On-demand advertises infinite per-key QPS",
+      "optionB": "On-demand removes table-level provisioning, not the physics of a single hot key or a sudden jump beyond what that partition can absorb",
+      "optionC": "On-demand disables GSIs",
+      "optionD": "On-demand is only for Scans",
+      "correct": "B"
+    },
+    {
+      "section": "DynamoDB",
+      "level": "Advanced",
+      "question": "Exporting to S3 / using an incremental export for analytics is preferred over a live Scan because:",
+      "optionA": "S3 is a database",
+      "optionB": "You isolate heavy read traffic from the online table's partitions and capacity",
+      "optionC": "Exports are strongly consistent GSIs",
+      "optionD": "Scans cannot paginate",
+      "correct": "B"
+    },
+    {
+      "section": "DynamoDB",
+      "level": "Advanced",
+      "question": "A cache in front of DynamoDB for a hot product key helps reads. What must you still design for?",
+      "optionA": "The cache makes writes strongly consistent across regions",
+      "optionB": "Cache misses, TTL expiry, and stampede can slam the same hot key; writes still hit DynamoDB",
+      "optionC": "Partition keys are no longer needed",
+      "optionD": "GSIs become strongly consistent",
+      "correct": "B"
+    },
+    {
+      "section": "DynamoDB",
+      "level": "Advanced",
+      "question": "Why model 1:N as partition key = parent and sort key = child rather than embedding an unbounded list on the parent?",
+      "optionA": "Lists are not a DynamoDB type",
+      "optionB": "The parent item would grow toward 400KB, every child change would rewrite the parent, and you could not Query a slice of children",
+      "optionC": "Sort keys forbid queries",
+      "optionD": "Children cannot share a table",
+      "correct": "B"
+    },
+    {
+      "section": "DynamoDB",
+      "level": "Advanced",
+      "question": "Strongly consistent reads cost more and still do not make a GSI or a global-table replica 'the truth everywhere'. The honest contract is:",
+      "optionA": "Strong reads are a quorum read of that table's item in that region, not a global lock",
+      "optionB": "Strong reads lock all GSIs",
+      "optionC": "Strong reads are free on on-demand",
+      "optionD": "Strong reads disable throttling",
+      "correct": "A"
+    },
+    {
+      "section": "DynamoDB",
+      "level": "Advanced",
+      "question": "You are asked to 'just add an index' for an unplanned access pattern. What do you check first?",
+      "optionA": "Whether the new key has cardinality and even traffic, and whether the extra write fan-out is acceptable",
+      "optionB": "Whether Scan would be faster",
+      "optionC": "Whether items exceed 400KB after indexing",
+      "optionD": "Whether the index can be strongly consistent",
+      "correct": "A"
+    },
+    {
+      "section": "Redis",
+      "level": "Beginner",
+      "question": "Redis executes commands on a primary single thread (per process). A slow KEYS or huge SUNION therefore:",
+      "optionA": "Runs on extra cores automatically",
+      "optionB": "Blocks other clients on that instance until it finishes",
+      "optionC": "Is always O(1)",
+      "optionD": "Only affects AOF rewrite",
+      "correct": "B"
+    },
+    {
+      "section": "Redis",
+      "level": "Beginner",
+      "question": "Why is Redis a cache or speed layer, not the system of record, in most architectures?",
+      "optionA": "It cannot store strings",
+      "optionB": "Memory, eviction, async replicas, and restart/restore behavior mean data can disappear; durable truth belongs in a database designed for it",
+      "optionC": "Redis cannot set TTLs",
+      "optionD": "Cluster mode forbids writes",
+      "correct": "B"
+    },
+    {
+      "section": "Redis",
+      "level": "Beginner",
+      "question": "RDB vs AOF in one line:",
+      "optionA": "RDB is a point-in-time snapshot; AOF logs writes for a tighter durability window, at more I/O cost",
+      "optionB": "AOF is only for cluster slots",
+      "optionC": "RDB and AOF are identical",
+      "optionD": "RDB makes Redis multi-threaded",
+      "correct": "A"
+    },
+    {
+      "section": "Redis",
+      "level": "Beginner",
+      "question": "maxmemory is hit and the policy is allkeys-lru. What happens to a new SET?",
+      "optionA": "Redis refuses all commands forever",
+      "optionB": "Redis evicts some existing key to free memory, then accepts the write",
+      "optionC": "Redis spills to disk as the source of truth",
+      "optionD": "Redis converts to AOF-only",
+      "correct": "B"
+    },
+    {
+      "section": "Redis",
+      "level": "Beginner",
+      "question": "A cache stampede (thundering herd) is:",
+      "optionA": "AOF rewrite using too many cores",
+      "optionB": "Many clients missing the same expired key at once and all hitting the database together",
+      "optionC": "Cluster slot migration",
+      "optionD": "Replica promotion",
+      "correct": "B"
+    },
+    {
+      "section": "Redis",
+      "level": "Beginner",
+      "question": "In Redis Cluster, a key maps to a hash slot. Multi-key commands work only when:",
+      "optionA": "All keys live in the same slot (often forced with a hash tag)",
+      "optionB": "You use KEYS first",
+      "optionC": "AOF is enabled",
+      "optionD": "Eviction is noeviction",
+      "correct": "A"
+    },
+    {
+      "section": "Redis",
+      "level": "Beginner",
+      "question": "KEYS * in production is dangerous because:",
+      "optionA": "It is eventually consistent",
+      "optionB": "It is a blocking, whole-keyspace scan on a single-threaded server",
+      "optionC": "It evicts all keys",
+      "optionD": "It only works in Cluster",
+      "correct": "B"
+    },
+    {
+      "section": "Redis",
+      "level": "Beginner",
+      "question": "TTL on a cache key means:",
+      "optionA": "The database row is deleted",
+      "optionB": "Redis may drop the key after expiry; the source of truth must still exist elsewhere if you need it",
+      "optionC": "The key is persisted to RDB immediately",
+      "optionD": "Replicas cannot read it",
+      "correct": "B"
+    },
+    {
+      "section": "Redis",
+      "level": "Beginner",
+      "question": "Pipelining helps throughput because:",
+      "optionA": "It makes Redis multi-threaded",
+      "optionB": "The client sends many commands without waiting for each round trip, feeding the single-threaded loop more work per RTT",
+      "optionC": "It disables eviction",
+      "optionD": "It writes AOF twice",
+      "correct": "B"
+    },
+    {
+      "section": "Redis",
+      "level": "Beginner",
+      "question": "noeviction as a maxmemory policy means:",
+      "optionA": "Keys never expire",
+      "optionB": "Writes that need memory fail instead of dropping other keys",
+      "optionC": "Redis becomes the source of truth",
+      "optionD": "Cluster slots merge",
+      "correct": "B"
+    },
+    {
+      "section": "Redis",
+      "level": "Beginner",
+      "question": "Reading from a replica can be stale because:",
+      "optionA": "Replicas use Scan only",
+      "optionB": "Replication is asynchronous; a write on the primary may not have arrived yet",
+      "optionC": "Replicas ignore AOF",
+      "optionD": "Replicas always evict first",
+      "correct": "B"
+    },
+    {
+      "section": "Redis",
+      "level": "Beginner",
+      "question": "A huge value on one hot key is a problem even with Cluster because:",
+      "optionA": "Slots cannot hold strings",
+      "optionB": "That key still lives on one node and is served by one command loop; Cluster shards keys, not a single giant value",
+      "optionC": "RDB cannot snapshot large keys",
+      "optionD": "TTL cannot apply",
+      "correct": "B"
+    },
+    {
+      "section": "Redis",
+      "level": "Beginner",
+      "question": "If the process restarts and you only have occasional RDB snapshots, you should expect:",
+      "optionA": "Zero data loss always",
+      "optionB": "Loss of writes since the last snapshot unless AOF (or a real database) covers them",
+      "optionC": "Automatic replay from clients",
+      "optionD": "Slot counts to reset",
+      "correct": "B"
+    },
+    {
+      "section": "Redis",
+      "level": "Beginner",
+      "question": "volatile-lru evicts:",
+      "optionA": "Any key in LRU order",
+      "optionB": "Only keys that already have an expire set",
+      "optionC": "Only hash slots 0-100",
+      "optionD": "AOF files",
+      "correct": "B"
+    },
+    {
+      "section": "Redis",
+      "level": "Intermediate",
+      "question": "A Lua script in Redis is attractive for compare-and-set because:",
+      "optionA": "Lua runs on all cluster nodes as a distributed transaction",
+      "optionB": "The script runs atomically on that instance's single thread, so no other command interleaves",
+      "optionC": "Lua bypasses maxmemory",
+      "optionD": "Lua is persisted as the source of truth",
+      "correct": "B"
+    },
+    {
+      "section": "Redis",
+      "level": "Intermediate",
+      "question": "AOF fsync every second vs always: the product question is:",
+      "optionA": "Which cluster slot to fsync",
+      "optionB": "How much acknowledged write loss you accept on a crash versus how hard you hit the disk",
+      "optionC": "Whether eviction is LRU",
+      "optionD": "Whether replicas can read",
+      "correct": "B"
+    },
+    {
+      "section": "Redis",
+      "level": "Intermediate",
+      "question": "Cache stampede mitigation that belongs in the app, not just a longer TTL:",
+      "optionA": "Disable AOF",
+      "optionB": "Single-flight / mutex per key, probabilistic early expiry, or serving stale while one worker refills",
+      "optionC": "Switch to KEYS",
+      "optionD": "Store everything without TTLs and never evict",
+      "correct": "B"
+    },
+    {
+      "section": "Redis",
+      "level": "Intermediate",
+      "question": "Hash tags like {user:42}:profile and {user:42}:orders exist so that:",
+      "optionA": "Eviction skips those keys",
+      "optionB": "Both keys hash to the same cluster slot and can be used in one multi-key command",
+      "optionC": "AOF groups them into one fsync",
+      "optionD": "They become the database of record",
+      "correct": "B"
+    },
+    {
+      "section": "Redis",
+      "level": "Intermediate",
+      "question": "MULTI/EXEC is not a distributed transaction. It:",
+      "optionA": "Locks every cluster node",
+      "optionB": "Queues commands and runs them sequentially on one instance; Cluster still will not span slots",
+      "optionC": "Writes RDB first",
+      "optionD": "Makes replicas strongly consistent",
+      "correct": "B"
+    },
+    {
+      "section": "Redis",
+      "level": "Intermediate",
+      "question": "A background RDB save (fork) on a huge dataset can stall latency because:",
+      "optionA": "RDB uses cluster slots",
+      "optionB": "Copy-on-write after fork can spike memory and pause the process under write load",
+      "optionC": "RDB disables pipelining",
+      "optionD": "RDB turns off eviction",
+      "correct": "B"
+    },
+    {
+      "section": "Redis",
+      "level": "Intermediate",
+      "question": "You treat Redis lists as a job queue and crash the worker after LPOP. What did you lose?",
+      "optionA": "Nothing; AOF always replays the job to the worker",
+      "optionB": "The job, unless you used a reliable pattern (BRPOPLPUSH/streams + ack) and a real backing store for truth",
+      "optionC": "Only the TTL",
+      "optionD": "A cluster slot",
+      "correct": "B"
+    },
+    {
+      "section": "Redis",
+      "level": "Intermediate",
+      "question": "Hot key on one cluster node shows 100% CPU while others are idle. Fix is not 'add replicas of other nodes' but:",
+      "optionA": "More AOF fsync",
+      "optionB": "Split the key (sharding in the app), cache locally, or read-fanout carefully; the slot/node owning that key is the bottleneck",
+      "optionC": "KEYS to relocate data",
+      "optionD": "Switch eviction to noeviction",
+      "correct": "B"
+    },
+    {
+      "section": "Redis",
+      "level": "Intermediate",
+      "question": "allkeys-lfu vs allkeys-lru: you pick LFU when:",
+      "optionA": "You want AOF-like durability",
+      "optionB": "Frequency beats recency: a key read often should survive even if it was not the most recently touched",
+      "optionC": "Cluster slots should rebalance",
+      "optionD": "You need strong consistency",
+      "correct": "B"
+    },
+    {
+      "section": "Redis",
+      "level": "Intermediate",
+      "question": "Pub/Sub is a poor audit log because:",
+      "optionA": "Messages are larger than 400KB",
+      "optionB": "It is fire-and-forget in-memory fanout; disconnected subscribers miss messages and nothing is the source of truth",
+      "optionC": "It uses too many cluster slots",
+      "optionD": "It always fsyncs AOF",
+      "correct": "B"
+    },
+    {
+      "section": "Redis",
+      "level": "Intermediate",
+      "question": "A connection pool of 5000 clients against one instance can still collapse throughput because:",
+      "optionA": "Redis only allows one TCP connection",
+      "optionB": "The single thread plus huge output buffers and context switching become the limit; more conns are not more cores",
+      "optionC": "Pools disable pipelining",
+      "optionD": "Pools force RDB off",
+      "correct": "B"
+    },
+    {
+      "section": "Redis",
+      "level": "Intermediate",
+      "question": "SCAN is preferred over KEYS because:",
+      "optionA": "SCAN is strongly consistent across the cluster",
+      "optionB": "It incrementally iterates without holding the server in one giant blocking call",
+      "optionC": "SCAN writes AOF",
+      "optionD": "SCAN never misses keys even if they are mutated",
+      "correct": "B"
+    },
+    {
+      "section": "Redis",
+      "level": "Intermediate",
+      "question": "If eviction is on, a successful SET is not a durability guarantee. Why?",
+      "optionA": "SET never writes memory",
+      "optionB": "The key can still be dropped later under memory pressure, and a crash can lose recent writes depending on RDB/AOF settings",
+      "optionC": "Cluster always replicates SET synchronously",
+      "optionD": "TTL is ignored when eviction is on",
+      "correct": "B"
+    },
+    {
+      "section": "Redis",
+      "level": "Intermediate",
+      "question": "Using Redis as a distributed lock without a well-tested algorithm is risky because:",
+      "optionA": "Locks cannot have TTLs",
+      "optionB": "Expiry, pauses, and failover can leave two clients thinking they hold the lock; Redis is not a consensus database",
+      "optionC": "Cluster slots cannot store lock keys",
+      "optionD": "AOF forbids SET NX",
+      "correct": "B"
+    },
+    {
+      "section": "Redis",
+      "level": "Advanced",
+      "question": "A cluster slot migration is in progress. Clients must handle:",
+      "optionA": "A frozen keyspace with no errors",
+      "optionB": "ASK/MOVED redirects and transient multi-key failures; treating Redis like a single always-local node will break",
+      "optionC": "Automatic AOF merge across nodes",
+      "optionD": "Synchronous replica promotion of every key",
+      "correct": "B"
+    },
+    {
+      "section": "Redis",
+      "level": "Advanced",
+      "question": "WAIT or WAITAOF after a write is how you:",
+      "optionA": "Make Redis a multi-primary consensus store",
+      "optionB": "Block until replicas (or AOF) catch up to a durability bar you chose; default writes do not wait",
+      "optionC": "Disable eviction globally",
+      "optionD": "Rebalance slots",
+      "correct": "B"
+    },
+    {
+      "section": "Redis",
+      "level": "Advanced",
+      "question": "Big keys (a million-member hash) hurt more than memory size because:",
+      "optionA": "Cluster cannot hash them",
+      "optionB": "Many commands become O(N) on the single thread (serialize, expire, replica sync, client output)",
+      "optionC": "AOF cannot log hashes",
+      "optionD": "Eviction skips hashes",
+      "correct": "B"
+    },
+    {
+      "section": "Redis",
+      "level": "Advanced",
+      "question": "Stampede plus a single-threaded Redis plus a slow DB fill is a cascade. A robust refill looks like:",
+      "optionA": "TTL=0 on every key",
+      "optionB": "One owner refills, others wait or serve stale; optionally jitter TTLs; never let N app servers all reconstruct the same key",
+      "optionC": "Flushall on miss",
+      "optionD": "Disable pipelining during refill",
+      "correct": "B"
+    },
+    {
+      "section": "Redis",
+      "level": "Advanced",
+      "question": "Why still persist a write to Postgres (or similar) when Redis already SET it?",
+      "optionA": "Postgres is faster",
+      "optionB": "Redis may evict, lose a replica, or replay an older RDB; the database is the source of truth, Redis is a copy",
+      "optionC": "Cluster slots require SQL",
+      "optionD": "AOF cannot store the same string",
+      "correct": "B"
+    },
+    {
+      "section": "Redis",
+      "level": "Advanced",
+      "question": "Client-side caching / tracking exists because:",
+      "optionA": "The server thread wants more KEYS calls",
+      "optionB": "Even an in-memory round trip is expensive at huge QPS; local memory with invalidation beats a hot Redis key",
+      "optionC": "AOF becomes optional then",
+      "optionD": "Slots move to the client",
+      "correct": "B"
+    },
+    {
+      "section": "Redis",
+      "level": "Advanced",
+      "question": "AOF rewrite and RDB fork at the same time on a memory-tight host. Operational risk?",
+      "optionA": "Slots reshuffle",
+      "optionB": "Double copy-on-write memory spike, latency stall, or OOM killer — persistence settings are a capacity plan, not just 'on'",
+      "optionC": "Eviction turns into noeviction",
+      "optionD": "Replicas become source of truth",
+      "correct": "B"
+    },
+    {
+      "section": "Redis",
+      "level": "Advanced",
+      "question": "Streams with consumer groups beat a naive list queue when:",
+      "optionA": "You need cluster-wide ACID",
+      "optionB": "You need pending entries, acknowledgements, and replay after a worker crash — still not a durable business ledger by itself",
+      "optionC": "You need strongly consistent GSIs",
+      "optionD": "You want eviction to delete jobs first",
+      "correct": "B"
+    },
+    {
+      "section": "Redis",
+      "level": "Advanced",
+      "question": "Hash-slot coverage after a node death: the cluster goes down for those slots unless:",
+      "optionA": "AOF is always fsynced",
+      "optionB": "Replicas exist for that node and failover succeeds; Redis Cluster is not magic extra durability of the data model",
+      "optionC": "Eviction is LRU",
+      "optionD": "Clients retry KEYS",
+      "correct": "B"
+    },
+    {
+      "section": "Redis",
+      "level": "Advanced",
+      "question": "A 'Redis transaction' across keys in different slots needs:",
+      "optionA": "MULTI/EXEC only",
+      "optionB": "A different design: hash tags to colocate, an external workflow, or a real database transaction — Cluster will refuse the cross-slot MULTI",
+      "optionC": "RDB snapshot isolation",
+      "optionD": "Pub/Sub as the commit log",
+      "correct": "B"
+    },
+    {
+      "section": "Redis",
+      "level": "Advanced",
+      "question": "Blocking commands (BLPOP, BZPOPMIN) on a shared instance interact with the single thread how?",
+      "optionA": "They run on a second GIL",
+      "optionB": "They park that client, but a flood of them plus large fanout still competes for the one command loop and output buffers",
+      "optionC": "They force AOF off",
+      "optionD": "They rebalance slots",
+      "correct": "B"
+    },
+    {
+      "section": "Redis",
+      "level": "Advanced",
+      "question": "You observe p99 spikes every N minutes with no app deploy. A likely Redis cause is:",
+      "optionA": "Cluster slots wrapping at 16384",
+      "optionB": "Fork-based persistence, large expiry storms, or big-key commands — all block or stall the same thread",
+      "optionC": "Eventually consistent reads",
+      "optionD": "On-demand memory billing",
+      "correct": "B"
+    },
+    {
+      "section": "Redis",
+      "level": "Advanced",
+      "question": "Serving cache-aside correctly means on write you:",
+      "optionA": "Only SET Redis and trust eviction to notify the DB",
+      "optionB": "Write the database first (or in a defined order) and invalidate/update Redis so the cache cannot resurrect stale truth",
+      "optionC": "KEYS and rewrite all entries",
+      "optionD": "Disable TTL so Redis becomes source of truth",
+      "correct": "B"
+    },
+    {
+      "section": "Redis",
+      "level": "Advanced",
+      "question": "Why can pipelining + Cluster be wrong if you blindly batch keys?",
+      "optionA": "Pipelines cannot send SET",
+      "optionB": "A pipeline is still per-node; mixed slots must be split by slot or you get CROSSSLOT / extra hops",
+      "optionC": "Pipelines force RDB",
+      "optionD": "Pipelines disable eviction mid-batch as a transaction",
+      "correct": "B"
+    },
+    {
+      "section": "AWS & S3",
+      "level": "Beginner",
+      "question": "S3 is the wrong place to implement 'query users where lastLogin > X' because:",
+      "optionA": "Objects cannot store JSON",
+      "optionB": "It is an object store: get-by-key, not a query engine with secondary indexes and predicates",
+      "optionC": "S3 deletes data after one day",
+      "optionD": "Prefixes are strongly transactional",
+      "correct": "B"
+    },
+    {
+      "section": "AWS & S3",
+      "level": "Beginner",
+      "question": "Durability of an object is achieved by:",
+      "optionA": "A published SLA number you should memorize as the design",
+      "optionB": "Storing multiple copies and verifying checksums so bit rot and disk loss do not silently win",
+      "optionC": "Keeping one copy in the client's browser",
+      "optionD": "Using SQS as the disk",
+      "correct": "B"
+    },
+    {
+      "section": "AWS & S3",
+      "level": "Beginner",
+      "question": "Millions of tiny files (few KB each) get expensive and slow mainly because:",
+      "optionA": "S3 forbids small objects",
+      "optionB": "You pay per request and listing/metadata work dominates; throughput is not 'one disk sequential read'",
+      "optionC": "Checksums fail under 1MB",
+      "optionD": "Prefixes cannot hold small keys",
+      "correct": "B"
+    },
+    {
+      "section": "AWS & S3",
+      "level": "Beginner",
+      "question": "Old-style keys like 2024-01-01/log1, 2024-01-01/log2 created prefix hotspots because:",
+      "optionA": "Dates are invalid key characters",
+      "optionB": "Many clients hammered the same key prefix/partition at once instead of spreading request load",
+      "optionC": "S3 cannot store dates",
+      "optionD": "Checksums collide on dates",
+      "correct": "B"
+    },
+    {
+      "section": "AWS & S3",
+      "level": "Beginner",
+      "question": "SQS standard queues are at-least-once. Your consumer must:",
+      "optionA": "Assume each message is processed exactly one time",
+      "optionB": "Be idempotent; the same message can be delivered more than once",
+      "optionC": "Use S3 listing as the lock",
+      "optionD": "Disable checksums",
+      "correct": "B"
+    },
+    {
+      "section": "AWS & S3",
+      "level": "Beginner",
+      "question": "Updating a 'row' in S3 means:",
+      "optionA": "A SQL UPDATE of one field",
+      "optionB": "Replace the whole object (or write a new version); there is no in-place field update",
+      "optionC": "A strongly consistent multi-object transaction by default",
+      "optionD": "A Scan of the bucket",
+      "correct": "B"
+    },
+    {
+      "section": "AWS & S3",
+      "level": "Beginner",
+      "question": "Visibility timeout on SQS exists so that:",
+      "optionA": "Messages become source of truth in S3",
+      "optionB": "Other consumers hide the message while one works; if you crash, it reappears (at-least-once)",
+      "optionC": "Duplicates are impossible",
+      "optionD": "Prefixes spread automatically",
+      "correct": "B"
+    },
+    {
+      "section": "AWS & S3",
+      "level": "Beginner",
+      "question": "Putting a database dump on S3 is backup. Using S3 as the live order table is wrong because:",
+      "optionA": "S3 cannot store bytes",
+      "optionB": "You lack cheap conditional updates, queries, and low-latency item access as a primary OLTP store",
+      "optionC": "Checksums disable writes",
+      "optionD": "Buckets cannot be private",
+      "correct": "B"
+    },
+    {
+      "section": "AWS & S3",
+      "level": "Beginner",
+      "question": "A PUT of a new object should include integrity protection by:",
+      "optionA": "Memorizing a durability percentage",
+      "optionB": "Sending a checksum and verifying it on read; copies plus checksums are the durability story",
+      "optionC": "Using sequential prefixes",
+      "optionD": "Storing only in one AZ in the app",
+      "correct": "B"
+    },
+    {
+      "section": "AWS & S3",
+      "level": "Beginner",
+      "question": "Listing a bucket with millions of keys as your 'index' is a bad database because:",
+      "optionA": "List is transactional",
+      "optionB": "List is paginated, costly, and not a query planner; you needed a real index or a manifest object",
+      "optionC": "List returns at-most-once keys",
+      "optionD": "List evicts objects",
+      "correct": "B"
+    },
+    {
+      "section": "AWS & S3",
+      "level": "Beginner",
+      "question": "SNS fan-out to multiple SQS queues is useful when:",
+      "optionA": "You need exactly-once across all consumers without idempotency",
+      "optionB": "Several independent workers should each see the event; each queue still delivers at-least-once",
+      "optionC": "S3 becomes a relational store",
+      "optionD": "Prefix hotspots go away",
+      "correct": "B"
+    },
+    {
+      "section": "AWS & S3",
+      "level": "Beginner",
+      "question": "Small-file problem on S3 is often fixed by:",
+      "optionA": "One object per database cell",
+      "optionB": "Batching many logical records into larger objects (and maybe a real database for metadata)",
+      "optionC": "Shorter prefixes only",
+      "optionD": "Disabling checksums",
+      "correct": "B"
+    },
+    {
+      "section": "AWS & S3",
+      "level": "Beginner",
+      "question": "S3 read-after-write for new objects is strongly consistent now. That still does not make S3 a database because:",
+      "optionA": "Consistency was the only missing SQL feature",
+      "optionB": "You still have no rich queries, joins, or cheap partial updates — only object I/O",
+      "optionC": "Checksums became optional",
+      "optionD": "Prefixes became transactions",
+      "correct": "B"
+    },
+    {
+      "section": "AWS & S3",
+      "level": "Beginner",
+      "question": "Why spread entropy in the key (or a hash prefix) for high QPS ingest?",
+      "optionA": "To make listing impossible",
+      "optionB": "To avoid concentrating request rate on one logical prefix as the workload scales",
+      "optionC": "To disable checksums",
+      "optionD": "To force at-most-once SQS",
+      "correct": "B"
+    },
+    {
+      "section": "AWS & S3",
+      "level": "Intermediate",
+      "question": "A Lambda processes SQS and writes S3. The Lambda times out after the PUT but before delete. What happens?",
+      "optionA": "Exactly-once; SQS will not redeliver",
+      "optionB": "The message returns after visibility timeout; you may PUT again — object writes and queue acks need idempotency keys",
+      "optionC": "S3 rolls back the object",
+      "optionD": "The prefix locks the key",
+      "correct": "B"
+    },
+    {
+      "section": "AWS & S3",
+      "level": "Intermediate",
+      "question": "S3 Select / Glacier select still does not replace a warehouse when:",
+      "optionA": "Objects are larger than 400KB",
+      "optionB": "You need repeated ad-hoc joins, mutating indexes, and concurrent transactional updates",
+      "optionC": "Checksums are present",
+      "optionD": "Keys have prefixes",
+      "correct": "B"
+    },
+    {
+      "section": "AWS & S3",
+      "level": "Intermediate",
+      "question": "Versioning helps durability and recovery. It does not help you if:",
+      "optionA": "You overwrite by mistake and want the old bytes",
+      "optionB": "You needed a queryable current-row store; versions are extra objects, not an OLTP log you can SQL",
+      "optionC": "You want protection against overwrite",
+      "optionD": "You want to retrieve a prior checksummed copy",
+      "correct": "B"
+    },
+    {
+      "section": "AWS & S3",
+      "level": "Intermediate",
+      "question": "Request costs for 1 billion 1KB objects vs one 1GB object differ because:",
+      "optionA": "Durability percentages change",
+      "optionB": "PUT/GET/LIST are billed per request; tiny objects turn storage into an API-tax problem",
+      "optionC": "Checksums fail on 1KB",
+      "optionD": "SQS cannot notify 1GB objects",
+      "correct": "B"
+    },
+    {
+      "section": "AWS & S3",
+      "level": "Intermediate",
+      "question": "FIFO SQS gives ordering per message group and exactly-once processing attempts inside a window, but you still:",
+      "optionA": "Skip idempotency forever",
+      "optionB": "Design consumers for retries, replays, and downstream side effects that may run more than once",
+      "optionC": "Use S3 listing for locks",
+      "optionD": "Disable checksums on the payload",
+      "correct": "B"
+    },
+    {
+      "section": "AWS & S3",
+      "level": "Intermediate",
+      "question": "A data lake on S3 plus Athena/Spark works when the object layout is:",
+      "optionA": "One tiny file per event in a single hot prefix",
+      "optionB": "Partitioned, reasonably sized files (columnar) so listing and scan costs stay bounded",
+      "optionC": "Random 1-byte objects for entropy",
+      "optionD": "Unchecksummed copies only",
+      "correct": "B"
+    },
+    {
+      "section": "AWS & S3",
+      "level": "Intermediate",
+      "question": "Multipart upload is for large objects. Incomplete parts become a cost leak unless you:",
+      "optionA": "Use sequential date prefixes",
+      "optionB": "Abort abandoned uploads and set a lifecycle rule on incomplete parts",
+      "optionC": "Store parts in SQS",
+      "optionD": "Turn off checksums mid-upload",
+      "correct": "B"
+    },
+    {
+      "section": "AWS & S3",
+      "level": "Intermediate",
+      "question": "If-Match / If-None-Match on S3 give you optimistic concurrency for one key. They do not give you:",
+      "optionA": "A way to avoid clobbering a single object",
+      "optionB": "Multi-key transactions like a database",
+      "optionC": "ETag-based checks",
+      "optionD": "A conditional PUT",
+      "correct": "B"
+    },
+    {
+      "section": "AWS & S3",
+      "level": "Intermediate",
+      "question": "CloudFront in front of S3 helps popular reads. Origin load still spikes when:",
+      "optionA": "Checksums are enabled",
+      "optionB": "Cache misses, low TTL, or a unique-key stampede all go to the same prefix/object",
+      "optionC": "SQS is at-least-once",
+      "optionD": "Objects are immutable",
+      "correct": "B"
+    },
+    {
+      "section": "AWS & S3",
+      "level": "Intermediate",
+      "question": "Storing session state only in S3 for a low-latency API is usually wrong because:",
+      "optionA": "S3 cannot be private",
+      "optionB": "Object GET/PUT latency and no cheap mutate path lose to an in-memory or purpose-built session store",
+      "optionC": "Checksums add minutes",
+      "optionD": "Prefixes cannot include user ids",
+      "correct": "B"
+    },
+    {
+      "section": "AWS & S3",
+      "level": "Intermediate",
+      "question": "S3 Event Notifications to SQS can fire more than once for the same object change. Downstream must:",
+      "optionA": "Treat notifications as exactly-once ledger entries",
+      "optionB": "Dedupe on object key + version/etag and stay idempotent",
+      "optionC": "Disable copies in S3",
+      "optionD": "Use listing instead of events",
+      "correct": "B"
+    },
+    {
+      "section": "AWS & S3",
+      "level": "Intermediate",
+      "question": "Lifecycle transitions to colder storage classes are about access shape. A bad fit is:",
+      "optionA": "Objects you rarely read",
+      "optionB": "Objects you mutate or read with tight latency all day — retrieval cost and delay dominate",
+      "optionC": "Checksummed backups",
+      "optionD": "Large, infrequent archives",
+      "correct": "B"
+    },
+    {
+      "section": "AWS & S3",
+      "level": "Intermediate",
+      "question": "A 'manifest.json' object listing parts is a common S3 pattern because:",
+      "optionA": "S3 cannot store more than one object",
+      "optionB": "The bucket is not an index; you explicitly store the catalog you would have queried in a database",
+      "optionC": "Manifests disable prefix hotspots automatically",
+      "optionD": "Manifests provide multi-object ACID",
+      "correct": "B"
+    },
+    {
+      "section": "AWS & S3",
+      "level": "Intermediate",
+      "question": "DLQs exist on SQS because at-least-once plus poison messages would otherwise:",
+      "optionA": "Make S3 eventually consistent",
+      "optionB": "Retry forever, blocking the queue; you isolate failures without pretending delivery was exactly-once",
+      "optionC": "Corrupt checksums",
+      "optionD": "Create prefix hotspots",
+      "correct": "B"
+    },
+    {
+      "section": "AWS & S3",
+      "level": "Advanced",
+      "question": "Cross-region replication of S3 objects is asynchronous. Designing a 'read in region B immediately after write in A' as if it were a commit is wrong because:",
+      "optionA": "Checksums do not replicate",
+      "optionB": "Replication lag means B may not have the object yet; it is not a distributed database transaction",
+      "optionC": "Prefixes cannot cross regions",
+      "optionD": "SQS becomes exactly-once when CRR is on",
+      "correct": "B"
+    },
+    {
+      "section": "AWS & S3",
+      "level": "Advanced",
+      "question": "You need append-only analytics events. Why not one S3 PUT per click from the browser?",
+      "optionA": "S3 cannot be written from the internet with the right IAM",
+      "optionB": "Tiny-object request cost, prefix hotspots, and no server-side aggregation; buffer in Kinesis/SQS/Firehose then write large objects",
+      "optionC": "Checksums reject click JSON",
+      "optionD": "At-least-once queues forbid this path only",
+      "correct": "B"
+    },
+    {
+      "section": "AWS & S3",
+      "level": "Advanced",
+      "question": "Compare-and-swap with ETags on a hot inventory object serializes the world onto one key. At scale you:",
+      "optionA": "List the bucket instead",
+      "optionB": "Shard the object, use a real database for the hot row, or accept queue-based serialization — S3 is not a write-optimized row store",
+      "optionC": "Turn off checksums to go faster",
+      "optionD": "Use sequential date prefixes for inventory",
+      "correct": "B"
+    },
+    {
+      "section": "AWS & S3",
+      "level": "Advanced",
+      "question": "A pipeline is 'SQS -> worker -> S3 -> notify next queue'. End-to-end exactly-once is:",
+      "optionA": "Guaranteed by SQS FIFO alone",
+      "optionB": "Not given; each hop is at-least-once, so idempotent writes (keyed objects/versions) are the real contract",
+      "optionC": "Guaranteed by S3 copies",
+      "optionD": "Guaranteed if checksums match",
+      "correct": "B"
+    },
+    {
+      "section": "AWS & S3",
+      "level": "Advanced",
+      "question": "S3 Object Lock / WORM helps compliance. Using it as a queue ack store is a smell because:",
+      "optionA": "WORM objects cannot have checksums",
+      "optionB": "You wanted a messaging semantic (visibility, retry, DLQ), not immutability of blobs",
+      "optionC": "Prefixes cannot be locked",
+      "optionD": "At-least-once is disabled by WORM",
+      "correct": "B"
+    },
+    {
+      "section": "AWS & S3",
+      "level": "Advanced",
+      "question": "Inventory reports and S3 Batch exist because listing the live bucket as a control plane:",
+      "optionA": "Is a strongly consistent SQL view",
+      "optionB": "Does not scale as a database catalog; you snapshot metadata out of band",
+      "optionC": "Fixes prefix hotspots",
+      "optionD": "Makes small files free",
+      "correct": "B"
+    },
+    {
+      "section": "AWS & S3",
+      "level": "Advanced",
+      "question": "A KMS-encrypted bucket plus many tiny GETs is slow/expensive because:",
+      "optionA": "Encryption removes copies",
+      "optionB": "Each request can add KMS authz/decrypt overhead on top of the small-file request tax",
+      "optionC": "Checksums cannot run with KMS",
+      "optionD": "SQS cannot send encrypted payloads",
+      "correct": "B"
+    },
+    {
+      "section": "AWS & S3",
+      "level": "Advanced",
+      "question": "You replicated objects and now readers see old and new writers. The durable copies did their job; the missing piece is:",
+      "optionA": "A higher SLA percentage",
+      "optionB": "An application-level version/epoch so readers know which object generation is authoritative",
+      "optionC": "Disabling checksums so clocks agree",
+      "optionD": "Sequential prefixes for linearizability",
+      "correct": "B"
+    },
+    {
+      "section": "AWS & S3",
+      "level": "Advanced",
+      "question": "Using S3 as a lockfile (PUT if not exists, then work) fails under contention because:",
+      "optionA": "PUT cannot create empty objects",
+      "optionB": "There is no robust lease/fencing story like a consensus lock; timeouts and retries produce split brain",
+      "optionC": "Checksums break If-None-Match",
+      "optionD": "Prefixes serialize all PUTs globally",
+      "correct": "B"
+    },
+    {
+      "section": "AWS & S3",
+      "level": "Advanced",
+      "question": "Firehose/Kinesis rolling files into S3 every N MB or N seconds is about:",
+      "optionA": "Making S3 a transactional database",
+      "optionB": "Turning a high-QPS small-event stream into large, checksummed objects with spread prefixes",
+      "optionC": "Guaranteeing exactly-once SQS",
+      "optionD": "Avoiding copies for durability",
+      "correct": "B"
+    },
+    {
+      "section": "AWS & S3",
+      "level": "Advanced",
+      "question": "A consumer 'succeeds' if it PUTs to S3 but crashes before finishing side effects. Replay will PUT again. The object key should be:",
+      "optionA": "A random UUID every attempt so nothing clashes",
+      "optionB": "Deterministic from the message id / business id so retries overwrite the same checksummed object",
+      "optionC": "The current timestamp to the nanosecond",
+      "optionD": "The SQS receipt handle",
+      "correct": "B"
+    },
+    {
+      "section": "AWS & S3",
+      "level": "Advanced",
+      "question": "Strongly consistent GET of a key is not isolation for a multi-step workflow because:",
+      "optionA": "Checksums are eventual",
+      "optionB": "Two objects (or object + queue + table) are not one transaction; you compose idempotent steps",
+      "optionC": "Prefixes provide SNAPSHOT isolation",
+      "optionD": "SQS FIFO wraps S3 in a transaction",
+      "correct": "B"
+    },
+    {
+      "section": "AWS & S3",
+      "level": "Advanced",
+      "question": "Hot prefix plus small files plus a LIST-heavy UI is a triple hit. The architecture move is:",
+      "optionA": "Raise the durability SLA",
+      "optionB": "Metadata in a database or index, objects in S3 with hashed prefixes and batched file sizes; never LIST as the product query",
+      "optionC": "One SQS message per byte",
+      "optionD": "Disable checksums and versioning",
+      "correct": "B"
+    },
+    {
+      "section": "AWS & S3",
+      "level": "Advanced",
+      "question": "Durability of copies does not protect you from a bad DELETE in the app. You still need:",
+      "optionA": "A memorized nines figure",
+      "optionB": "Versioning, MFA-delete/Object Lock, IAM least privilege, and backups — operational mistakes are not disk failures",
+      "optionC": "At-most-once SQS so deletes never retry",
+      "optionD": "Sequential prefixes as undo logs",
+      "correct": "B"
+    }
+  ],
+  "flashcards": [
+    {
+      "section": "DynamoDB",
+      "level": "Beginner",
+      "question": "What is a hot key?",
+      "answer": "A partition key (or key range) that receives a disproportionate share of reads/writes so one partition throttles while the table still looks like it has spare capacity."
+    },
+    {
+      "section": "DynamoDB",
+      "level": "Beginner",
+      "question": "Why does partition-key cardinality matter?",
+      "answer": "DynamoDB spreads load by key. Low-cardinality keys (status=ACTIVE) collapse traffic onto few partitions; high, even cardinality lets the table scale."
+    },
+    {
+      "section": "DynamoDB",
+      "level": "Beginner",
+      "question": "Why do Scans hurt as the table grows?",
+      "answer": "Scan reads every item (you still pay for filtered-out rows), eats read capacity, and latency tracks table size. Prefer Query on keys that match an access pattern."
+    },
+    {
+      "section": "DynamoDB",
+      "level": "Beginner",
+      "question": "How should you model around the 400KB item limit?",
+      "answer": "Keep items metadata-sized. Put large blobs in object storage and store a pointer. Split 1:N into item collections (PK=parent, SK=child) instead of a giant nested list."
+    },
+    {
+      "section": "DynamoDB",
+      "level": "Beginner",
+      "question": "Strongly consistent vs eventually consistent reads?",
+      "answer": "Eventual is cheaper and fine if a brief lag is OK. Strong (base table only) is for read-my-write on that item in that region. GSIs are eventual."
+    },
+    {
+      "section": "DynamoDB",
+      "level": "Beginner",
+      "question": "On-demand vs provisioned as workload shape?",
+      "answer": "On-demand fits spiky/unknown traffic. Provisioned (often with autoscaling) fits steady, forecastable QPS. Neither removes a single hot key."
+    },
+    {
+      "section": "DynamoDB",
+      "level": "Beginner",
+      "question": "Query vs GetItem vs Scan?",
+      "answer": "GetItem: one item by full primary key. Query: one partition, optional sort-key range. Scan: whole table — last resort, not an access pattern."
+    },
+    {
+      "section": "DynamoDB",
+      "level": "Beginner",
+      "question": "What does the partition key actually choose?",
+      "answer": "Which partition stores the item and therefore where that item's throughput is accounted. Design keys from access patterns, not from ER diagrams."
+    },
+    {
+      "section": "DynamoDB",
+      "level": "Intermediate",
+      "question": "How can a GSI take down base-table writes?",
+      "answer": "Each base write that touches indexed attributes must update the GSI. A hot or throttled GSI partition backpressures those writes. Indexes have their own heat."
+    },
+    {
+      "section": "DynamoDB",
+      "level": "Intermediate",
+      "question": "GSI limits you should recite in an interview?",
+      "answer": "GSIs are eventually consistent, add write amplification, need their own capacity/heat planning, and a low-cardinality GSI PK is as bad as a low-cardinality table PK."
+    },
+    {
+      "section": "DynamoDB",
+      "level": "Intermediate",
+      "question": "What is a sparse GSI for?",
+      "answer": "Only items that have the index attributes appear. You get a small index aligned to a rare access path instead of projecting the entire table."
+    },
+    {
+      "section": "DynamoDB",
+      "level": "Intermediate",
+      "question": "Write sharding for a hot key: how and what is the cost?",
+      "answer": "Append a shard id to the PK so writes spread. Readers fan in across shards. Shard count becomes part of the contract."
+    },
+    {
+      "section": "DynamoDB",
+      "level": "Intermediate",
+      "question": "Why aren't filter expressions a substitute for keys?",
+      "answer": "Capacity is consumed before the filter. You still read (and pay for) items you throw away. Filters refine a Query; they do not create an access pattern."
+    },
+    {
+      "section": "DynamoDB",
+      "level": "Intermediate",
+      "question": "KEYS_ONLY vs ALL projections?",
+      "answer": "KEYS_ONLY keeps index writes small; you GetItem the base row after. ALL makes the GSI a fat copy — convenient reads, expensive writes as items grow."
+    },
+    {
+      "section": "DynamoDB",
+      "level": "Intermediate",
+      "question": "When do you actually need a strongly consistent read?",
+      "answer": "When the next decision cannot accept a replica lag on that base-table item (read-your-write, balance check). Not 'always', and not on GSIs."
+    },
+    {
+      "section": "DynamoDB",
+      "level": "Intermediate",
+      "question": "Table-level capacity looked fine but one key throttled. Lesson?",
+      "answer": "Throughput is not a shared buffet for every key. Provisioned/on-demand numbers are not a per-key SLA. Fix the key or cache/shard it."
+    },
+    {
+      "section": "DynamoDB",
+      "level": "Advanced",
+      "question": "Why can't adaptive capacity save a celebrity key?",
+      "answer": "It can shift spare throughput toward a busy partition, but one partition key is still one bottleneck. Popular item => shard, cache, or change the pattern."
+    },
+    {
+      "section": "DynamoDB",
+      "level": "Advanced",
+      "question": "Why not embed an unbounded child list on the parent item?",
+      "answer": "The parent races toward 400KB, every child write rewrites the fat item, and you cannot Query a slice. Model children as SK range under the parent PK."
+    },
+    {
+      "section": "DynamoDB",
+      "level": "Advanced",
+      "question": "What does a DynamoDB transaction buy you — and not buy you?",
+      "answer": "Atomic all-or-nothing across a small set of items in a region. Not global linearizability, not unbounded size, not a substitute for good keys."
+    },
+    {
+      "section": "DynamoDB",
+      "level": "Advanced",
+      "question": "Single-table design in one sentence?",
+      "answer": "Precompute access paths into item collections you can Query; not 'one table to save money' and not an excuse to Scan entity types together."
+    },
+    {
+      "section": "DynamoDB",
+      "level": "Advanced",
+      "question": "Time-series PK = today's date: why is it a hotspot?",
+      "answer": "All of today's ingest hits one key. Shard by device/customer/time-bucket+shard so writes spread; do not concentrate 'now' on a single PK."
+    },
+    {
+      "section": "DynamoDB",
+      "level": "Advanced",
+      "question": "Global tables vs strongly consistent reads?",
+      "answer": "Strong read is a regional guarantee on the base item. Global tables replicate asynchronously across regions — not one worldwide strongly consistent copy."
+    },
+    {
+      "section": "DynamoDB",
+      "level": "Advanced",
+      "question": "Cache in front of a hot DynamoDB key: remaining risks?",
+      "answer": "Misses, TTL expiry, and stampedes refocus load on the same key. Writes still hit DynamoDB. Cache is a read valve, not a new partition key."
+    },
+    {
+      "section": "DynamoDB",
+      "level": "Advanced",
+      "question": "Analytics via live Scan vs export?",
+      "answer": "Export/offline pipeline isolates heavy reads from online partitions. A 'nightly Scan' still competes for the same capacity and can starve production."
+    },
+    {
+      "section": "Redis",
+      "level": "Beginner",
+      "question": "What does Redis's single-threaded command loop imply?",
+      "answer": "One slow or O(N) command blocks other clients on that process. More connections ≠ more cores. Avoid KEYS, huge values, and heavy aggregates on the hot instance."
+    },
+    {
+      "section": "Redis",
+      "level": "Beginner",
+      "question": "Why is Redis not the source of truth?",
+      "answer": "Memory + eviction + async replicas + snapshot/AOF gaps mean data can vanish. Persist business state in a database; Redis holds a speed copy."
+    },
+    {
+      "section": "Redis",
+      "level": "Beginner",
+      "question": "RDB vs AOF?",
+      "answer": "RDB: compact point-in-time snapshot, more potential loss since last save. AOF: logs writes for a tighter durability window, more disk work. Often combined."
+    },
+    {
+      "section": "Redis",
+      "level": "Beginner",
+      "question": "What is eviction?",
+      "answer": "When maxmemory is hit, Redis drops keys by policy (allkeys-lru, volatile-lru, LFU, noeviction, …). A SET can succeed now and still disappear later."
+    },
+    {
+      "section": "Redis",
+      "level": "Beginner",
+      "question": "What is a cache stampede?",
+      "answer": "Many clients miss the same expired/hot key at once and all hit the origin. Mitigate with single-flight, stale-while-revalidate, and jittered TTLs."
+    },
+    {
+      "section": "Redis",
+      "level": "Beginner",
+      "question": "What are cluster slots?",
+      "answer": "The keyspace is split into hash slots owned by nodes. A key lives in one slot. Multi-key ops need the same slot (hash tags like {userId})."
+    },
+    {
+      "section": "Redis",
+      "level": "Beginner",
+      "question": "KEYS vs SCAN?",
+      "answer": "KEYS * blocks the single thread over the whole keyspace. SCAN iterates incrementally and is the production-safe way to walk keys."
+    },
+    {
+      "section": "Redis",
+      "level": "Beginner",
+      "question": "What does a TTL actually guarantee?",
+      "answer": "The cache entry may go away. It is not a business delete in the source of truth and not a durability mechanism."
+    },
+    {
+      "section": "Redis",
+      "level": "Intermediate",
+      "question": "Why Lua scripts for compare-and-set?",
+      "answer": "The script runs atomically on that instance's thread — no other command interleaves. It is not a cluster-wide transaction across slots."
+    },
+    {
+      "section": "Redis",
+      "level": "Intermediate",
+      "question": "AOF fsync always vs every second?",
+      "answer": "Always: less loss, more disk latency. Every second: you may lose about a second of acknowledged writes on crash. Durability is a chosen budget."
+    },
+    {
+      "section": "Redis",
+      "level": "Intermediate",
+      "question": "What are hash tags for?",
+      "answer": "{shared} prefixes force keys into the same cluster slot so MULTI/MGET/Lua can run. Over-tagging recreates a hot node."
+    },
+    {
+      "section": "Redis",
+      "level": "Intermediate",
+      "question": "Why can RDB fork stall a huge instance?",
+      "answer": "Fork + copy-on-write under writes spikes memory and can pause the process. Persistence is part of the capacity plan."
+    },
+    {
+      "section": "Redis",
+      "level": "Intermediate",
+      "question": "List as a queue: what do you lose on LPOP + crash?",
+      "answer": "The job is gone from Redis. Use streams/consumer groups or BRPOPLPUSH-style patterns, and still keep durable truth elsewhere."
+    },
+    {
+      "section": "Redis",
+      "level": "Intermediate",
+      "question": "Hot key in Cluster: why don't extra nodes help?",
+      "answer": "One key maps to one slot on one primary. Idle nodes cannot serve that key. Split the key, cache locally, or change the model."
+    },
+    {
+      "section": "Redis",
+      "level": "Intermediate",
+      "question": "Why is Pub/Sub a bad audit log?",
+      "answer": "Fire-and-forget in-memory fanout. If you were disconnected, you missed it. No durable source of truth."
+    },
+    {
+      "section": "Redis",
+      "level": "Intermediate",
+      "question": "noeviction vs allkeys-lru for a cache?",
+      "answer": "Cache: usually an LRU/LFU policy so the process keeps serving. noeviction makes writes fail when memory is full — better for data you must not drop, but then Redis is a poor fit as the only store."
+    },
+    {
+      "section": "Redis",
+      "level": "Advanced",
+      "question": "What must Cluster clients handle during slot migration?",
+      "answer": "MOVED/ASK redirects and transient cross-slot errors. A pipeline of mixed-slot keys is not one node-local batch."
+    },
+    {
+      "section": "Redis",
+      "level": "Advanced",
+      "question": "WAIT / WAITAOF after a write?",
+      "answer": "Optional barrier until replicas or AOF meet a durability bar. Default SET does not wait. Still not full consensus like a database commit."
+    },
+    {
+      "section": "Redis",
+      "level": "Advanced",
+      "question": "Why are big keys worse than 'they use RAM'?",
+      "answer": "Serialization, expiry, replica sync, and many commands become O(N) on the single thread. Split hashes/lists/streams."
+    },
+    {
+      "section": "Redis",
+      "level": "Advanced",
+      "question": "Correct cache-aside write path?",
+      "answer": "Write the database, then invalidate (or carefully update) Redis so a stale cache cannot resurrect old truth. Do not treat SET as commit."
+    },
+    {
+      "section": "Redis",
+      "level": "Advanced",
+      "question": "Stampede + single thread + slow DB fill?",
+      "answer": "One owner refills; others wait or serve stale; jitter TTLs. Never let N app servers reconstruct the same key at once into one Redis thread."
+    },
+    {
+      "section": "Redis",
+      "level": "Advanced",
+      "question": "Streams/consumer groups vs 'Redis is my job system of record'?",
+      "answer": "Groups give pending lists and acks after worker crash. Useful. Still memory/eviction/persistence limited — not your financial ledger."
+    },
+    {
+      "section": "Redis",
+      "level": "Advanced",
+      "question": "Node death in Cluster?",
+      "answer": "Slots on that node are unavailable until a replica fails over. No replica => those keys are gone from the cluster until restore. Plan replicas."
+    },
+    {
+      "section": "Redis",
+      "level": "Advanced",
+      "question": "Cross-slot MULTI/EXEC?",
+      "answer": "Refused. Colocate with hash tags, or use an external workflow/database transaction. Redis 'transactions' are one-instance command queues."
+    },
+    {
+      "section": "AWS & S3",
+      "level": "Beginner",
+      "question": "Why is S3 not a database?",
+      "answer": "It stores objects addressed by key. No secondary indexes, joins, or cheap field updates. GET/PUT/LIST are not SQL."
+    },
+    {
+      "section": "AWS & S3",
+      "level": "Beginner",
+      "question": "How does S3 durability actually work?",
+      "answer": "Multiple copies plus checksums to detect corruption. Design around copies and integrity checks, not around reciting an SLA percentage."
+    },
+    {
+      "section": "AWS & S3",
+      "level": "Beginner",
+      "question": "What is a prefix hotspot?",
+      "answer": "A burst of requests concentrated on one key prefix (classic sequential dates). Spread entropy in keys so request rate is not pinned to one partition."
+    },
+    {
+      "section": "AWS & S3",
+      "level": "Beginner",
+      "question": "Why are tiny files expensive on S3?",
+      "answer": "Per-request and listing costs dominate storage. Batch records into larger objects; keep metadata in a real index if you must query."
+    },
+    {
+      "section": "AWS & S3",
+      "level": "Beginner",
+      "question": "What does at-least-once SQS require of you?",
+      "answer": "Idempotent consumers. The same message can be delivered twice after a timeout, crash, or retry."
+    },
+    {
+      "section": "AWS & S3",
+      "level": "Beginner",
+      "question": "How do you 'update a row' in S3?",
+      "answer": "Write a new object (or version) of the whole blob. There is no in-place column update."
+    },
+    {
+      "section": "AWS & S3",
+      "level": "Beginner",
+      "question": "What is visibility timeout?",
+      "answer": "The hide window while a consumer works. Crash before delete => message reappears. That is at-least-once, not a lost-work bug in SQS."
+    },
+    {
+      "section": "AWS & S3",
+      "level": "Beginner",
+      "question": "Why not LIST a million-key bucket as your product index?",
+      "answer": "LIST is paginated, costly, and not a query planner. Store a catalog (DB or manifest object) and treat S3 as the blob store."
+    },
+    {
+      "section": "AWS & S3",
+      "level": "Intermediate",
+      "question": "Lambda PUT to S3 then timeout before SQS delete — what must be true?",
+      "answer": "Replay will happen. Object keys and side effects must be idempotent (deterministic keys, version ids, upserts)."
+    },
+    {
+      "section": "AWS & S3",
+      "level": "Intermediate",
+      "question": "S3 ETag / If-Match gives you what — and not what?",
+      "answer": "Optimistic concurrency on one key. Not multi-object transactions, not a row store, not a lock service."
+    },
+    {
+      "section": "AWS & S3",
+      "level": "Intermediate",
+      "question": "Why batch events into columnar files for a data lake?",
+      "answer": "Analytics engines want reasonably sized files and partitions. One-tiny-file-per-event explodes LIST/GET cost and planning time."
+    },
+    {
+      "section": "AWS & S3",
+      "level": "Intermediate",
+      "question": "FIFO SQS vs skipping idempotency?",
+      "answer": "FIFO orders a group and dedupes in a window. Downstream side effects can still run twice. Design retries on purpose."
+    },
+    {
+      "section": "AWS & S3",
+      "level": "Intermediate",
+      "question": "S3 event notifications can duplicate. What do you dedupe on?",
+      "answer": "Object key plus version/etag (or a business event id). Treat notifications like at-least-once queue messages."
+    },
+    {
+      "section": "AWS & S3",
+      "level": "Intermediate",
+      "question": "When are cold storage classes a bad fit?",
+      "answer": "When objects are read or overwritten with tight latency. Retrieval delay and cost dominate; keep hot data on a hot class or a database."
+    },
+    {
+      "section": "AWS & S3",
+      "level": "Intermediate",
+      "question": "Why a manifest object?",
+      "answer": "The bucket is not an index. You explicitly store the list of parts/files you would have queried if this were a database."
+    },
+    {
+      "section": "AWS & S3",
+      "level": "Intermediate",
+      "question": "What is a DLQ for?",
+      "answer": "Poison messages that fail repeatedly. Isolate them instead of blocking the queue or pretending delivery was exactly-once."
+    },
+    {
+      "section": "AWS & S3",
+      "level": "Advanced",
+      "question": "Is cross-region replication a commit?",
+      "answer": "No. It is async. Region B may not have the object yet. Not a multi-region database transaction."
+    },
+    {
+      "section": "AWS & S3",
+      "level": "Advanced",
+      "question": "Browser PUT per click to S3 — why not?",
+      "answer": "Tiny-object tax, prefix heat, no aggregation. Buffer in a stream/Firehose/queue, then roll large checksummed objects."
+    },
+    {
+      "section": "AWS & S3",
+      "level": "Advanced",
+      "question": "CAS on one hot S3 inventory object?",
+      "answer": "Serializes the world onto a blob store key. Shard, use a database for the hot row, or queue the writes."
+    },
+    {
+      "section": "AWS & S3",
+      "level": "Advanced",
+      "question": "End-to-end exactly-once through SQS and S3?",
+      "answer": "You don't get it. Each hop is at-least-once. Idempotent, deterministic object keys are the contract."
+    },
+    {
+      "section": "AWS & S3",
+      "level": "Advanced",
+      "question": "S3 as a lockfile — why does it split-brain?",
+      "answer": "No robust lease/fencing. Timeouts and retries let two workers both believe they hold the lock. Use a real lock/consensus service."
+    },
+    {
+      "section": "AWS & S3",
+      "level": "Advanced",
+      "question": "Deterministic object keys on retry — why?",
+      "answer": "If the consumer PUTs then crashes before ack, replay should overwrite the same key, not create duplicate random objects."
+    },
+    {
+      "section": "AWS & S3",
+      "level": "Advanced",
+      "question": "Strong GET of one key vs workflow isolation?",
+      "answer": "One object read is not a transaction across object + queue + table. Compose idempotent steps with explicit versions."
+    },
+    {
+      "section": "AWS & S3",
+      "level": "Advanced",
+      "question": "Copies protect disks, not DELETE in the app. Then what?",
+      "answer": "Versioning, Object Lock/MFA-delete, tight IAM, and backups. Operational deletes are not the same failure mode as bit rot."
+    }
+  ]
+}

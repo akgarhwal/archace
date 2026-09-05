@@ -1,0 +1,227 @@
+Question,Correct Answer
+Collapse the agent to a workflow,"When traces show a stable path, encode the path. Reserve free-form steps for genuine uncertainty."
+Hard constraints in the graph,"Ordering, approvals, and forbidden tools belong in the state machine. Prompts cannot be the only lock on a side effect."
+How do you retry a tool with side effects?,"The same way you retry a payment API: idempotency keys and a store you trust. Timeouts are not negatives. The agent must pass a stable key, or you wrap the tool so it does."
+Idempotency keys,"Timeouts and retries must not double-apply payments, emails, or tickets. The tool contract includes “same key, same effect.”"
+Nested budgets,Run budget > sum of tool timeouts. Per-tool timeout < remaining run time. Token budget includes observations. Fail closed.
+Observations steer the loop,"The next action is conditioned on tool output. Truncation, injection in results, or silent coercion will be planned over as if true."
+Tool blast radius,"Scope by resource, verb, and environment. Separate read from write. Never hand production-admin APIs to a general chat agent."
+Trace-driven eval,"Grade trajectories: illegal transitions, wasted steps, schema errors, budget hits—not only final answer text."
+When is a state machine + LLM better than a free agent?,"When legal/ops requires that certain tools only run in certain states (refund after verify, deploy after tests). The LLM fills slots or classifies; the machine owns transitions."
+Write policy for memory,"Who writes episodic vs semantic memory, with what TTL, and what is in-context scratch. Unbounded writes become prompt injection and cost."
+FIFO SQS vs skipping idempotency?,FIFO orders a group and dedupes in a window. Downstream side effects can still run twice. Design retries on purpose.
+Lambda PUT to S3 then timeout before SQS delete — what must be true?,"Replay will happen. Object keys and side effects must be idempotent (deterministic keys, version ids, upserts)."
+S3 ETag / If-Match gives you what — and not what?,"Optimistic concurrency on one key. Not multi-object transactions, not a row store, not a lock service."
+S3 event notifications can duplicate. What do you dedupe on?,Object key plus version/etag (or a business event id). Treat notifications like at-least-once queue messages.
+What is a DLQ for?,Poison messages that fail repeatedly. Isolate them instead of blocking the queue or pretending delivery was exactly-once.
+What must SQS consumers implement?,"Idempotency. Visibility timeout expiry and at-least-once delivery mean the same message can be processed twice. A dedupe table or conditional write is part of the consumer, not an optional extra."
+When are cold storage classes a bad fit?,When objects are read or overwritten with tight latency. Retrieval delay and cost dominate; keep hot data on a hot class or a database.
+Why a manifest object?,The bucket is not an index. You explicitly store the list of parts/files you would have queried if this were a database.
+Why batch events into columnar files for a data lake?,Analytics engines want reasonably sized files and partitions. One-tiny-file-per-event explodes LIST/GET cost and planning time.
+Why isn't LIST a job queue?,"Listing millions of keys is paginated, easy to duplicate, and costs request money. You will also miss or double-process on eventual listing of fresh objects. Emit an event per object (SQS) or write a manifest."
+B-tree WAL vs LSM WAL: what is each protecting?,B-tree WAL (or equivalent redo) protects in-place page mutations until checkpoint. LSM WAL protects memtable contents until they are flushed to an SSTable and that file is durable.
+"For update-heavy small key sets on LSM, what dominates cost?",Compaction keeps rewriting the same hot keys and their old versions. You pay write amp and tombstone/version churn even though the logical dataset is tiny.
+How do leveled vs size-tiered compaction typically trade amplification?,"Leveled keeps key ranges disjoint per level, lowering read/space amp but rewriting more (higher write amp). Size-tiered/universal merges similar-sized files, writing less often but leaving more overlap for reads and scans."
+What causes an LSM write stall?,"Ingest outruns flush/compaction: too many memtables or L0 files. The engine throttles or blocks writers until compaction makes room, even if user-thread CPU is idle."
+What is LSM write amplification?,"Each key may be rewritten as compaction moves it through levels. You bought sequential ingest and paid extra disk I/O later. Tuning level size, compaction strategy, and reducing churn/tombstones is how you keep amplification in check."
+What is space amplification in an LSM?,"Live data plus obsolete versions, tombstones, and temporary extra copies during merge. It stays high until compaction installs the new file and drops the old ones."
+When do bloom filters stop helping?,On wide range scans (files overlap the range anyway) and when the false-positive rate is so high that you still open most SSTables. They help negative point lookups most.
+Why can a cached B-tree still beat LSM on point gets?,"Internal nodes stay in RAM, so a hit is often one leaf I/O. LSM may still miss on several per-file filters/indexes unless those are also cached and blooms are sharp."
+Why do tiny frequent flushes hurt later reads?,"They create many overlapping SSTables. Point gets and especially range scans fan out across more files, and compaction must later rewrite that mess."
+Why don't Bloom filters save LSM range scans?,A Bloom filter answers 'might this file contain this exact key?'. A range is many keys. You still have to merge overlapping runs. Range-heavy workloads often prefer B-trees for that reason.
+What does copying shared_ptr cost?,"An atomic increment/decrement on the control block, plus poorer locality. If you don't need shared ownership, unique_ptr or a reference is cheaper and clearer."
+"Why is a data race UB, not 'a torn int'?","The C++ memory model gives no meaning to concurrent non-atomic conflicting accesses. Compilers assume it does not happen and may delete checks or reorder around it. Use atomics or a mutex; don't 'just read it, it's one word'."
+Why must destructors not throw?,During unwind there is already an exception. A second throw calls std::terminate. Destructors should release and swallow or std::abort on truly fatal resource failure.
+Why not write a lock-free queue first?,"Memory ordering, ABA, and lifetime are easy to get wrong and hard to test. A mutex-protected deque is correct and fast enough for most services. Profile before you invent a queue."
+LOCAL_QUORUM vs QUORUM in multi-DC: what latency did you buy?,"LOCAL_QUORUM waits for a majority in the local DC only, avoiding cross-DC round trips. Cluster-wide QUORUM may wait on remote DCs."
+Read repair vs anti-entropy repair?,Read repair may fix replicas actually touched by a query. Anti-entropy repair walks ranges (including cold data) to reconcile the replica set systematically.
+What goes wrong with an unbounded partition (millions of clustering rows)?,"Compaction, cache, repair, and reads concentrate on one token's huge contiguous data. Streaming and merging that partition can stall a replica."
+What is a wide partition and why is it an outage?,"All rows for a partition key live together and are read/streamed as a unit. Tens of GB for one key means hot nodes, slow repairs, and GC pressure. Bucket the key (user+day) before the partition grows up."
+Why can hinted handoff not replace repair?,Hints cover some missed writes for a limited time and can expire. They do not walk all token ranges or fix every kind of divergence. Repair still required.
+Why do tombstone-heavy slice queries time out?,The replica must scan and skip deletion markers to find live rows. Huge tombstone runs burn CPU/I/O and hit tombstone-failure thresholds before returning data.
+Why does write QUORUM + read QUORUM with RF=3 give a replica overlap?,"W+R>RF (2+2>3), so the set of replicas that took the write and the set that serve the read must share at least one node holding the data."
+Why is LWT on a hot partition especially bad?,"Paxos serializes proposers per partition. Competing CAS operations on the same key queue behind in-flight rounds, amplifying latency far more than regular quorum writes."
+Why isn't QUORUM a CAS?,"QUORUM gives you overlapping replica sets so a read usually sees the latest LWW write, not a linearizable compare-and-set. Two clients can still lose an update to timestamps. Lightweight transactions run Paxos per partition and cost latency for a reason."
+Why must tombstones wait for a gc-grace window?,A replica that missed the delete could otherwise resurrect data once tombstones are gone. Grace gives time for hints/repair to propagate deletes first.
+BFS frontier vs DFS stack,Wide shallow graphs: BFS queue can explode (social hops). Deep graphs: DFS stack can explode. Bidirectional BFS shrinks the frontier for shortest paths between two nodes.
+Bloom pays off on negative-heavy traffic,"Each 'no' avoids a slower check. Each 'yes' still goes to source of truth, including false positives. Size the filter from n and target error; rebuild or counting variants if deletes matter."
+Heap is not a map,"extract-min is fast; find/cancel by id is not unless you add a hash of indices or use a tree. Schedulers, Dijkstra decrease-key, and timers all hit this."
+How does LRU get O(1) operations?,"Hash map: key to list node. Doubly linked list: recency order. On get, splice the node to the front. On miss+full, evict the tail. A heap would be log n and is the wrong recency structure."
+LRU delete/move needs prev,Map to node + doubly linked recency list (or indexed array). Singly linked forces scans. Clock/2Q trade exact LRU for fewer pointer writes — still a layout choice.
+Range query vs point query,"Point: hash. Range/predecessor/in-order: tree (in memory) or B-tree/LSM (on disk). Heap only gives you the current extreme, not a range."
+Stable sort as a product feature,"Preserve earlier sort keys; keep original row order on ties; merge sorted runs without scrambling equals. If you need a total order, add a unique tie-break instead of hoping."
+Union-find plus extra payload,"Keep aggregates on the root (size, min id, XOR, bipartite parity). After find, both nodes share a root so the payload is the component's. Rebuild payload on union."
+Virtual nodes on a hash ring,Many tokens per physical server so ranges are small and mix well. Unequal capacity → proportional token count. Still plan warmup when a token range moves.
+Why virtual nodes on a consistent hash ring?,One vnode per server makes neighbors absorb a huge arc on failure and keeps load lumpy. Many virtual nodes per physical server smooth placement and failover.
+GSI limits you should recite in an interview?,"GSIs are eventually consistent, add write amplification, need their own capacity/heat planning, and a low-cardinality GSI PK is as bad as a low-cardinality table PK."
+How can a GSI take down base-table writes?,Each base write that touches indexed attributes must update the GSI. A hot or throttled GSI partition backpressures those writes. Indexes have their own heat.
+KEYS_ONLY vs ALL projections?,"KEYS_ONLY keeps index writes small; you GetItem the base row after. ALL makes the GSI a fat copy — convenient reads, expensive writes as items grow."
+Table-level capacity looked fine but one key throttled. Lesson?,Throughput is not a shared buffet for every key. Provisioned/on-demand numbers are not a per-key SLA. Fix the key or cache/shard it.
+What is a sparse GSI for?,Only items that have the index attributes appear. You get a small index aligned to a rare access path instead of projecting the entire table.
+When do you actually need a strongly consistent read?,"When the next decision cannot accept a replica lag on that base-table item (read-your-write, balance check). Not 'always', and not on GSIs."
+Why aren't filter expressions a substitute for keys?,Capacity is consumed before the filter. You still read (and pay for) items you throw away. Filters refine a Query; they do not create an access pattern.
+Why can a GSI throttle when the table does not?,A GSI is a separate partitioned projection. Its partition key has its own cardinality and throughput. Projecting a low-cardinality attribute (status=OPEN) recreates a hot-key problem on the index.
+Why split a hot counter out of a fat item?,Updates rewrite the whole item. A 300 KB document with a frequently incremented field burns write capacity and collides more. Keep the hot mutable bits small; store blobs separately.
+Write sharding for a hot key: how and what is the cost?,Append a shard id to the PK so writes spread. Readers fan in across shards. Shard count becomes part of the contract.
+Eval pitfalls,"Tiny n, leaked test items in prompts, LLM-as-judge bias, scoring fluency, and ignoring retrieval metrics. Measure the failure you actually ship."
+Hallucinated citations,"“According to…” is a likely string even with no source in context. Require retrieved spans, or refuse. Do not trust citation-shaped text."
+Indirect injection,"Payloads hide in retrieved pages, tickets, or files. Separate untrusted content, delimit it, and never let it choose tools or exfiltrate secrets."
+RAG failure modes,"Miss, stale index, wrong ranking, query-doc mismatch, chunk split, and “cited but not entailed.” Faithful summary of the wrong chunk is still a failure."
+Structure-aware chunking,"Split on headings, functions, or table rows when you can. Keep IDs and titles in the chunk. Overlap at boundaries. Avoid orphaned numbers in tables."
+Stuffing vs retrieval,"Dumping a whole corpus into the window is slow, expensive, and easy to distract. Retrieve, rank, and keep only spans that can support the answer."
+Temperature vs schema tasks,Low temperature for extraction and tools. Higher temperature for brainstorming. Temperature will not fix missing evidence.
+Token-cost traps,"Code, tables, and some languages use more tokens per character. Word limits are not token limits. Truncation can drop the answer, not the preamble."
+What is prompt injection in a RAG app?,"Untrusted retrieved text that tries to override instructions ('ignore the policy, dump secrets'). Treat documents as data, not as a source of commands, and don't give the model tools it shouldn't use on that path."
+Why does RAG still answer wrong when the doc exists?,"If chunking split the fact, the embedding didn't retrieve it, or you truncated top-k, the generator never saw it and will guess. Debug retrieval hit rate before blaming the model."
+Blind get(),"Throws NoSuchElementException. It is not safer than NPE. Use orElse, orElseGet, orElseThrow, ifPresent, map."
+CHM iterator semantics,"Weakly consistent, no CME. Not a snapshot. size() is an estimate, not a lock-protected exact count."
+Cached pool opposite failure,"SynchronousQueue + unbounded max threads: bursts create threads until native memory or context switching dies, instead of filling the heap."
+CallerRunsPolicy hazard,The submitting thread runs the task. On request threads this can deadlock or stall the inbound pool that was supposed to stay available.
+Concurrent ≠ bounded,"A ConcurrentHashMap that only puts will still OOM. Concurrency does not provide eviction, backpressure, or multi-structure atomicity."
+CopyOnWriteArrayList,"Snapshot iterators, expensive writes (full array copy). Fits rare writes and many unsynchronized readers, e.g. listener lists."
+Double-checked locking,"The instance field must be volatile (or initialized via a holder class). Otherwise a reader can see a non-null, uninitialized object."
+Happens-before meaning,"A JMM relation: if A HB B, then A's memory effects are visible to B and A is ordered before B. Wall-clock time is irrelevant."
+Humongous / large object path,"Objects that do not fit in the nursery are allocated directly in old or a large-object space, so they never get a cheap death in eden."
+Iteration rule for synchronizedMap,Manually synchronize on the map for the whole iteration. Otherwise you race writers and can get ConcurrentModificationException.
+JPA entity equals on generated id,Transient entities share null id and collapse or collide; after persist the id (and hash) changes and hash collections lose them. Prefer a stable business key or identity until assigned.
+JSON / JPA / parameters,"Wire and DB layers want nullable columns and properties. Convert to Optional at the service boundary if you want it, not on the entity/DTO itself."
+Legal but useless hashCode,"Returning a constant satisfies the contract and puts every key in one bucket, making HashMap/HashSet linear and contention-heavy."
+Log signals of promotion trouble,"High promotion bytes, survivor overflow, rapidly rising old occupancy, then mixed/full GCs — not just 'GC happened'."
+Monitor HB,Unlock of monitor M happens-before a later lock of the same M. Both sides must use the same lock; one-sided synchronized does not publish.
+NaN in equals,A field that is NaN makes a.equals(a) false if you use ==. That violates reflexivity and poisons every hash collection.
+Nested Optional,map() on a function that returns Optional produces Optional<Optional<T>>. Use flatMap. Do not return Optional of an empty collection.
+No sync edge,A plain field write may never become visible to another thread. Compilers and CPUs are allowed to keep it in a register or store buffer.
+Nulls,"CHM forbids null keys and values. synchronized HashMap allows them, which confuses missing vs null and breaks a later CHM migration."
+Nursery size tradeoff,"Larger young gen lets request objects die before tenuring but makes each young pause copy more. Tune from promotion rate and pause budget, not folklore."
+Optional as a field,"Extra allocation per instance, and the field reference itself can be null — two absences. Store a nullable T (or a sentinel) instead."
+Premature promotion,"Short-lived objects tenure because eden/survivors are too small, the tenuring threshold is too low, or the object is too large. Result: old-gen GC churn."
+Promotion failure,Old generation has no contiguous room (often fragmentation). Young GC cannot tenure and the collector escalates to a full or concurrent-mode-failure collection.
+Safe production pool,"Bounded queue, explicit max threads, Abort (or a carefully chosen) handler, timeouts that include queue wait, and metrics for queue depth and wait."
+Survivor overflow,"Live young objects do not fit in survivor space, so the collector promotes them in bulk during a young GC."
+Timeout vs queue wait,"Task timeouts usually start at run(), not submit(). Unbounded queues hide minutes of wait that no downstream timeout sees."
+Unbounded queue outage signature,"Success rate stays high, latency and heap climb, GC thrashes, then OOM. Workers look 'busy but healthy' at core size."
+Visibility vs atomicity,volatile/HB publish values. They do not make read-modify-write atomic. Counters and check-then-act still need atomics or locks.
+Volatile publication,"A volatile write HB a later volatile read of that variable, and carries all writes in that thread that HB the volatile write (release/acquire)."
+What Optional is for,"A return type that forces the caller to confront absence. Not a field, not a parameter, not a persistence type, not a Map value wrapper."
+What promotion is,Copying a still-reachable object from young generation into old generation after it survives collections (or because it would not fit in young).
+When ThreadPoolExecutor starts threads above core,"Only when workQueue.offer fails (queue full). Unbounded queues never fail offer, so extra threads never start."
+When you must override hashCode,Whenever you override equals. Skip both only if identity equality is the intended semantics.
+Why caches tenure junk,"TTL slightly longer than the young-gen lifetime keeps entries alive through a young GC. They promote, then become old garbage when the TTL expires."
+Why is blocking on the common ForkJoinPool dangerous?,parallelStream and many CompletableFuture callbacks share it. Blocking I/O there starves unrelated code in the same JVM. Use an application-owned bounded pool for blocking work.
+Why isn't get-then-put on ConcurrentHashMap atomic?,"Each call is thread-safe, the compound is not. Two threads read 5 and both write 6. Use compute/merge or a concurrent accumulator."
+Why mutating a key after HashMap.put loses the entry,"The entry stays in the bucket of the old hash. Lookup computes a new hash and searches a different bucket, so get/contains miss."
+Why reject is kinder than queue,Rejection is visible backpressure. The load balancer can shift traffic. Silent queueing pins overload to one JVM until it crashes.
+computeIfAbsent caution,"Mapping function runs under per-key lock. Do not block, do not re-enter the map unsafely, and do not expect a null return to insert a null value."
+equals vs compareTo mismatch,"HashSet membership and TreeSet membership can disagree for the same pair of objects, breaking uniqueness assumptions across APIs."
+equals/hashCode contract in one sentence,"If a.equals(b) then a.hashCode() == b.hashCode(); hashCode may collide when equals is false. Both must use the same significant, stable fields."
+final field freeze,"After a constructor finishes, final fields are visible to any thread that sees the published reference — unless this escaped during construction."
+get-then-put race,"Thread-safe collections still race on compound actions. Use putIfAbsent, compute, merge, or an external lock around the invariant."
+getClass() vs instanceof in equals,getClass() rejects subclasses and protects transitivity for map keys. instanceof allows mixed-type equality and needs a canEqual pattern to stay safe.
+isPresent/get loop,Reverts to null-check style. Chain filter/map/flatMap and terminate with orElse/orElseThrow so absence has one path.
+newFixedThreadPool queue,Unbounded LinkedBlockingQueue. Tasks are never rejected; they accumulate in heap. maximumPoolSize is effectively ignored.
+of vs ofNullable,of(null) throws NPE. ofNullable(null) is empty. Use of only when the value is known non-null.
+orElse vs orElseGet,"orElse always evaluates its argument. orElseGet runs the supplier only on empty. Never put RPC, logging, or allocation in orElse(...)."
+start and join,"start() HB the first action of the new thread. Termination HB a successful join(), so the joiner sees the worker's writes."
+synchronized wrappers vs CHM,synchronizedMap/List lock the entire collection per call. ConcurrentHashMap allows concurrent reads and striped writes. Wrappers do not make iteration atomic.
+Classic liveness misuse patterns,1) Probe a downstream DB/queue. 2) Tight liveness during slow boot (no startupProbe). 3) TCP probe on a deadlocked but listening process. Result: restart storms or silent unhealth.
+Mutable tags vs digests,myapp:v3 or sha256:… is a pin. :latest plus IfNotPresent freezes yesterday's bits; Always plus :latest makes each node a lottery. Controllers and rollbacks need immutability.
+PDB vs replica count,minAvailable == replicas blocks drains and some voluntary evictions entirely. You want a budget (e.g. 1 down) so upgrades and autoscaler can move pods.
+PVC binding and topology,WaitForFirstConsumer binds after a node is chosen so zonal PVs match. Immediate binding can strand a PVC in the wrong AZ; RWO volumes cannot attach to two nodes.
+QoS from requests/limits,"Guaranteed: every container request==limit. Burstable: some request. BestEffort: none. Under node memory pressure, BestEffort is evicted first. Limits without requests do not make you Guaranteed."
+Rolling update + readiness + graceful shutdown as one system,"New pod must become Ready before old is dropped (surge/unavailable). Old pod should fail readiness, drain, then exit inside grace. Endpoint propagation lag needs a preStop delay or similar."
+When VPA fights HPA,"Both react to CPU/memory saturation. VPA resizing changes utilization, which changes HPA replica math. Prefer one autoscaler on that signal, or split: HPA on traffic, VPA recs for rightsizing."
+When does a CPU limit hurt p99?,"If the process bursts above its CFS quota, it is throttled even on an idle node. Request is for scheduling; limit is a cap. Latency-sensitive services often set request carefully and avoid tight CPU limits, while still capping memory."
+Why do rollouts get stuck with PDBs?,"The new pod never becomes Ready, so the controller will not (or cannot, given maxUnavailable=0 and a PDB) take the old pod down. You have two constraints and zero healthy surge. Fix the probe/image, don't just raise replicas."
+etcd as the real bottleneck,"Every object and watch lands there. Large Secrets/CRDs, thousands of objects per ns, noisy status updates, slow disks. Symptoms: API latency, leader elections, controller lag — not 'the node is slow.'"
+How do next-key locks on a secondary index deadlock with inserts?,"A range locking read holds record plus gap locks on the secondary, then clustered rows. An insert takes an insert-intention lock in the same gap and needs the clustered slot. Lock order differs, so two sessions can cycle."
+What does a growing undo history list length mean for reads?,"Purge cannot remove old row versions while some snapshot still needs them. Readers walk longer version chains, tablespaces grow, and eventually you hit rollback-segment pressure. Kill old snapshots; do not just add disk."
+What does a metadata lock wait during DDL mean?,"Even 'online' ALTER needs a short exclusive metadata lock. A long-running transaction that touched the table blocks that lock. The ALTER sits, and new queries pile up behind it. Kill/finish the long transaction; don't just retry DDL harder."
+What durability do you lose with innodb_flush_log_at_trx_commit = 2?,Redo is flushed about once per second rather than at every COMMIT. A crash of the OS or host can drop recent committed transactions. You keep protection against mysqld process death if the OS still flushed the file.
+What replica risk comes with INSTANT DDL?,The binlog records a DDL that only newer engines can apply as metadata. Older replicas fail to apply or rebuild differently. Rolling upgrades must keep replica versions capable of the same INSTANT row format.
+"When does InnoDB change buffering help, and when is it useless?","It defers secondary-index updates when those pages are not in the buffer pool, absorbing random writes. Unique checks that must see the index immediately, and a fully cached working set, get little benefit and can hide a later merge storm."
+Why are random UUID primary keys painful in InnoDB?,"The clustered index is the table. Random inserts split pages all over the file, kill sequential write patterns, and bloat the tree. A sequential (or time-ordered) PK keeps inserts at the tail. Secondary indexes also get larger because they store that PK."
+Why can parallel replica workers still run as if single-threaded?,"Apply must respect conflicts: overlapping rows, missing writesets, or commit-order constraints serialize those transactions. Hot tables or one giant transaction become the bottleneck no matter how many workers you start."
+Why do huge DELETEs create both source stalls and replica lag?,"One transaction holds undo until commit, writes a massive RBR stream at once, and leaves purge to catch up. Batches bound undo, binlog bursts, and apply time so replicas and purge stay even."
+Why must replicated InnoDB tables have an explicit primary key for RBR performance?,"Row events locate the target row by PK (or a unique key). Without one, apply may scan the table per event. A hidden clustered key on the source does not give the replica a stable, efficient lookup."
+How can a forgotten replication slot take down a primary?,"The slot pins WAL (and for logical slots, catalog xmin) until the consumer acks. If the consumer dies, WAL accumulates until the disk fills and the primary cannot write. Monitor slot lag and drop unused slots."
+How does bloat persist after n_dead_tup looks healthy?,"VACUUM marks free space on pages for reuse but does not return pages to the OS. Fragmented fill and bloated indexes keep relation size high until CLUSTER, VACUUM FULL, or pg_repack rewrites the file."
+What conflict happens when a hot standby query meets VACUUM replay?,Replay may need to remove tuple versions the standby query still sees. With short max_standby_streaming_delay the query is canceled; with hot_standby_feedback the primary delays cleanup and can bloat instead.
+What does a Nested Loop with a bad row estimate do to runtime?,"The inner plan runs once per outer row. If actual rows are orders of magnitude above estimate, you get nested explosions of index lookups or worse. Recheck statistics, correlated columns, and whether a hash or merge join would bound the work."
+What does a stale replication slot do to a primary?,"The primary must retain WAL from the slot's restart LSN. If the subscriber dies, WAL piles up until disk is gone. Dropping the slot frees disk but you cannot catch that subscriber up without a new base copy."
+What is the durability vs latency ladder of synchronous_commit values with streaming replicas?,off/local control only local flush. on waits for a synchronous standby to flush WAL. remote_apply waits until replay has occurred. Each step reduces data-loss window and increases COMMIT stalls when the standby is slow.
+When does HOT fail to save you from index bloat?,"Heap-Only Tuples work when the new row version fits on the same page and indexed columns do not change. If the update is wide, indexed columns change, or the page is full, you get new index entries and autovacuum has more to chew. Fillfactor and less-wide updates are the usual levers."
+Why can index-only scans still hit the heap even with a covering INCLUDE index?,"Visibility is stored in the heap, not the index. The visibility map lets PostgreSQL skip heap fetches only for all-visible pages. Without aggressive vacuum/freeze, an index-only plan still random-reads the table."
+Why do GIN indexes on jsonb or arrays punish write-heavy tables?,"One row produces many key postings. Pending lists, page merges, and vacuum of those postings generate more WAL and CPU than a single btree key. They shine for containment reads, not for high-rate updates of the documents."
+"Why is CREATE INDEX CONCURRENTLY safer for uptime, and what can still go wrong?","It avoids a long ACCESS EXCLUSIVE lock by scanning twice and waiting out old snapshots. It can still fail if invalid indexes remain, if waiting transactions never end, or if it consumes enough I/O to impact production."
+Are dicts thread-safe for counters?,"No. Individual opcodes may be atomic; `d[k] += 1` is not. Use a lock, a queue to one owner, or multiprocessing with explicit sharing."
+What does a blocking call do to asyncio?,"It owns the thread that runs the loop. Every other task waits. Use async libraries or offload with to_thread/executors, and never call time.sleep in a coroutine."
+What does cancellation actually cancel?,Python raises CancelledError at an await point that cooperates. A stuck C extension or a thread pool future may ignore it. Timeouts have to be designed at I/O boundaries you control.
+Why is unpickling Redis cache a footgun?,"pickle can reconstruct arbitrary objects and run code. If an attacker can write the cache key, they own the process. Use JSON/msgpack for untrusted or cross-trust data."
+AOF fsync always vs every second?,"Always: less loss, more disk latency. Every second: you may lose about a second of acknowledged writes on crash. Durability is a chosen budget."
+Hot key in Cluster: why don't extra nodes help?,"One key maps to one slot on one primary. Idle nodes cannot serve that key. Split the key, cache locally, or change the model."
+List as a queue: what do you lose on LPOP + crash?,"The job is gone from Redis. Use streams/consumer groups or BRPOPLPUSH-style patterns, and still keep durable truth elsewhere."
+What are hash tags for?,{shared} prefixes force keys into the same cluster slot so MULTI/MGET/Lua can run. Over-tagging recreates a hot node.
+What does Redis Cluster require of multi-key commands?,All keys in one command must live in the same hash slot. Hash tags `{user:42}` force that. Cross-slot MGET/MSET fail; the client must split the work or redesign the keyspace.
+Why Lua scripts for compare-and-set?,The script runs atomically on that instance's thread — no other command interleaves. It is not a cluster-wide transaction across slots.
+Why can RDB fork stall a huge instance?,Fork + copy-on-write under writes spikes memory and can pause the process. Persistence is part of the capacity plan.
+Why is Pub/Sub a bad audit log?,"Fire-and-forget in-memory fanout. If you were disconnected, you missed it. No durable source of truth."
+Why is Redis a risky system of record for money?,"Durability is configurable and easy to weaken; there is no MVCC undo; a single FLUSHDB or bug is catastrophic; replication is usually async. Use it as a cache, lock, or fast ephemeral store, and put money in a database with a proper commit story."
+noeviction vs allkeys-lru for a cache?,"Cache: usually an LRU/LFU policy so the process keeps serving. noeviction makes writes fail when memory is full — better for data you must not drop, but then Redis is a poor fit as the only store."
+@Async self-invocation,Proxy-based; this.asyncMethod() runs synchronously on the caller thread. Put async methods on another bean.
+@Async vs transactions,The async body does not run in the caller's transaction. Submit after commit if the worker must see persisted rows.
+@ConfigurationProperties vs @Value,"Same Environment, but typed groups, conversion, and metadata. Prefer it for operational config; @Value is a one-off expression."
+@Value default trap,"${foo:localhost} silently ships localhost if foo is unset. Required prod keys should fail startup, not default."
+Batch fetch size,Mitigates N+1 by IN-clause grouping. It does not make the view a legitimate place to load a graph.
+Checkout timeout,Must be finite and shorter than the client/HTTP timeout so you fail fast instead of deadlocking the servlet pool.
+Cluster math,"instances × DataSources × maxPoolSize must stay under the database's max_connections, including idle sockets."
+Context propagation,"SecurityContext, MDC, and tenant ThreadLocals do not hop threads. Use a TaskDecorator (and restore/clear in finally)."
+Debug with origins,Read the Environment/configprops origin for the key and the bound object. Do not argue from a memorized precedence list while three overlays exist.
+Default @Async executor,"Often SimpleAsyncTaskExecutor: new thread per task, no bound. Production code declares a named, bounded ThreadPoolTaskExecutor."
+Default scope,"Singleton: one instance per Spring container, shared across threads and requests. Mutable fields are shared mutable state."
+Don't block the common pool,"JDBC/HTTP inside @Async needs a dedicated pool sized to the dependency, not ForkJoinPool.commonPool()."
+Don't do IO in a transaction,"HTTP, queues, and sleep hold a checked-out connection. Do database work, commit, then call the world."
+EntityManager and threads,Never share a raw EM as a singleton field. @PersistenceContext injects a proxy to the thread-bound persistence context.
+Exhaustion symptom,"Threads blocked in connection checkout, idle CPU, latency spike, then timeout. Not necessarily high DB CPU."
+Fixes that actually work,"Split into another bean, inject the proxy (self-inject / AopContext with exposeProxy), or use AspectJ weaving so the call is advised in-body."
+Health checks,Do not let probes consume the last business connections. Reserve capacity or use a cheap check so incidents do not restart healthy-but-busy nodes.
+Health details,"Probes want a boolean. Details leak topology. Keep show-details for authenticated operators, not the internet."
+Hidden high-precedence sources,"Command line, SPRING_APPLICATION_JSON, system properties, test inlined properties, and accidental local config files beat what is in the image."
+JMX door,HTTP lockdown does not close JMX. Remote JMX is another admin API for the same operations.
+Leaks vs hold time,Unclosed connections and never-ending transactions permanently shrink the pool. Slow but closed transactions temporarily shrink it. Both page the same.
+Library application.properties,Extra application.properties on the classpath collide. Libraries should not override app keys from a generic file.
+Liveness vs readiness,Do not kill pods because a dependency is down. Split groups so liveness is process health and readiness is dependency health.
+Management port,Bind actuators to a separate port that is not on the public load balancer. Still authenticate. Network policy is the real gate.
+N+1 shape,1 query for roots + 1 query per entity per touched association. List endpoints multiply this by page size.
+Named pools,"@Async(""name"") plus multiple executors isolate bulk work from latency-sensitive fan-out. One shared pool is a noisy neighbor."
+Non-public @Transactional,Default Spring AOP does not advise private/package/protected methods. The annotation is a comment.
+OSIV / streaming,An open persistence context or ResultSet pins a connection through view rendering or stream consumption.
+OSIV and pools,The persistence context (and often a connection) stays open through rendering. Slow views hold pool slots and amplify saturation.
+ObjectProvider,Lookup API so a singleton can obtain the current scoped/prototype instance on each use instead of capturing it once.
+Open Session in View,"Spring Boot keeps the EntityManager bound to the web request until after view rendering, so lazy loads during JSON/HTML succeed."
+Packaged files vs runtime overlay,"application.properties in the jar are defaults. Env vars, CLI args, and external config locations override them so one artifact can run everywhere."
+Profile files,application-{profile} overrides the same keys in application.properties when that profile is active. Conflicting spring.profiles.active sources are a prod incident waiting.
+Prototype destruction,"Spring does not manage the full lifecycle of prototypes it hands out. If it holds resources, you close them."
+Prototype injected into singleton,"Only one prototype is created at wiring time. Use ObjectProvider, @Lookup, or a scoped proxy for per-call instances."
+REQUIRES_NEW via this,"The inner propagation is ignored. No suspend, no new transaction — the 'audit in a separate tx' pattern silently fails."
+Relaxed binding,"SPRING_DATASOURCE_URL, spring.datasource.url, and spring.datasource.url in YAML are one property. Grep all forms when debugging."
+Request scope at startup,Cannot inject a request-scoped target into a singleton at context refresh unless a scoped proxy defers lookup until a request exists.
+Rollback defaults,"RuntimeException and Error roll back. Checked exceptions commit unless rollbackFor is set — independent of, and compounding, the self-call bug."
+Security test,Unauthenticated GET/POST every enabled endpoint id on both ports. Broad matcher permitAll on /actuator/health is a classic sibling leak.
+Session scope in APIs,Ties you to HTTP session stickiness/replication and memory. Prefer stateless services.
+Shutdown,"Make the executor a Spring bean with a wait/timeout on destroy, or deploys kill in-flight async work."
+Singleton + request fields,Cross-request leaks and races. Keep singletons stateless; pass request data as method arguments or true request-scoped beans.
+Size formula,Needed connections ≈ concurrent requests that need the DB × hold time. Inbound threads should not wildly exceed what the pool and DB can serve.
+Team rule,"Transactional methods are public entry points on a boundary component. Different propagation means a different bean, not a private helper."
+Turning OSIV off,"Exposes LazyInitializationException at the true missing-fetch sites. Fix those with explicit fetches/DTOs, do not turn OSIV back on to silence them."
+What should be true of Actuator in production?,"Health on a separate port or authenticated path is fine. env, heapdump, beans, and similar are data leaks. Disable or lock them down; don't rely on 'nobody will guess /actuator'."
+Where to fetch,"Inside the transactional service/repository with join fetch, entity graphs, or DTO/projection queries — not in the serializer."
+Why OSIV hides N+1,"Serialization would have thrown LazyInitializationException. OSIV lets each getter hit the database instead, turning a bug into silent query storms."
+Why not HTTP inside @Transactional?,"You hold a connection and possibly row locks for the whole round trip. If HTTP fails after SQL succeeded (or the opposite), you have a distributed consistency bug. Do the DB work, commit, then call out — or use an outbox."
+Why self-invocation skips @Transactional,"Spring applies transactions via a proxy. this.foo() is a direct call on the target, so the interceptor never runs."
+env and configprops,"They dump the Environment, including secrets and origins. Public exposure is a credential leak. Sanitize is not a substitute for not exposing them."
+heapdump / threaddump,"Memory and stack snapshots. Secrets, tokens, PII, lock graphs. Admin-only on a private port."
+include=*,"Enables the full attack surface (shutdown, mappings, dumps, env). Production should whitelist the few ids probes need."
+join fetch pitfall,Collection join fetch duplicates roots and fights pagination. Prefer two queries or a graph designed for the use case; DISTINCT is not always enough.
+new Service() vs Spring bean,"Annotations do nothing on objects you construct yourself. No proxy, no transaction, no security, no retry."
+readOnly outer + write inner via this,You remain in the outer read-only transaction. The inner readOnly=false never applies.
+void @Async exceptions,Do not reach the caller. AsyncUncaughtExceptionHandler or a Future you actually observe. Otherwise jobs vanish.
