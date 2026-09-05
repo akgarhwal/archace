@@ -1,0 +1,1166 @@
+{
+  "sections": [
+    {
+      "title": "Gen AI",
+      "levels": {
+        "beginner": {
+          "quiz": [
+            {
+              "question": "Why do next-token language models hallucinate?",
+              "options": [
+                "They query a verified world model before every token",
+                "They sample locally likely continuations, which can be fluent and still false",
+                "They are forbidden from producing any string not seen in training",
+                "They only copy documents verbatim, so they cannot invent"
+              ],
+              "answer": 1,
+              "explanation": "Training and decoding optimize sequence likelihood, not a truth check. A high-probability continuation can be wrong."
+            },
+            {
+              "question": "Temperature in decoding mainly controls:",
+              "options": [
+                "How many tokens fit in the context window",
+                "How peaked versus flat the next-token sampling distribution is",
+                "The tokenizer vocabulary size",
+                "Whether retrieved documents are allowed"
+              ],
+              "answer": 1,
+              "explanation": "Higher temperature flattens probabilities (more random). Lower temperature sharpens them (more greedy). It does not add knowledge."
+            },
+            {
+              "question": "Why are tokens not the same as words?",
+              "options": [
+                "Billing is always one token per English word",
+                "Tokenizers split text into subword pieces; counts vary by language, code, and punctuation",
+                "One token is always one Unicode character",
+                "Whitespace is never assigned a token"
+              ],
+              "answer": 1,
+              "explanation": "Subword tokenizers merge or split pieces. Limits, truncation, and cost are in tokens, not words."
+            },
+            {
+              "question": "Putting more text into the context window mainly costs you:",
+              "options": [
+                "Only local disk space on the client",
+                "Compute, latency, and usually money for every token the model must process",
+                "Nothing; unused prompt tokens are free",
+                "Only the number of words in the final answer"
+              ],
+              "answer": 1,
+              "explanation": "Included tokens are processed. Longer context raises cost and latency and can bury the relevant span."
+            },
+            {
+              "question": "RAG still fails when:",
+              "options": [
+                "The retriever never surfaces the passage that actually answers the question",
+                "Adjacent chunks share a small overlap",
+                "You log which document IDs were retrieved",
+                "You cap the maximum answer length"
+              ],
+              "answer": 0,
+              "explanation": "The generator can only ground on what retrieval returns. A miss forces the model to guess."
+            },
+            {
+              "question": "A common chunking mistake is:",
+              "options": [
+                "Keeping a heading with the paragraph it introduces",
+                "Splitting a definition so the term and its meaning land in different chunks",
+                "Using modest overlap between neighboring chunks",
+                "Dropping repeated boilerplate headers"
+              ],
+              "answer": 1,
+              "explanation": "If term and meaning are separated, retrieval can return the term without the meaning, and the model invents one."
+            },
+            {
+              "question": "An eval pitfall is scoring a system by:",
+              "options": [
+                "Held-out gold answers for the actual task",
+                "Whether the model’s own prose says the answer “looks good,” with no task labels",
+                "Retrieval recall on a labeled corpus",
+                "Agreement with a blinded human rubric"
+              ],
+              "answer": 1,
+              "explanation": "Fluency and self-agreement are not correctness. Eval needs a target the system cannot grade-inflate."
+            },
+            {
+              "question": "Prefer RAG over fine-tuning when:",
+              "options": [
+                "You only need a new output JSON schema once",
+                "Facts live in documents that change and must be citable",
+                "You want to avoid embeddings and search entirely",
+                "You cannot write a system prompt"
+              ],
+              "answer": 1,
+              "explanation": "RAG attaches living sources at inference. Fine-tuning is a poor store for facts that move."
+            },
+            {
+              "question": "Prefer changing the prompt over fine-tuning when:",
+              "options": [
+                "You must bake a huge private corpus into weights",
+                "The task, format, and constraints can be stated in the input",
+                "You need a new tokenizer",
+                "You want to skip evaluation"
+              ],
+              "answer": 1,
+              "explanation": "If instructions in context are enough, prompting is cheaper and easier to reverse than a weight update."
+            },
+            {
+              "question": "Prompt injection is:",
+              "options": [
+                "A GPU memory allocator bug",
+                "Untrusted text in context that tries to override the developer’s instructions",
+                "Setting temperature above 1",
+                "Using too many few-shot examples"
+              ],
+              "answer": 1,
+              "explanation": "Once attacker-controlled content is in the prompt (PDF, web page, email), it can compete with the system task."
+            },
+            {
+              "question": "Temperature near zero typically:",
+              "options": [
+                "Samples more often from the long tail of tokens",
+                "Makes decoding more deterministic by favoring the highest-probability tokens",
+                "Expands the context window",
+                "Guarantees factually correct answers"
+              ],
+              "answer": 1,
+              "explanation": "Near-greedy decoding repeats high-likelihood tokens. It reduces randomness, not hallucination."
+            },
+            {
+              "question": "A model can sound confident while wrong because:",
+              "options": [
+                "Token likelihood is not a calibrated score that the claim is true",
+                "Every decoded sentence is checked against a knowledge graph",
+                "Temperature is a built-in fact checker",
+                "Decoding uses symbolic proof search"
+              ],
+              "answer": 0,
+              "explanation": "Fluency and local probability track “what text usually comes next,” not “what is true.”"
+            },
+            {
+              "question": "Context-window cost grows with:",
+              "options": [
+                "Only the number of user accounts",
+                "Input and generated tokens the model processes (and, with attention, interactions among them)",
+                "Only images, never text",
+                "The number of CPU cores on the client laptop"
+              ],
+              "answer": 1,
+              "explanation": "You pay for tokens processed. Attention can scale worse than linear in sequence length, so long prompts are not free."
+            },
+            {
+              "question": "Which mapping is most accurate?",
+              "options": [
+                "Fine-tune: changing daily prices; RAG: tone of voice; prompt: new weights",
+                "Prompt: task framing; RAG: updatable external facts; fine-tune: style, format, or domain language in weights",
+                "RAG: never use documents; prompt: train for weeks",
+                "Fine-tune: cheapest way to add one new fact tonight"
+              ],
+              "answer": 1,
+              "explanation": "Use the cheapest lever that matches the failure: instructions, documents, or behavior baked into weights."
+            }
+          ],
+          "flashcards": [
+            {
+              "front": "Why do next-token models hallucinate?",
+              "back": "They predict likely next tokens, not verified facts. Fluency is not a truth check, so coherent text can still be false."
+            },
+            {
+              "front": "What does temperature do?",
+              "back": "It rescales the next-token distribution. High = more random/diverse. Low = more greedy/deterministic. It does not add knowledge."
+            },
+            {
+              "front": "Tokens ≠ words",
+              "back": "Subword tokenizers split or merge pieces. Cost, truncation, and context limits are in tokens. The same sentence can be more tokens in some languages or in code."
+            },
+            {
+              "front": "Context window cost",
+              "back": "Every included token is processed. Longer context raises latency, compute, and price, and can drown the useful span in noise."
+            },
+            {
+              "front": "RAG failure: retrieval miss",
+              "back": "If the answering chunk is never retrieved, the generator will guess. Retrieval quality is an upper bound on grounded quality."
+            },
+            {
+              "front": "Chunking rule of thumb",
+              "back": "Make each chunk self-contained enough to answer. Overlap helps boundaries. Splitting mid-table, mid-code, or mid-definition loses meaning."
+            },
+            {
+              "front": "Prompt vs RAG vs fine-tune",
+              "back": "Prompt = task and constraints. RAG = living documents. Fine-tune = style/format/domain behavior in weights. Do not fine-tune to store facts that change."
+            },
+            {
+              "front": "Prompt injection",
+              "back": "Attacker-controlled content in the context tries to override the system task or hijack tools. Treat retrieved and user-supplied text as untrusted."
+            }
+          ]
+        },
+        "intermediate": {
+          "quiz": [
+            {
+              "question": "A next-token model “fills in” a plausible citation that was never retrieved. The deepest cause is:",
+              "options": [
+                "The optimizer directly maximizes factual F1",
+                "Decoding continues a locally likely string even when no supporting span is in context",
+                "Temperature is a citation verifier",
+                "The tokenizer refuses unknown entity names"
+              ],
+              "answer": 1,
+              "explanation": "Without a grounding constraint, the likely continuation of “according to…” is a citation-shaped string, not a checked source."
+            },
+            {
+              "question": "You raise temperature to increase idea variety on a constrained extraction task. The usual side effect is:",
+              "options": [
+                "Stricter schema adherence",
+                "More format drift and made-up fields because tail tokens get more mass",
+                "A larger context window",
+                "Automatic citation checking"
+              ],
+              "answer": 1,
+              "explanation": "Higher temperature boosts low-probability tokens. On extraction, that often means broken JSON and invented keys."
+            },
+            {
+              "question": "Two sentences have the same word count. Sentence A is English prose; B is dense code with punctuation. Token counts:",
+              "options": [
+                "Must be equal because words = tokens",
+                "Often differ; code and punctuation typically consume more tokens per character",
+                "Are always smaller for code",
+                "Ignore punctuation entirely"
+              ],
+              "answer": 1,
+              "explanation": "Tokenizers over-split many symbols and identifiers. Word count is a bad proxy for cost and for what still fits."
+            },
+            {
+              "question": "You paste a 200-page manual into the prompt “so nothing is missed.” A realistic failure is:",
+              "options": [
+                "Attention is free, so ranking inside the window cannot matter",
+                "You pay for all tokens and the model still under-uses the buried relevant paragraph",
+                "The window compresses unused pages to zero tokens",
+                "Injection becomes impossible"
+              ],
+              "answer": 1,
+              "explanation": "Long context is billed and processed. Relevance is not guaranteed; stuffing can hide the answer in the middle."
+            },
+            {
+              "question": "Which is a RAG failure mode, not a generator-only bug?",
+              "options": [
+                "The index is stale; the retrieved “policy” was replaced last week",
+                "Temperature is 0.2 instead of 0.0",
+                "The answer is truncated at max tokens after a correct quote",
+                "The system prompt asks for bullet points"
+              ],
+              "answer": 0,
+              "explanation": "Stale, wrong, or incomplete retrieval feeds the model the wrong world. The generator may faithfully summarize the wrong doc."
+            },
+            {
+              "question": "Fixed-size chunking with no overlap most often hurts when:",
+              "options": [
+                "A sentence or table row is cut so neither chunk is a useful retrieval unit",
+                "You store document IDs in metadata",
+                "You normalize Unicode",
+                "You cap chunk count per query"
+              ],
+              "answer": 0,
+              "explanation": "Boundary cuts destroy local coherence. Overlap or structure-aware splits keep the answering span intact."
+            },
+            {
+              "question": "Using an LLM-as-judge on the same model family as the system under test is risky because:",
+              "options": [
+                "Judges cannot read text",
+                "Shared biases (verbosity, style, self-preference) can inflate scores without measuring the task",
+                "It always underestimates fluency",
+                "It cannot output a number"
+              ],
+              "answer": 1,
+              "explanation": "Judge models prefer familiar style and longer answers. Without gold checks, you measure likeness, not truth."
+            },
+            {
+              "question": "A product catalog changes hourly. Fine-tuning nightly on the catalog is usually worse than RAG because:",
+              "options": [
+                "Weights cannot store any regularities",
+                "Retraining is slow, expensive, and still leaves a stale gap between jobs, while retrieval can read the live index",
+                "RAG cannot cite a SKU",
+                "Prompts cannot mention prices"
+              ],
+              "answer": 1,
+              "explanation": "Parametric memory lags a moving corpus. Put changing facts in a store and retrieve them."
+            },
+            {
+              "question": "You need the model to always emit a strict record format and domain shorthand. Best first lever after a prompt fails at scale:",
+              "options": [
+                "RAG over random web pages",
+                "Fine-tune or distill on input→format pairs, keeping facts in retrieval if they move",
+                "Raise temperature",
+                "Disable the context window"
+              ],
+              "answer": 1,
+              "explanation": "Format and dialect are behavioral. Facts that change should stay out of weights."
+            },
+            {
+              "question": "Indirect prompt injection typically happens when:",
+              "options": [
+                "The developer types a new system prompt",
+                "The model retrieves or is given an external document that contains hidden instructions",
+                "Temperature is an integer",
+                "You lower max tokens"
+              ],
+              "answer": 1,
+              "explanation": "The attacker never talks to you directly. Their payload rides in content the app fetches and concatenates."
+            },
+            {
+              "question": "A support bot answers from RAG. Users report confident wrong refund rules. First debug step:",
+              "options": [
+                "Assume the generator is the only fault and immediately fine-tune",
+                "Inspect whether retrieved chunks actually contain the cited rule and whether chunk boundaries split it",
+                "Set temperature to 2",
+                "Delete the system prompt"
+              ],
+              "answer": 1,
+              "explanation": "Separate retrieval miss, split chunks, ranking, and generation. Fine-tuning will not fix a missing passage."
+            },
+            {
+              "question": "Why can “answer only from context” still hallucinate?",
+              "options": [
+                "The instruction is a soft constraint; the model may still continue a likely unsupported sentence",
+                "Tokenizers delete the instruction",
+                "RAG disables next-token prediction",
+                "Temperature zero forbids all tokens not in the chunk"
+              ],
+              "answer": 0,
+              "explanation": "Natural-language rules are not hard isolation. You still need retrieval quality, citations, and refusal behavior when evidence is missing."
+            },
+            {
+              "question": "Eval on 12 hand-picked “happy path” prompts is a pitfall because:",
+              "options": [
+                "Small, unrepresentative n hides retrieval misses, injection, and long-context failures",
+                "Twelve is always statistically sufficient",
+                "Hand-picked cases cannot be written down",
+                "Gold labels are illegal"
+              ],
+              "answer": 0,
+              "explanation": "You need coverage of miss, conflict, stale docs, empty retrieval, and adversarial context—not only demos that work."
+            },
+            {
+              "question": "You pay per token. Which design most directly cuts cost without shrinking the model?",
+              "options": [
+                "Retrieve top-k small chunks instead of stuffing whole documents, and truncate unused history",
+                "Duplicate the same PDF in the prompt for redundancy",
+                "Raise temperature so answers are longer",
+                "Disable caching of identical prefixes"
+              ],
+              "answer": 0,
+              "explanation": "Cost tracks tokens processed. Selective context beats naive stuffing."
+            }
+          ],
+          "flashcards": [
+            {
+              "front": "Hallucinated citations",
+              "back": "“According to…” is a likely string even with no source in context. Require retrieved spans, or refuse. Do not trust citation-shaped text."
+            },
+            {
+              "front": "Temperature vs schema tasks",
+              "back": "Low temperature for extraction and tools. Higher temperature for brainstorming. Temperature will not fix missing evidence."
+            },
+            {
+              "front": "Token-cost traps",
+              "back": "Code, tables, and some languages use more tokens per character. Word limits are not token limits. Truncation can drop the answer, not the preamble."
+            },
+            {
+              "front": "Stuffing vs retrieval",
+              "back": "Dumping a whole corpus into the window is slow, expensive, and easy to distract. Retrieve, rank, and keep only spans that can support the answer."
+            },
+            {
+              "front": "RAG failure modes",
+              "back": "Miss, stale index, wrong ranking, query-doc mismatch, chunk split, and “cited but not entailed.” Faithful summary of the wrong chunk is still a failure."
+            },
+            {
+              "front": "Structure-aware chunking",
+              "back": "Split on headings, functions, or table rows when you can. Keep IDs and titles in the chunk. Overlap at boundaries. Avoid orphaned numbers in tables."
+            },
+            {
+              "front": "Eval pitfalls",
+              "back": "Tiny n, leaked test items in prompts, LLM-as-judge bias, scoring fluency, and ignoring retrieval metrics. Measure the failure you actually ship."
+            },
+            {
+              "front": "Indirect injection",
+              "back": "Payloads hide in retrieved pages, tickets, or files. Separate untrusted content, delimit it, and never let it choose tools or exfiltrate secrets."
+            }
+          ]
+        },
+        "advanced": {
+          "quiz": [
+            {
+              "question": "Teacher-forcing trains the model on gold prefixes, but inference is autoregressive on its own tokens. This gap contributes to hallucination because:",
+              "options": [
+                "The model never sees tokens at train time",
+                "Errors compound: a slightly off prefix makes a false continuation more likely, with no external correction",
+                "Temperature becomes exactly 1 at test time always",
+                "Loss is computed on images, not text"
+              ],
+              "answer": 1,
+              "explanation": "Exposure bias plus likelihood training means the model is not trained to stop and verify after its own mistakes."
+            },
+            {
+              "question": "For a tool argument that must be a valid ID, temperature 1.0 is a poor default because:",
+              "options": [
+                "High entropy sampling increases the chance of a locally likely but invalid ID string",
+                "Temperature cannot affect sampled tokens",
+                "Tool IDs are never tokenized",
+                "Temperature 1.0 disables the context"
+              ],
+              "answer": 0,
+              "explanation": "Constrained outputs want a peaked distribution or a constrained decoder. Do not sample IDs from a flat tail."
+            },
+            {
+              "question": "You have a long system prompt, retrieved chunks, and a growing chat. The hidden cost is not only the latest user line because:",
+              "options": [
+                "Only new characters are billed",
+                "Typical APIs bill (and the model processes) the full prompt each turn, so history plus retrieval compounds",
+                "Cached identical prefixes are never relevant to cost",
+                "Output tokens are free"
+              ],
+              "answer": 1,
+              "explanation": "Each turn re-sends prior tokens unless you have prefix caching. Retrieval-every-turn plus long memory is a cost curve, not a constant."
+            },
+            {
+              "question": "Quadratic attention in sequence length implies that doubling a dense prompt can:",
+              "options": [
+                "At most double compute in those layers, never more",
+                "Roughly quadruple attention compute, on top of already paying for twice the tokens",
+                "Leave latency unchanged",
+                "Only affect disk, not GPU time"
+              ],
+              "answer": 1,
+              "explanation": "Even with linear approximations in some stacks, naive full attention is O(n²). Long windows are a systems problem, not just a quality knob."
+            },
+            {
+              "question": "Retrieved chunk C is top-ranked and the model quotes it. The answer is still wrong. Which failure is this?",
+              "options": [
+                "Citation-not-entailment: the chunk is topically related but does not support the claim",
+                "Empty retrieval",
+                "Tokenizer underflow",
+                "Temperature is NaN"
+              ],
+              "answer": 0,
+              "explanation": "Ranking ≠ support. Eval must check entailment of the claim by the cited span, not merely that a citation exists."
+            },
+            {
+              "question": "Semantic chunking that embeds sliding windows and splits on similarity drops can fail when:",
+              "options": [
+                "A logical unit (API + error codes) is semantically diverse so it is split, while boilerplate is glued because it is self-similar",
+                "You store metadata",
+                "You use overlap of 10–20%",
+                "You keep titles in the chunk"
+              ],
+              "answer": 0,
+              "explanation": "Similarity is not discourse structure. Tables, specs, and code often need schema-aware splits, not embedding kinks."
+            },
+            {
+              "question": "A/B eval where the judge sees the system name and prefers the verbose variant is contaminated by:",
+              "options": [
+                "Length and identity bias, not the hidden task metric",
+                "Perfect calibration",
+                "Token-free scoring",
+                "Retrieval recall"
+              ],
+              "answer": 0,
+              "explanation": "Blind, length-controlled, and gold-anchored judging. Otherwise you ship the essay that flatters the judge."
+            },
+            {
+              "question": "Test questions appear inside few-shot prompts used at eval time. The pitfall is:",
+              "options": [
+                "Data leakage: you are measuring memorization of the eval items, not generalization",
+                "A required RAG feature",
+                "The only way to compute BLEU",
+                "Unrelated to contamination"
+              ],
+              "answer": 0,
+              "explanation": "Held-out means held out of prompts, indexes, and fine-tunes—not only out of the training corpus you remember."
+            },
+            {
+              "question": "When is fine-tuning the wrong tool even if RAG is “hard”?",
+              "options": [
+                "You need the model to recite a policy that legal changes weekly",
+                "You need a house writing style on a stable task",
+                "You need lower latency on a fixed schema after distillation",
+                "You need the model to use domain abbreviations consistently"
+              ],
+              "answer": 0,
+              "explanation": "If the source of truth must update without a training job, keep it out of weights. Hard retrieval is still the right architecture."
+            },
+            {
+              "question": "A prompt-only fix is insufficient when:",
+              "options": [
+                "The model must acquire a distributional skill (accent of a dialect, layout prior) that examples in context cannot stably teach at your latency budget",
+                "You only needed to rename a field in the instructions",
+                "A single new fact must be true tomorrow",
+                "You wanted to add one URL to retrieve"
+              ],
+              "answer": 0,
+              "explanation": "Prompts are great for tasks and constraints. They are a bad way to install a large behavioral prior under tight token budgets."
+            },
+            {
+              "question": "A defense that only strips the phrase “ignore previous instructions” is weak because:",
+              "options": [
+                "Injection can be encoded, translated, role-played, or aimed at tools without that phrase",
+                "That phrase is the only known attack",
+                "Models cannot read other languages",
+                "Tools never see retrieved text"
+              ],
+              "answer": 0,
+              "explanation": "Treat untrusted content as data, constrain tools, and require confirmation for side effects. Keyword filters are bypass bait."
+            },
+            {
+              "question": "Multilingual token inequality matters in production because:",
+              "options": [
+                "The same user intent can exhaust the window or the budget in one language and not another",
+                "Every language has identical bytes-per-token",
+                "Truncation always drops tokens from the end of the vocabulary, not the prompt",
+                "Cost is billed per word in every API"
+              ],
+              "answer": 0,
+              "explanation": "Tokenizers are uneven. Latency, truncation, and price become language-dependent if you think in words."
+            },
+            {
+              "question": "Hybrid search (keyword + vector) often beats vectors alone for RAG because:",
+              "options": [
+                "Rare IDs, error codes, and exact names are easy for lexical match and easy for embedding models to blur",
+                "Keyword search cannot find exact strings",
+                "Embeddings always preserve identifiers",
+                "Chunking becomes unnecessary"
+              ],
+              "answer": 0,
+              "explanation": "Identifiers and rare tokens are classic embedding misses. Lexical features catch them; vectors catch paraphrases."
+            },
+            {
+              "question": "A grounded-generation eval should jointly report:",
+              "options": [
+                "Answer correctness, attribution/entailment to retrieved spans, and retrieval recall—not only chat fluency",
+                "Perplexity on the system prompt",
+                "Temperature as a quality score",
+                "Parameter count of the judge"
+              ],
+              "answer": 0,
+              "explanation": "A fluent, well-cited, wrong stack can fail at retrieval, at support, or at the final claim. Measure each layer."
+            }
+          ],
+          "flashcards": [
+            {
+              "front": "Exposure bias and hallucination",
+              "back": "Train on gold prefixes; infer on your own tokens. Small early errors make false but likely continuations. Nothing in the loop verifies the world."
+            },
+            {
+              "front": "Context cost compounding",
+              "back": "Each turn typically processes system + retrieval + history. Prefix caching helps identical heads. Naive “keep everything” is a quadratic-feeling bill."
+            },
+            {
+              "front": "Cited ≠ supported",
+              "back": "A top chunk can be on-topic and still not entail the claim. Score span-level entailment, not the presence of a bracketed ID."
+            },
+            {
+              "front": "Chunking against the grain",
+              "back": "Embedding-similarity splits can glue boilerplate and break specs. Prefer document structure; put keys, titles, and units inside the chunk."
+            },
+            {
+              "front": "Judge-model pitfalls",
+              "back": "Self-preference, verbosity, position, and identity bias. Blind the judge, control length, mix human gold, and keep a frozen eval set."
+            },
+            {
+              "front": "Fine-tune vs RAG vs prompt (decision)",
+              "back": "Prompt: policy of the task. RAG: changing or citable facts. Fine-tune: stable skill/style under a token budget. Mixing them up wastes money and still hallucinates."
+            },
+            {
+              "front": "Injection as a confused-deputy problem",
+              "back": "Untrusted text and trusted instructions share one context. Delimit, minimize privileges, and require out-of-band confirmation for side-effecting tools."
+            },
+            {
+              "front": "Tokens as the real capacity unit",
+              "back": "Windows, bills, and truncation are token-based. Words, pages, and characters will lie—especially for code and non-English text."
+            }
+          ]
+        }
+      }
+    },
+    {
+      "title": "AI Agents",
+      "levels": {
+        "beginner": {
+          "quiz": [
+            {
+              "question": "An LLM agent, at minimum, is:",
+              "options": [
+                "A single classification head with no tools",
+                "A loop: the model chooses actions (often tool calls), observes results, and continues until it stops",
+                "A database trigger",
+                "A tokenizer with a larger vocabulary"
+              ],
+              "answer": 1,
+              "explanation": "The model is not the product. The product is a loop that can call tools and feed observations back in."
+            },
+            {
+              "question": "When should you usually not use an agent?",
+              "options": [
+                "The task is a deterministic pipeline or one model call with a known schema",
+                "The user goal is unknown and may need several tools",
+                "You must branch on intermediate observations you cannot precompute",
+                "You need open-ended research with tool use"
+              ],
+              "answer": 0,
+              "explanation": "If the steps are known, write a workflow. Agents add latency, cost, and failure modes you do not need."
+            },
+            {
+              "question": "A tool returns 500. The agent should not:",
+              "options": [
+                "Retry with backoff if the error looks transient and the tool is safe to retry",
+                "Blindly retry in a tight loop with the same side-effecting payload",
+                "Surface a bounded failure to the user after a retry budget",
+                "Record the error in the trace"
+              ],
+              "answer": 1,
+              "explanation": "Unbounded retries cause storms and duplicate side effects. Treat idempotency and budgets as part of the tool contract."
+            },
+            {
+              "question": "Which is working memory for an agent, not a long-term store?",
+              "options": [
+                "The current prompt: instructions, recent observations, and scratch notes in this run",
+                "A vector index of all past tickets across months",
+                "A policy wiki in RAG",
+                "A user profile database"
+              ],
+              "answer": 0,
+              "explanation": "Working memory is what is in context this episode. Long-term stores live outside the window and must be retrieved or queried."
+            },
+            {
+              "question": "An over-permissioned tool is dangerous because:",
+              "options": [
+                "The model might call it with a hallucinated argument and actually take the action",
+                "Tools cannot have side effects",
+                "Permissions only affect logging",
+                "Agents cannot call tools more than once"
+              ],
+              "answer": 0,
+              "explanation": "The blast radius is the union of tools you exposed. Least privilege is the control, not hoping the model is careful."
+            },
+            {
+              "question": "Traces for agents should record:",
+              "options": [
+                "Only the final paragraph shown to the user",
+                "Each model step, tool name, arguments, results, and errors, with timings",
+                "Only GPU temperature",
+                "Only the system prompt, never tool I/O"
+              ],
+              "answer": 1,
+              "explanation": "You cannot debug a loop from the last sentence. You need the trajectory."
+            },
+            {
+              "question": "A step budget or timeout exists so that:",
+              "options": [
+                "The agent cannot loop until money, time, or tools are exhausted",
+                "Temperature stays at 1",
+                "Memory is encrypted",
+                "Retrieval is disabled"
+              ],
+              "answer": 0,
+              "explanation": "Loops do not halt by magic. Cap steps, wall clock, and tokens, then fail visibly."
+            },
+            {
+              "question": "A state machine (graph) agent differs from a free-form ReAct loop because:",
+              "options": [
+                "Allowed transitions are explicit; the model cannot jump to an arbitrary tool at any time",
+                "State machines cannot call tools",
+                "Free-form loops cannot observe tool output",
+                "Graphs forbid timeouts"
+              ],
+              "answer": 0,
+              "explanation": "Graphs trade flexibility for predictability. Use them when the legal paths are known."
+            },
+            {
+              "question": "Tool use requires a schema because:",
+              "options": [
+                "The model must emit arguments the runtime can parse and validate before execution",
+                "Schemas disable JSON",
+                "Tools ignore types",
+                "Schemas replace authentication"
+              ],
+              "answer": 0,
+              "explanation": "Invalid arguments are a tool error. Validate before side effects."
+            },
+            {
+              "question": "A classifier plus a fixed email template is usually better than an agent when:",
+              "options": [
+                "Every input maps to one of a few known actions",
+                "The next tool depends on unpredictable observations",
+                "You must browse and synthesize many unknown sources",
+                "The user goal cannot be enumerated"
+              ],
+              "answer": 0,
+              "explanation": "Closed action sets do not need a planning loop. Keep the model inside a box."
+            },
+            {
+              "question": "Retrying a “create payment” tool on timeout is risky unless:",
+              "options": [
+                "The tool is idempotent or you pass an idempotency key",
+                "You retry as fast as possible",
+                "You hide the error from traces",
+                "You raise temperature"
+              ],
+              "answer": 0,
+              "explanation": "Timeouts are ambiguous. Without idempotency you may double-charge."
+            },
+            {
+              "question": "Episodic memory, in agent design, usually means:",
+              "options": [
+                "Records of past runs or conversations you may retrieve later",
+                "The weights of the base model",
+                "The tokenizer merge table",
+                "GPU scratch space"
+              ],
+              "answer": 0,
+              "explanation": "Episodes are prior interactions. They are not automatically in context; you choose what to fetch."
+            },
+            {
+              "question": "Giving an agent a raw shell tool as “just in case” is a problem because:",
+              "options": [
+                "It can run commands you never intended, including destructive or data-exfiltrating ones",
+                "Shells cannot return text",
+                "Models cannot emit command strings",
+                "Timeouts become infinite automatically"
+              ],
+              "answer": 0,
+              "explanation": "Broad tools convert a prompt injection or a bad plan into a real incident."
+            },
+            {
+              "question": "If you have no traces, an agent that “sometimes does the wrong tool” is hard to fix because:",
+              "options": [
+                "You cannot see the arguments, observations, or which step diverged",
+                "Wrong tools never happen",
+                "Logs are illegal for agents",
+                "The loop has only one step by definition"
+              ],
+              "answer": 0,
+              "explanation": "Debugging is replay of the trajectory. Ship traces from day one."
+            }
+          ],
+          "flashcards": [
+            {
+              "front": "Agent = loop + tools",
+              "back": "The model proposes an action, the runtime executes a tool, the observation is appended, repeat until a stop condition. No loop, no agent."
+            },
+            {
+              "front": "When NOT to use an agent",
+              "back": "Known DAG, single LLM call, strict latency SLA, pure classify/extract. Agents cost retries, tokens, and surprise."
+            },
+            {
+              "front": "Tool errors and retries",
+              "back": "Distinguish transient vs permanent, validate schemas, cap retries, and require idempotency for side effects. Never retry-storm."
+            },
+            {
+              "front": "Memory kinds",
+              "back": "Working: this context. Episodic: past runs. Semantic: facts/RAG. Do not pretend the window is a database."
+            },
+            {
+              "front": "Least privilege tools",
+              "back": "Expose the narrowest action (refund_order_id) not a generic SQL or shell. The model will eventually call whatever you give it."
+            },
+            {
+              "front": "Traces",
+              "back": "Span every thought/action/observation with ids, latency, tokens, and errors. You debug agents from traces, not from the final chat bubble."
+            },
+            {
+              "front": "Budgets and timeouts",
+              "back": "Cap steps, wall clock, tool time, and tokens. On exhaustion, stop with a visible failure—do not wander."
+            },
+            {
+              "front": "State machine vs free-form",
+              "back": "Graph: allowed edges, easier eval and safety. Free-form: flexible, harder to bound. Default to a graph when the path is known."
+            }
+          ]
+        },
+        "intermediate": {
+          "quiz": [
+            {
+              "question": "In a tool loop, the model’s “plan” is only as good as:",
+              "options": [
+                "The observation it actually received; a truncated or lying tool result will steer the next call",
+                "The parameter count of the base model alone",
+                "The absence of a stop token",
+                "The color of the UI"
+              ],
+              "answer": 0,
+              "explanation": "Garbage in the observation channel becomes the next argument. Treat tool results as untrusted data too."
+            },
+            {
+              "question": "You should replace an agent with a compiled workflow when you notice:",
+              "options": [
+                "The same two or three tool sequences succeed almost always",
+                "Every ticket needs a unique research path",
+                "Tools do not exist yet",
+                "Users never repeat intents"
+              ],
+              "answer": 0,
+              "explanation": "Once the policy is stable, encode it. Keep the LLM for the remaining messy slot, not the whole loop."
+            },
+            {
+              "question": "A tool schema mismatch (string vs array) should be handled by:",
+              "options": [
+                "Rejecting before execution, returning a structured error the model can repair, counting against the retry budget",
+                "Executing anyway and hoping",
+                "Raising temperature and resending to the tool",
+                "Dropping traces of the bad call"
+              ],
+              "answer": 0,
+              "explanation": "Validation is cheaper than side effects. Bounded repair is fine; silent coercion is not."
+            },
+            {
+              "question": "Scratchpad vs retrieved semantic memory: which statement is right?",
+              "options": [
+                "Scratchpad is in-run working notes; semantic memory is an external store you query. Mixing them without a write policy causes stale or leaked state",
+                "They are the same tensor",
+                "Scratchpad survives process death by default",
+                "Semantic memory cannot be versioned"
+              ],
+              "answer": 0,
+              "explanation": "Decide what is ephemeral, what is persisted, and who can write it. Memory without policy is just a prompt leak."
+            },
+            {
+              "question": "A “search_files(glob)” tool plus “write_file(path, contents)” together are over-permissioned if the product only needs:",
+              "options": [
+                "Read a ticket and post a comment",
+                "Full repository maintenance",
+                "A migration agent with human approval already in front",
+                "A coding agent in an isolated VM you accept"
+              ],
+              "answer": 0,
+              "explanation": "Match tools to the job. Comment-posting does not require arbitrary writes."
+            },
+            {
+              "question": "A good agent trace lets you answer:",
+              "options": [
+                "Which step first departed from the gold policy, with the exact arguments and observation",
+                "Only whether the user clicked like",
+                "Only total GPU hours for the company",
+                "Only the final BLEU score"
+              ],
+              "answer": 0,
+              "explanation": "Credit assignment in a loop needs step-level truth. Aggregate thumbs-up will not localize a bad tool."
+            },
+            {
+              "question": "A token budget on an agent run should include:",
+              "options": [
+                "System, history, each tool observation, and all model outputs—not only the last answer",
+                "Only the user’s first sentence",
+                "Only embeddings",
+                "Only logs stored on disk"
+              ],
+              "answer": 0,
+              "explanation": "Observations can dominate cost. Budget the whole trajectory or the run will blow up on a verbose tool."
+            },
+            {
+              "question": "Free-form looping is a poor fit when:",
+              "options": [
+                "Compliance requires that refunds never precede identity verification, no matter what the model wants",
+                "The user is exploring an unknown codebase",
+                "Tool order cannot be known in advance",
+                "You are prototyping a research assistant"
+              ],
+              "answer": 0,
+              "explanation": "Hard ordering and forbidden skips belong in a state machine, not in a suggestion from the model."
+            },
+            {
+              "question": "Tool timeouts should be:",
+              "options": [
+                "Shorter than the remaining run budget, with a defined cancel/idempotency story",
+                "Infinite so the agent never fails",
+                "Hidden from the model so it assumes success",
+                "Always equal to one millisecond"
+              ],
+              "answer": 0,
+              "explanation": "A hung tool should not take the whole conversation down. Fail, budget, and maybe retry."
+            },
+            {
+              "question": "You log thoughts in traces. A privacy issue is:",
+              "options": [
+                "Thoughts and tool args can contain user secrets and must have retention and access controls like other prod logs",
+                "Traces cannot contain text",
+                "Thoughts are always synthetic and non-sensitive",
+                "GDPR never applies to logs"
+              ],
+              "answer": 0,
+              "explanation": "Agent traces are production data. Treat them as such."
+            },
+            {
+              "question": "Parallel tool calls help latency but complicate retries because:",
+              "options": [
+                "Partial success: some calls commit, others fail; you need per-call status, not one big undo",
+                "Parallelism forbids schemas",
+                "Retries become unnecessary",
+                "Traces cannot record more than one span"
+              ],
+              "answer": 0,
+              "explanation": "Fan-out needs fan-in error handling. Do not retry the whole batch if one side-effecting call already succeeded."
+            },
+            {
+              "question": "When is “just add memory” the wrong fix?",
+              "options": [
+                "The failure is a missing tool permission or a bad policy, and extra history only gives the model more ways to repeat it",
+                "The user refers to something said two turns ago inside the window",
+                "You retrieve the correct profile field",
+                "You store an audit log for humans"
+              ],
+              "answer": 0,
+              "explanation": "Memory amplifies whatever policy you already have. It is not a substitute for tools, graphs, or eval."
+            },
+            {
+              "question": "A human-in-the-loop approval node is a state-machine feature. Skipping it in a free-form agent typically happens because:",
+              "options": [
+                "The model can call the side-effecting tool directly if that tool is in scope",
+                "Graphs magically wrap every tool",
+                "Timeouts insert approvals",
+                "Temperature 0 inserts approvals"
+              ],
+              "answer": 0,
+              "explanation": "If the dangerous tool is callable, a free-form policy is a suggestion. Put the gate in the runtime graph."
+            },
+            {
+              "question": "A retry storm from an agent usually looks like:",
+              "options": [
+                "Many identical side-effecting calls after a slow 500, multiplying load and duplicate actions",
+                "A single well-bounded backoff",
+                "A user-visible stop after N errors",
+                "Jittered exponential backoff with a cap"
+              ],
+              "answer": 0,
+              "explanation": "Agents will retry if you let them. Caps, jitter, and idempotency keys are mandatory on write tools."
+            }
+          ],
+          "flashcards": [
+            {
+              "front": "Observations steer the loop",
+              "back": "The next action is conditioned on tool output. Truncation, injection in results, or silent coercion will be planned over as if true."
+            },
+            {
+              "front": "Collapse the agent to a workflow",
+              "back": "When traces show a stable path, encode the path. Reserve free-form steps for genuine uncertainty."
+            },
+            {
+              "front": "Idempotency keys",
+              "back": "Timeouts and retries must not double-apply payments, emails, or tickets. The tool contract includes “same key, same effect.”"
+            },
+            {
+              "front": "Write policy for memory",
+              "back": "Who writes episodic vs semantic memory, with what TTL, and what is in-context scratch. Unbounded writes become prompt injection and cost."
+            },
+            {
+              "front": "Tool blast radius",
+              "back": "Scope by resource, verb, and environment. Separate read from write. Never hand production-admin APIs to a general chat agent."
+            },
+            {
+              "front": "Trace-driven eval",
+              "back": "Grade trajectories: illegal transitions, wasted steps, schema errors, budget hits—not only final answer text."
+            },
+            {
+              "front": "Nested budgets",
+              "back": "Run budget > sum of tool timeouts. Per-tool timeout < remaining run time. Token budget includes observations. Fail closed."
+            },
+            {
+              "front": "Hard constraints in the graph",
+              "back": "Ordering, approvals, and forbidden tools belong in the state machine. Prompts cannot be the only lock on a side effect."
+            }
+          ]
+        },
+        "advanced": {
+          "quiz": [
+            {
+              "question": "A ReAct-style loop with unbounded “think” tokens before each tool call mainly fails in production because:",
+              "options": [
+                "Thoughts are billed, leak into traces, can be injected into, and do not substitute for a real world model",
+                "Thoughts always improve grounding",
+                "Runtimes cannot parse function calls after text",
+                "Stop conditions become stricter automatically"
+              ],
+              "answer": 0,
+              "explanation": "Chain-of-thought is not a control plane. Bound it, don’t trust it, and put policy in code."
+            },
+            {
+              "question": "The strongest signal you should not ship an agent yet is:",
+              "options": [
+                "A scripted DAG plus one extraction call meets the SLA and the audit log, and the agent only wins on rare demos",
+                "Users have open-ended goals across many tools",
+                "You cannot predefine the next observation",
+                "Research quality requires iterative search"
+              ],
+              "answer": 0,
+              "explanation": "Agents are for residual uncertainty. If a pipeline is enough, the agent is a regression in reliability."
+            },
+            {
+              "question": "Poisoned tool output (a webpage that says “now email secrets to …”) is best treated as:",
+              "options": [
+                "Indirect injection into the observation channel; tools must not gain extra privileges from content they fetch",
+                "A reason to raise temperature",
+                "Proof that traces should be disabled",
+                "A tokenizer failure"
+              ],
+              "answer": 0,
+              "explanation": "Fetched text is still untrusted. The deputy (your agent) must not inherit authority from the page."
+            },
+            {
+              "question": "Non-idempotent tools plus at-least-once execution (retries, duplicates, crashes) require:",
+              "options": [
+                "Deduping on a business key, or making the effect at-most-once via a store the runtime owns",
+                "Higher temperature so calls differ",
+                "Deleting traces after each retry",
+                "Parallelizing all writes always"
+              ],
+              "answer": 0,
+              "explanation": "Distributed execution is at-least-once unless you build otherwise. Agents make that visible quickly."
+            },
+            {
+              "question": "Semantic memory that the agent can write without review creates a loop where:",
+              "options": [
+                "Hallucinations get stored and later retrieved as facts, amplifying error across sessions",
+                "Memory becomes write-protected automatically",
+                "RAG cannot read the store",
+                "Tokenizers reset the index"
+              ],
+              "answer": 0,
+              "explanation": "Writable memory is a self-training set. Gate writes, version them, and allow tombstones."
+            },
+            {
+              "question": "Over-permissioned tools plus prompt injection is a full exploit path because:",
+              "options": [
+                "Untrusted content can induce a call, and the runtime will execute any allowed tool with model-supplied args",
+                "Injection cannot mention tool names",
+                "Schemas block all strings",
+                "Approvals are inserted by temperature"
+              ],
+              "answer": 0,
+              "explanation": "This is confused deputy: the model is the confused deputy, the tool is the privilege. Shrink the privilege."
+            },
+            {
+              "question": "Distributed tracing for agents should propagate a run id across model, tools, and sub-agents so that:",
+              "options": [
+                "You can reconstruct a causal DAG of spans when one child agent fans out",
+                "IDs are decorative only",
+                "Child agents must not log",
+                "Only the last span is kept"
+              ],
+              "answer": 0,
+              "explanation": "Multi-agent systems without correlated traces are not debuggable. One run id, parent-child spans, and packed tool I/O."
+            },
+            {
+              "question": "A cost budget that only caps output tokens will still blow up when:",
+              "options": [
+                "A tool returns a huge blob that is concatenated into the next prompt every step",
+                "The model emits a short final answer",
+                "You disable retrieval",
+                "You use a state machine with no observations"
+              ],
+              "answer": 0,
+              "explanation": "Observation inflation is the usual bill. Truncate, summarize with a budget, or store large artifacts out of band."
+            },
+            {
+              "question": "Free-form vs state machine is not binary. A practical hybrid is:",
+              "options": [
+                "A graph of stages with a small free-form tool loop inside a sandbox stage, then a forced review stage before writes",
+                "Free-form always, with a comment in the prompt about stages",
+                "A graph that never calls a model",
+                "No timeouts in hybrid mode"
+              ],
+              "answer": 0,
+              "explanation": "Put uncertainty in a cage. Keep irreversible actions on explicit edges."
+            },
+            {
+              "question": "Eval that only scores the final user-visible answer misses:",
+              "options": [
+                "Illegal tool use, secret leakage in args, wasted steps, and near-miss policy violations that did not reach the user this time",
+                "Whether the paragraph rhymes",
+                "The tokenizer version",
+                "The color scheme"
+              ],
+              "answer": 0,
+              "explanation": "Safety and cost live on the trajectory. Final-answer eval is necessary and not sufficient."
+            },
+            {
+              "question": "A stop condition “when the model says DONE” is weak because:",
+              "options": [
+                "The model can emit DONE early, late, or in a tool argument; the runtime needs an explicit halt (budget, graph terminal, or structured stop)",
+                "DONE is parsed by GPUs directly",
+                "Stop tokens cannot be configured",
+                "Agents never over-talk"
+              ],
+              "answer": 0,
+              "explanation": "Halt is a runtime property. Natural language is a hint."
+            },
+            {
+              "question": "Retrying a read-only search is usually safer than retrying a write. The precise reason is:",
+              "options": [
+                "Reads are typically idempotent; writes often are not, so error class must gate retry policy per tool",
+                "Writes cannot fail",
+                "Reads never time out",
+                "Search cannot be cached"
+              ],
+              "answer": 0,
+              "explanation": "Annotate tools: retryable, side-effecting, confirmation-required. One global retry wrapper is how you duplicate writes."
+            },
+            {
+              "question": "Passing the entire raw trace back into the next prompt as “memory” is costly and unsafe because:",
+              "options": [
+                "It repeats secrets, injections, and failed plans, multiplying tokens and giving old payloads another chance",
+                "Traces contain no text",
+                "Prompts cannot include JSON",
+                "Budgets ignore concatenated traces"
+              ],
+              "answer": 0,
+              "explanation": "Summarize or select memory on purpose. The trace is for operators; the prompt is a curated working set."
+            },
+            {
+              "question": "A state machine whose every node is “LLM decides any tool” has collapsed into free-form. To keep the graph meaningful you must:",
+              "options": [
+                "Restrict the tool set and allowed successors per node, with runtime enforcement—not only a prompt that lists them",
+                "Name the nodes poetically",
+                "Increase temperature at terminals",
+                "Remove traces at graph edges"
+              ],
+              "answer": 0,
+              "explanation": "If every edge exists, you do not have a state machine. Enforcement is in the dispatcher."
+            }
+          ],
+          "flashcards": [
+            {
+              "front": "Control plane vs language",
+              "back": "Tools, graphs, budgets, and validators are the control plane. The model proposes. If a constraint matters, do not leave it in prose."
+            },
+            {
+              "front": "Agent as last resort",
+              "back": "Ship the cheapest reliable machine: software, then one LLM call, then a graph, then a free-form loop. Each step up spends reliability."
+            },
+            {
+              "front": "Observation injection",
+              "back": "Tool results are an attack surface. Sanitize, delimit, and never let fetched text expand the allowed tool set."
+            },
+            {
+              "front": "Memory write amplification",
+              "back": "Unreviewed writes turn one hallucination into future retrieval “truth.” Version, gate, and decay memory."
+            },
+            {
+              "front": "Confused-deputy tools",
+              "back": "Injection + a powerful tool is RCE-shaped. Scope credentials per tool, per tenant, per environment. Confirm irreversible calls."
+            },
+            {
+              "front": "Trajectory metrics",
+              "back": "Illegal transition rate, retry density, tokens per successful task, time-to-halt, secret-in-args rate. Final accuracy hides these."
+            },
+            {
+              "front": "Observation inflation",
+              "back": "Huge tool payloads dominate tokens and can hide the goal. Store blobs by reference; put summaries in context with a hard cap."
+            },
+            {
+              "front": "Hybrid graph + inner loop",
+              "back": "Outer state machine for policy. Inner bounded loop for local search. Terminal nodes for writes. Runtime halt, not “please stop.”"
+            }
+          ]
+        }
+      }
+    }
+  ]
+}

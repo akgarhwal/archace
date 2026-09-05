@@ -1,0 +1,2588 @@
+{
+  "sections": [
+    {
+      "title": "Java",
+      "topics": [
+        {
+          "title": "equals/hashCode",
+          "levels": [
+            {
+              "name": "production",
+              "quiz": [
+                {
+                  "question": "A HashMap lookup misses an object that was previously put with an equal key. What contract break is the most likely cause?",
+                  "options": [
+                    "equals is reflexive but hashCode is never called for stored keys",
+                    "equals is true for two keys whose hashCode values differ",
+                    "hashCode is cached once at construction and never changes",
+                    "compareTo is inconsistent with equals but hashCode is consistent"
+                  ],
+                  "answer": 1,
+                  "explanation": "If a.equals(b) is true, a.hashCode() must equal b.hashCode(). HashMap buckets by hash first, so unequal hashes make equal keys unreachable."
+                },
+                {
+                  "question": "You mutate a field that participates in hashCode after inserting the object into a HashSet. What happens on later contains()?",
+                  "options": [
+                    "The set rehashes the object automatically on mutation",
+                    "contains() still finds it because identity is used as a fallback",
+                    "The object is typically lost: it sits in the old bucket while lookup uses the new hash",
+                    "The set throws ConcurrentModificationException on the next read"
+                  ],
+                  "answer": 2,
+                  "explanation": "Hash-based collections do not track field mutations. Changing a hash-relevant field after insert leaves the object in the wrong bucket."
+                },
+                {
+                  "question": "Two objects are equal by business id but you include a mutable timestamp in hashCode only. Which failure appears first?",
+                  "options": [
+                    "TreeMap ordering becomes unstable",
+                    "equals remains consistent while hash buckets diverge after the timestamp changes",
+                    "identityHashCode starts colliding",
+                    "serialization identity is lost"
+                  ],
+                  "answer": 1,
+                  "explanation": "equals and hashCode must use the same significant fields. A field in hashCode but not equals (or a field that changes after insert) breaks the map/set contract."
+                },
+                {
+                  "question": "Why must hashCode be consistent with equals even when you never put the type in a HashMap yourself?",
+                  "options": [
+                    "The compiler verifies the contract at compile time",
+                    "Libraries, caches, distinct(), groupingBy, and framework identity maps rely on it",
+                    "The JVM uses hashCode to decide GC generations",
+                    "Thread interruption delivery keys off hashCode"
+                  ],
+                  "answer": 1,
+                  "explanation": "Any hash-based structure in the JDK or a framework will mis-behave if the contract is broken, including streams and ORM snapshots."
+                },
+                {
+                  "question": "An equals implementation returns true for a subclass instance with extra state. What is the usual hazard?",
+                  "options": [
+                    "hashCode becomes slower",
+                    "Symmetry or transitivity breaks when the subclass equals does not agree",
+                    "The parent class can no longer be garbage collected",
+                    "instanceof is illegal in equals"
+                  ],
+                  "answer": 1,
+                  "explanation": "Allowing cross-type equality without a careful canEqual/getClass strategy commonly violates symmetry or transitivity."
+                },
+                {
+                  "question": "getClass() vs instanceof in equals: which statement is accurate for value types used as map keys?",
+                  "options": [
+                    "instanceof is always required so proxies can equal the real type",
+                    "getClass() prevents a subclass with extra fields from equaling the parent, preserving transitivity",
+                    "Both are equivalent if hashCode is final",
+                    "instanceof is required by the language specification"
+                  ],
+                  "answer": 1,
+                  "explanation": "getClass() equality rejects subclass instances, which is the conservative choice for types that will live in hash collections."
+                },
+                {
+                  "question": "You implement equals on a JPA entity using a generated database id that is null before persist. What goes wrong in a HashSet of new entities?",
+                  "options": [
+                    "All new entities collide as equal and collapse to one set element, or change bucket after persist",
+                    "HashSet refuses null hash codes",
+                    "Persist becomes a no-op",
+                    "The persistence context ignores equals"
+                  ],
+                  "answer": 0,
+                  "explanation": "Null ids make every transient entity equal (or all hash to the same bucket). After id assignment, hashCode changes and the set loses the entity."
+                },
+                {
+                  "question": "A correct hashCode for a class with several fields should:",
+                  "options": [
+                    "XOR System.identityHashCode of each field only",
+                    "Combine the same fields equals uses, with a mixing function that spreads bits",
+                    "Return a constant to maximize cache hits",
+                    "Delegate to Object.hashCode to preserve identity"
+                  ],
+                  "answer": 1,
+                  "explanation": "hashCode must be derived from the equality-significant state and should distribute well to keep buckets short."
+                },
+                {
+                  "question": "Two equal objects must have equal hashCodes. The converse is:",
+                  "options": [
+                    "Also required: unequal objects must have unequal hashCodes",
+                    "Not required; collisions are legal and expected",
+                    "Required only for Strings",
+                    "Required only inside ConcurrentHashMap"
+                  ],
+                  "answer": 1,
+                  "explanation": "Collisions are allowed. Only the one-way implication equals ⇒ same hashCode is mandatory."
+                },
+                {
+                  "question": "Why is a constant hashCode (always 42) technically contract-legal but operationally disastrous?",
+                  "options": [
+                    "It violates reflexivity of equals",
+                    "Every key lands in one bucket, turning HashMap operations into linear scans",
+                    "The JIT refuses to inline equals",
+                    "It disables escape analysis"
+                  ],
+                  "answer": 1,
+                  "explanation": "A constant hash satisfies the contract if equals is consistent, but destroys the O(1) assumption of hash collections."
+                },
+                {
+                  "question": "When is it acceptable to not override hashCode?",
+                  "options": [
+                    "Whenever equals is overridden with business fields",
+                    "When you keep Object identity equality and never treat the type as a value key",
+                    "When the class is Serializable",
+                    "When the class is abstract"
+                  ],
+                  "answer": 1,
+                  "explanation": "If equals is not overridden, identity equality and identity hash remain consistent. Overriding equals without hashCode is the bug."
+                },
+                {
+                  "question": "A record's generated equals/hashCode vs a mutable class: which production rule still applies?",
+                  "options": [
+                    "Records may omit hashCode because components are final",
+                    "Do not mutate record-equivalent state after the instance is used as a hash key; records just make that state explicit",
+                    "Records hash only the first component",
+                    "Mutable classes cannot implement equals"
+                  ],
+                  "answer": 1,
+                  "explanation": "Immutability makes the contract easy to keep. The underlying rule is still: hash-relevant state must be stable while the object is in a hash collection."
+                },
+                {
+                  "question": "compareTo disagrees with equals for a class used in both HashSet and TreeSet. What do you observe?",
+                  "options": [
+                    "Both sets always agree on membership",
+                    "An object can be 'in' one set and 'not in' the other for the same logical value",
+                    "TreeSet automatically delegates to hashCode",
+                    "HashSet sorts using compareTo"
+                  ],
+                  "answer": 1,
+                  "explanation": "Sorted collections use compareTo; hash collections use equals/hashCode. Inconsistency yields split-brain membership."
+                },
+                {
+                  "question": "Floating-point fields in equals/hashCode are dangerous mainly because:",
+                  "options": [
+                    "NaN is not equal to itself, so equals can break reflexivity",
+                    "doubles cannot be hashed",
+                    "The JVM forbids floating fields in equals",
+                    "hashCode of 0.0 and -0.0 is unspecified and crashes"
+                  ],
+                  "answer": 0,
+                  "explanation": "NaN != NaN under IEEE rules, so a naive ==/equals on a NaN field makes an object not equal to itself. Use compare/bit conversion with an explicit NaN policy."
+                }
+              ],
+              "flashcards": [
+                {
+                  "front": "equals/hashCode contract in one sentence",
+                  "back": "If a.equals(b) then a.hashCode() == b.hashCode(); hashCode may collide when equals is false. Both must use the same significant, stable fields."
+                },
+                {
+                  "front": "Why mutating a key after HashMap.put loses the entry",
+                  "back": "The entry stays in the bucket of the old hash. Lookup computes a new hash and searches a different bucket, so get/contains miss."
+                },
+                {
+                  "front": "getClass() vs instanceof in equals",
+                  "back": "getClass() rejects subclasses and protects transitivity for map keys. instanceof allows mixed-type equality and needs a canEqual pattern to stay safe."
+                },
+                {
+                  "front": "JPA entity equals on generated id",
+                  "back": "Transient entities share null id and collapse or collide; after persist the id (and hash) changes and hash collections lose them. Prefer a stable business key or identity until assigned."
+                },
+                {
+                  "front": "Legal but useless hashCode",
+                  "back": "Returning a constant satisfies the contract and puts every key in one bucket, making HashMap/HashSet linear and contention-heavy."
+                },
+                {
+                  "front": "When you must override hashCode",
+                  "back": "Whenever you override equals. Skip both only if identity equality is the intended semantics."
+                },
+                {
+                  "front": "equals vs compareTo mismatch",
+                  "back": "HashSet membership and TreeSet membership can disagree for the same pair of objects, breaking uniqueness assumptions across APIs."
+                },
+                {
+                  "front": "NaN in equals",
+                  "back": "A field that is NaN makes a.equals(a) false if you use ==. That violates reflexivity and poisons every hash collection."
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "title": "GC promotion",
+          "levels": [
+            {
+              "name": "production",
+              "quiz": [
+                {
+                  "question": "In a generational heap, promotion means:",
+                  "options": [
+                    "Moving a live object from a young generation space into the old generation after surviving collections",
+                    "Raising a thread's priority when it allocates",
+                    "Compacting the metaspace into the nursery",
+                    "Converting a stack allocation into a heap allocation"
+                  ],
+                  "answer": 0,
+                  "explanation": "Objects that survive enough young collections (or do not fit in young) are promoted to old. Old collections are rarer and more expensive."
+                },
+                {
+                  "question": "Premature promotion usually shows up as:",
+                  "options": [
+                    "Lower allocation rate and smaller heaps",
+                    "Old generation filling with short-lived objects, causing frequent expensive old/mixed/full collections",
+                    "Stack overflow on deep recursion",
+                    "Direct ByteBuffer leaks only"
+                  ],
+                  "answer": 1,
+                  "explanation": "If the nursery is too small or survivor spaces overflow, objects that would have died young get tenured and force old-gen GC."
+                },
+                {
+                  "question": "A sudden spike of promotions during a traffic burst is most often caused by:",
+                  "options": [
+                    "Young generation / survivor spaces too small for the live set of the burst",
+                    "Too many daemon threads",
+                    "JIT disabling escape analysis permanently",
+                    "Finalizers running on the main thread"
+                  ],
+                  "answer": 0,
+                  "explanation": "When eden/survivors cannot hold the burst's still-live objects, the collector promotes them to make room."
+                },
+                {
+                  "question": "Why can promoting many objects increase pause times even if the heap is not full?",
+                  "options": [
+                    "Promotion always stops the world until the disk is fsynced",
+                    "Old-gen collections, remembered-set scanning, and fragmentation/copy work grow with the tenured live set",
+                    "The OS swaps the young generation first",
+                    "Promotion disables biased locking"
+                  ],
+                  "answer": 1,
+                  "explanation": "A larger old live set means more marking/copying/RS scanning. Fragmentation from promotions also forces compaction."
+                },
+                {
+                  "question": "Allocation failure in eden that promotes a huge live set in one young GC is called:",
+                  "options": [
+                    "A promotion storm / survivor overflow",
+                    "A safepoint leak",
+                    "A biased-lock revocation",
+                    "A compressed-oops failure"
+                  ],
+                  "answer": 0,
+                  "explanation": "If survivors cannot absorb live young objects, they are promoted en masse. Logs show high promotion rates and old-gen growth."
+                },
+                {
+                  "question": "Caches that retain objects slightly longer than the young-gen lifetime cause:",
+                  "options": [
+                    "No GC impact because caches are off-heap by default",
+                    "Steady promotion of cache entries into old gen, then mixed/full GC when they expire later",
+                    "Only metaspace collection",
+                    "Thread-local allocation buffer disablement"
+                  ],
+                  "answer": 1,
+                  "explanation": "TTL/size caches often keep data just long enough to tenure. Expiry then creates old-gen garbage — the worst of both worlds."
+                },
+                {
+                  "question": "A large object that does not fit in young generation is typically:",
+                  "options": [
+                    "Rejected with OutOfMemoryError immediately",
+                    "Allocated directly in old generation (or a large-object space), skipping young survival",
+                    "Split across eden and stack",
+                    "Stored in metaspace"
+                  ],
+                  "answer": 1,
+                  "explanation": "Humongous/large allocations bypass the nursery and tenure immediately, accelerating old-gen pressure."
+                },
+                {
+                  "question": "Which application pattern most reliably increases promotion volume?",
+                  "options": [
+                    "Short-lived per-request objects that die in eden",
+                    "Building large intermediate graphs (JSON trees, ORM entities, byte[] buffers) that remain live across a young GC",
+                    "Primitive local variables",
+                    "Using stack-confined objects that never escape"
+                  ],
+                  "answer": 1,
+                  "explanation": "Anything still reachable at the next young collection is a promotion candidate. Fat request graphs and buffers are classic."
+                },
+                {
+                  "question": "Old generation fragmentation after repeated promotions of mixed-size objects leads to:",
+                  "options": [
+                    "Faster young GCs",
+                    "Promotion failures: young GC cannot tenure objects and escalates to a full/concurrent-mode failure collection",
+                    "Automatic heap shrinkage",
+                    "Disablement of TLABs only"
+                  ],
+                  "answer": 1,
+                  "explanation": "If old gen has free bytes but not a contiguous region, promotion fails and the collector falls back to a heavier collection."
+                },
+                {
+                  "question": "How do you confirm premature promotion from GC logs rather than guessing?",
+                  "options": [
+                    "Watch only CPU steal time",
+                    "Correlate high promotion bytes / shrinking survivor-to-old flow with rising old occupancy and mixed/full GC frequency",
+                    "Count classloader counts",
+                    "Measure only socket buffer sizes"
+                  ],
+                  "answer": 1,
+                  "explanation": "Promotion rate, survivor overflow, and old occupancy together diagnose tenuring of short-lived objects."
+                },
+                {
+                  "question": "Raising young generation size can reduce premature promotion because:",
+                  "options": [
+                    "Objects get more time to die before a young collection copies them",
+                    "Old generation is deleted",
+                    "hashCode caching is enabled",
+                    "Finalizers run twice"
+                  ],
+                  "answer": 0,
+                  "explanation": "A larger nursery increases the chance that request-scoped objects become unreachable before they are tenured. It also makes each young pause bigger — a tradeoff."
+                },
+                {
+                  "question": "Tenuring threshold too low means:",
+                  "options": [
+                    "Objects must survive many young GCs before old gen, reducing promotion",
+                    "Objects are promoted after few survivals, tenuring data that might still die soon",
+                    "No object can enter old gen",
+                    "Eden is never collected"
+                  ],
+                  "answer": 1,
+                  "explanation": "Adaptive tenuring can drop the threshold under allocation pressure, which is exactly how bursts create premature promotion."
+                },
+                {
+                  "question": "Why do long-lived static collections of request data cause old-gen GC pain?",
+                  "options": [
+                    "Statics are stored in registers",
+                    "They keep objects reachable until removed, so they promote and then sit as old garbage or live set forever",
+                    "The JIT inlines them into young gen",
+                    "They disable card marking"
+                  ],
+                  "answer": 1,
+                  "explanation": "Reachability, not allocation site, decides lifetime. Unbounded static maps tenure everything they hold."
+                },
+                {
+                  "question": "A service allocates huge short-lived byte[] for each request. Young GC is frequent and old gen still grows. Best first hypothesis?",
+                  "options": [
+                    "The arrays are humongous/large and allocated in old/humongous space, or they survive because the request spans a young GC",
+                    "byte[] is never collected",
+                    "The compiler boxes each byte",
+                    "Promotion only happens for objects with finalizers"
+                  ],
+                  "answer": 0,
+                  "explanation": "Large arrays skip the nursery; medium arrays that remain live across a young pause get promoted. Both show as old-gen growth despite 'short-lived' intent."
+                }
+              ],
+              "flashcards": [
+                {
+                  "front": "What promotion is",
+                  "back": "Copying a still-reachable object from young generation into old generation after it survives collections (or because it would not fit in young)."
+                },
+                {
+                  "front": "Premature promotion",
+                  "back": "Short-lived objects tenure because eden/survivors are too small, the tenuring threshold is too low, or the object is too large. Result: old-gen GC churn."
+                },
+                {
+                  "front": "Survivor overflow",
+                  "back": "Live young objects do not fit in survivor space, so the collector promotes them in bulk during a young GC."
+                },
+                {
+                  "front": "Why caches tenure junk",
+                  "back": "TTL slightly longer than the young-gen lifetime keeps entries alive through a young GC. They promote, then become old garbage when the TTL expires."
+                },
+                {
+                  "front": "Humongous / large object path",
+                  "back": "Objects that do not fit in the nursery are allocated directly in old or a large-object space, so they never get a cheap death in eden."
+                },
+                {
+                  "front": "Promotion failure",
+                  "back": "Old generation has no contiguous room (often fragmentation). Young GC cannot tenure and the collector escalates to a full or concurrent-mode-failure collection."
+                },
+                {
+                  "front": "Log signals of promotion trouble",
+                  "back": "High promotion bytes, survivor overflow, rapidly rising old occupancy, then mixed/full GCs — not just 'GC happened'."
+                },
+                {
+                  "front": "Nursery size tradeoff",
+                  "back": "Larger young gen lets request objects die before tenuring but makes each young pause copy more. Tune from promotion rate and pause budget, not folklore."
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "title": "Thread pool unbounded queue outages",
+          "levels": [
+            {
+              "name": "production",
+              "quiz": [
+                {
+                  "question": "newFixedThreadPool(n) uses which queue, and why does that matter in an outage?",
+                  "options": [
+                    "A bounded ArrayBlockingQueue that rejects when full",
+                    "An unbounded LinkedBlockingQueue, so tasks accumulate in memory instead of rejecting",
+                    "A SynchronousQueue that never buffers",
+                    "The fork-join work-stealing queue only"
+                  ],
+                  "answer": 1,
+                  "explanation": "Executors.newFixedThreadPool and newSingleThreadExecutor use an unbounded LinkedBlockingQueue. Under overload the heap grows until GC thrash or OOM; callers are not failed fast."
+                },
+                {
+                  "question": "With a core-sized pool and an unbounded queue, when are extra threads above corePoolSize created?",
+                  "options": [
+                    "Whenever the queue has more than one task",
+                    "Never, because the queue never appears 'full', so max threads are not started",
+                    "Immediately on the first submit",
+                    "Only after a keep-alive timeout"
+                  ],
+                  "answer": 1,
+                  "explanation": "ThreadPoolExecutor creates threads beyond core only when the queue is full. An unbounded queue is never full, so maximumPoolSize is dead code."
+                },
+                {
+                  "question": "The production failure mode of an unbounded executor queue is typically:",
+                  "options": [
+                    "Immediate RejectedExecutionException that pages on-call",
+                    "Latency explosion, heap growth, GC thrash, then OOM or instance death while work still looks 'accepted'",
+                    "The pool shuts down automatically",
+                    "The OS kills only the idle threads"
+                  ],
+                  "answer": 1,
+                  "explanation": "Submit succeeds, so SLIs that watch error rate stay green while the queue hides hours of work and memory."
+                },
+                {
+                  "question": "A bounded queue plus AbortPolicy is preferred under overload because:",
+                  "options": [
+                    "It converts overload into a fast failure the caller can shed, retry, or trip a breaker on",
+                    "It guarantees every task eventually runs",
+                    "It disables GC",
+                    "It raises thread priority"
+                  ],
+                  "answer": 0,
+                  "explanation": "Backpressure must be visible. Rejection is a feature: it protects the JVM and signals upstream to stop sending."
+                },
+                {
+                  "question": "CallerRunsPolicy on a saturated pool does what, and what is the hidden risk?",
+                  "options": [
+                    "Drops the task silently; no risk",
+                    "Runs the task on the submitting thread, which backpressures that thread — and can deadlock a request thread that also needs the pool",
+                    "Starts unlimited extra threads",
+                    "Persists tasks to disk"
+                  ],
+                  "answer": 1,
+                  "explanation": "Caller-runs is useful for CPU pools fed by non-request threads. On servlet/event loops it can stall the only threads that drain other work."
+                },
+                {
+                  "question": "Why does monitoring thread-pool activeCount==coreSize miss an unbounded-queue outage?",
+                  "options": [
+                    "activeCount includes queued tasks",
+                    "Workers are busy at core size while the queue length and heap are the actual overload signals",
+                    "JMX cannot read executors",
+                    "coreSize is always zero"
+                  ],
+                  "answer": 1,
+                  "explanation": "The pool looks fully utilized and healthy. Queue depth, task wait time, and heap are the metrics that show the impending OOM."
+                },
+                {
+                  "question": "A common HTTP-client antipattern: unbounded pool queue in front of a slow dependency. What happens to the inbound request threads?",
+                  "options": [
+                    "They fail immediately with 503",
+                    "They block on Future.get/callback lag while the executor queue absorbs more calls, exhausting the inbound pool too",
+                    "They are migrated to the executor automatically",
+                    "They skip the client timeout"
+                  ],
+                  "answer": 1,
+                  "explanation": "Work is accepted faster than the dependency can serve it. Both the executor queue and the servlet/tomcat pool fill. Cascading saturation."
+                },
+                {
+                  "question": "SynchronousQueue with a cached thread pool fails in the opposite way. What is that failure?",
+                  "options": [
+                    "Tasks queue forever",
+                    "Every extra task creates a thread (or rejects if a cap is hit); thread explosion or native memory death under burst",
+                    "No task ever runs",
+                    "The queue stores the entire heap"
+                  ],
+                  "answer": 1,
+                  "explanation": "newCachedThreadPool uses SynchronousQueue and unbounded max threads. No buffering: bursts become threads, not heap, until the machine dies."
+                },
+                {
+                  "question": "For a latency-sensitive request path, the safe default executor shape is:",
+                  "options": [
+                    "Unbounded queue, fixed threads, no timeout",
+                    "Bounded queue, explicit max threads, rejection handler, task timeout, and queue-depth metrics",
+                    "Cached pool with no limit",
+                    "A new thread per task"
+                  ],
+                  "answer": 1,
+                  "explanation": "Bound memory and concurrency, fail fast, observe queue wait. That is the production contract."
+                },
+                {
+                  "question": "Why can an unbounded queue make timeouts ineffective?",
+                  "options": [
+                    "Timeouts cannot be set on Future",
+                    "The timeout often starts only when the task begins running; queued wait is invisible until the worker dequeues it",
+                    "LinkedBlockingQueue ignores interrupts",
+                    "GC disables timers"
+                  ],
+                  "answer": 1,
+                  "explanation": "A 200ms task timeout is useless if the task sat in the queue for 30s. Bound the queue and measure time-in-queue."
+                },
+                {
+                  "question": "OOM with a heap full of Runnable/Callable wrappers and captured request state points to:",
+                  "options": [
+                    "Metaspace leak from proxies",
+                    "An unbounded executor (or unbounded instrumented queue) retaining submitted work",
+                    "Stack overflow",
+                    "Direct buffer leak only"
+                  ],
+                  "answer": 1,
+                  "explanation": "Heap dumps of production outages from unbounded pools show millions of task objects, not just business entities."
+                },
+                {
+                  "question": "You set maximumPoolSize=32 but still never see more than 8 threads. Likely cause?",
+                  "options": [
+                    "The OS thread cap is 8",
+                    "corePoolSize=8 and the work queue is unbounded, so the pool never saturates the queue",
+                    "JIT inlines the workers",
+                    "maximumPoolSize only applies to scheduled executors"
+                  ],
+                  "answer": 1,
+                  "explanation": "This is the ThreadPoolExecutor trap. max is consulted only after offer() fails."
+                },
+                {
+                  "question": "A scheduled executor with an unbounded delayed queue plus a slow task causes:",
+                  "options": [
+                    "Tasks to skip automatically",
+                    "Schedule pile-up: overlapping runs queue up, delay grows without bound, heap and lag explode",
+                    "The scheduler switches to a bounded queue",
+                    "Fixed rate becomes fixed delay automatically"
+                  ],
+                  "answer": 1,
+                  "explanation": "If a job takes longer than its period, executions accumulate. Guard with a single-flight lock or skip-if-running, and bound the queue."
+                },
+                {
+                  "question": "Which rejection story is honest to upstream load balancers?",
+                  "options": [
+                    "Accept every task into RAM and die five minutes later",
+                    "Reject at the executor or servlet container so the LB can shed to healthy instances immediately",
+                    "Log and swallow RejectedExecutionException",
+                    "Start a new JVM per rejected task"
+                  ],
+                  "answer": 1,
+                  "explanation": "Failing the request lets the load balancer and client retry elsewhere. Silent queueing concentrates load on the already-sick instance."
+                }
+              ],
+              "flashcards": [
+                {
+                  "front": "newFixedThreadPool queue",
+                  "back": "Unbounded LinkedBlockingQueue. Tasks are never rejected; they accumulate in heap. maximumPoolSize is effectively ignored."
+                },
+                {
+                  "front": "When ThreadPoolExecutor starts threads above core",
+                  "back": "Only when workQueue.offer fails (queue full). Unbounded queues never fail offer, so extra threads never start."
+                },
+                {
+                  "front": "Unbounded queue outage signature",
+                  "back": "Success rate stays high, latency and heap climb, GC thrashes, then OOM. Workers look 'busy but healthy' at core size."
+                },
+                {
+                  "front": "Safe production pool",
+                  "back": "Bounded queue, explicit max threads, Abort (or a carefully chosen) handler, timeouts that include queue wait, and metrics for queue depth and wait."
+                },
+                {
+                  "front": "CallerRunsPolicy hazard",
+                  "back": "The submitting thread runs the task. On request threads this can deadlock or stall the inbound pool that was supposed to stay available."
+                },
+                {
+                  "front": "Cached pool opposite failure",
+                  "back": "SynchronousQueue + unbounded max threads: bursts create threads until native memory or context switching dies, instead of filling the heap."
+                },
+                {
+                  "front": "Timeout vs queue wait",
+                  "back": "Task timeouts usually start at run(), not submit(). Unbounded queues hide minutes of wait that no downstream timeout sees."
+                },
+                {
+                  "front": "Why reject is kinder than queue",
+                  "back": "Rejection is visible backpressure. The load balancer can shift traffic. Silent queueing pins overload to one JVM until it crashes."
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "title": "Happens-before",
+          "levels": [
+            {
+              "name": "production",
+              "quiz": [
+                {
+                  "question": "Happens-before is:",
+                  "options": [
+                    "A wall-clock ordering of statements",
+                    "A JMM guarantee that memory writes before a given action are visible to reads after a related action",
+                    "The order the JIT must emit instructions on one core",
+                    "A debugger stepping rule"
+                  ],
+                  "answer": 1,
+                  "explanation": "If A happens-before B, then A's side effects are visible to B. It is about visibility and ordering, not measured time."
+                },
+                {
+                  "question": "Two threads write and read a non-volatile field with no lock. What does the JMM allow?",
+                  "options": [
+                    "The reader must see the latest write",
+                    "The reader may see a stale value indefinitely; there is no happens-before",
+                    "The JVM throws a visibility exception",
+                    "The write is automatically flushed at end of the method"
+                  ],
+                  "answer": 1,
+                  "explanation": "Without a synchronization action, compilers and CPUs may keep writes in registers/store buffers forever from another thread's perspective."
+                },
+                {
+                  "question": "Which pair establishes happens-before?",
+                  "options": [
+                    "Thread A writes x; thread B reads x later on the wall clock",
+                    "Unlock of monitor M happens-before a subsequent lock of the same M",
+                    "Two volatile writes to different fields in either order",
+                    "Starting a thread happens-before every write in the parent after start"
+                  ],
+                  "answer": 1,
+                  "explanation": "Unlock-lock on the same monitor is a standard HB edge. Wall-clock later is not HB. Thread.start HB only the started thread's first action, not later parent writes."
+                },
+                {
+                  "question": "A volatile write happens-before a subsequent volatile read of the same variable. What else becomes visible?",
+                  "options": [
+                    "Only that volatile field",
+                    "All writes in the writing thread that happened-before that volatile write",
+                    "All writes in the entire JVM",
+                    "Only writes to final fields"
+                  ],
+                  "answer": 1,
+                  "explanation": "Volatile is a synchronization action with a release/acquire flavor: it publishes prior writes in that thread, not the whole heap from other threads."
+                },
+                {
+                  "question": "The classic 'check flag then read payload' bug is fixed by:",
+                  "options": [
+                    "Making only the payload non-volatile",
+                    "Making the flag volatile (or using a lock/atomic) so the payload writes that happened-before the flag write become visible",
+                    "Adding more sleep() in the reader",
+                    "Using a larger heap"
+                  ],
+                  "answer": 1,
+                  "explanation": "The flag write must HB the flag read. Then transitivity makes earlier payload writes visible. Sleep is not a memory barrier."
+                },
+                {
+                  "question": "final field safety guarantees what for constructors?",
+                  "options": [
+                    "All fields of the object are visible after the constructor, including non-final",
+                    "A properly constructed object's final fields are visible to any thread that sees the published reference, without extra sync",
+                    "final fields can be written by other threads freely",
+                    "escape of this in the constructor is always safe"
+                  ],
+                  "answer": 1,
+                  "explanation": "Freeze at the end of the constructor publishes final fields. Leaking this during construction, or mutating finals via reflection/unsafe, voids the guarantee. Non-final fields still need publication."
+                },
+                {
+                  "question": "Thread.start() happens-before the first action in the started thread. Thread termination happens-before:",
+                  "options": [
+                    "Any later join() that successfully returns",
+                    "Any later interrupt of a third thread",
+                    "The next GC",
+                    "Any write in the parent thread"
+                  ],
+                  "answer": 0,
+                  "explanation": "join (and Thread.get/isAlive after termination, in effect via join) observes the worker's writes. Fire-and-forget threads do not publish back."
+                },
+                {
+                  "question": "Why is synchronized (this) on a setter insufficient if a getter reads the field with no lock and no volatile?",
+                  "options": [
+                    "synchronized never flushes writes",
+                    "There is no happens-before to the getter, so it may see stale data",
+                    "Getters cannot be inlined",
+                    "this cannot be used as a monitor"
+                  ],
+                  "answer": 1,
+                  "explanation": "HB for monitors requires both the write-side unlock and a later lock on the same monitor (or another sync edge). One-sided locking does not publish to unsynchronized readers."
+                },
+                {
+                  "question": "Double-checked locking without volatile on the instance field is broken because:",
+                  "options": [
+                    "synchronized cannot be used in constructors",
+                    "A reader can see a non-null reference before the constructor writes are visible",
+                    "hashCode of the singleton changes",
+                    "The classloader deadlocks"
+                  ],
+                  "answer": 1,
+                  "explanation": "Publishing the reference without a freeze/volatile/lock allows a racy reader to observe a partially constructed object."
+                },
+                {
+                  "question": "Happens-before is transitive. That matters because:",
+                  "options": [
+                    "You must declare transitivity in equals",
+                    "A lock/volatile edge can carry an entire chain of earlier writes to a later reader",
+                    "The GC uses transitivity to promote objects",
+                    "It forces sequential consistency for all fields"
+                  ],
+                  "answer": 1,
+                  "explanation": "Program order plus a single release/acquire pair can publish many preceding writes. That is why a volatile flag can publish a whole payload."
+                },
+                {
+                  "question": "Which statement about data races is correct?",
+                  "options": [
+                    "A data race is only a performance issue; values are still well-defined",
+                    "A data race (conflicting accesses with no HB) makes behavior undefined for those accesses; you can see torn/stale/impossible values",
+                    "The JMM forbids the JIT from reordering around a data race",
+                    "AtomicInteger still has data races on get/set"
+                  ],
+                  "answer": 1,
+                  "explanation": "Correct concurrent programs must be data-race-free. Atomics/volatiles/locks exist to eliminate the race, not to paper over it."
+                },
+                {
+                  "question": "ConcurrentHashMap publication of an object as a value: after a successful put, another thread's get of that key:",
+                  "options": [
+                    "May still see a stale object graph unless all fields are volatile",
+                    "Happens-after the put, so writes that HB the put are visible to the getter of that entry",
+                    "Requires an extra synchronized around every field read forever",
+                    "Ignores happens-before because CHM is lock-free"
+                  ],
+                  "answer": 1,
+                  "explanation": "ConcurrentHashMap (and blocking queues, etc.) define HB between a successful write and a later read of that mapping. The published object's fields written before put are visible."
+                },
+                {
+                  "question": "volatile ++ (read-modify-write) is not atomic. How does that relate to happens-before?",
+                  "options": [
+                    "HB and atomicity are the same thing",
+                    "Each volatile read/write has HB/visibility, but increment is two accesses; two threads can still lose an update",
+                    "volatile forbids lost updates by definition",
+                    "The compiler turns volatile++ into a CAS"
+                  ],
+                  "answer": 1,
+                  "explanation": "Visibility ≠ atomicity. Use AtomicInteger or a lock for counters. volatile is for publication and flags, not for compound actions."
+                },
+                {
+                  "question": "A long/double field on a 64-bit JVM without volatile: is a torn read still possible, and is visibility guaranteed?",
+                  "options": [
+                    "Atomicity of 64-bit writes is not the same as HB; without a sync edge, another thread may never see the write at all",
+                    "long is always sequentially consistent",
+                    "The JMM makes all 64-bit fields volatile",
+                    "Torn reads are the only issue; visibility is automatic"
+                  ],
+                  "answer": 0,
+                  "explanation": "Do not confuse word tearing with publication. Even if a write is atomic, without HB the reader can cache an old value forever."
+                }
+              ],
+              "flashcards": [
+                {
+                  "front": "Happens-before meaning",
+                  "back": "A JMM relation: if A HB B, then A's memory effects are visible to B and A is ordered before B. Wall-clock time is irrelevant."
+                },
+                {
+                  "front": "No sync edge",
+                  "back": "A plain field write may never become visible to another thread. Compilers and CPUs are allowed to keep it in a register or store buffer."
+                },
+                {
+                  "front": "Monitor HB",
+                  "back": "Unlock of monitor M happens-before a later lock of the same M. Both sides must use the same lock; one-sided synchronized does not publish."
+                },
+                {
+                  "front": "Volatile publication",
+                  "back": "A volatile write HB a later volatile read of that variable, and carries all writes in that thread that HB the volatile write (release/acquire)."
+                },
+                {
+                  "front": "final field freeze",
+                  "back": "After a constructor finishes, final fields are visible to any thread that sees the published reference — unless this escaped during construction."
+                },
+                {
+                  "front": "start and join",
+                  "back": "start() HB the first action of the new thread. Termination HB a successful join(), so the joiner sees the worker's writes."
+                },
+                {
+                  "front": "Double-checked locking",
+                  "back": "The instance field must be volatile (or initialized via a holder class). Otherwise a reader can see a non-null, uninitialized object."
+                },
+                {
+                  "front": "Visibility vs atomicity",
+                  "back": "volatile/HB publish values. They do not make read-modify-write atomic. Counters and check-then-act still need atomics or locks."
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "title": "Optional misuse",
+          "levels": [
+            {
+              "name": "production",
+              "quiz": [
+                {
+                  "question": "Optional's intended use in application code is primarily:",
+                  "options": [
+                    "A mutable field type on every domain entity",
+                    "A return type that makes absence explicit at the call site",
+                    "A replacement for null in method parameters",
+                    "A serializable column type for JPA"
+                  ],
+                  "answer": 1,
+                  "explanation": "Optional was designed as a return type. Using it as a field, parameter, or persistence mapping is usually a misuse with real costs."
+                },
+                {
+                  "question": "Calling get() without isPresent() is a problem because:",
+                  "options": [
+                    "get() is deprecated and always returns null",
+                    "It throws NoSuchElementException — a louder null, not a safer API",
+                    "It boxes the value twice",
+                    "It returns a default empty string"
+                  ],
+                  "answer": 1,
+                  "explanation": "Blind get() recreates NPE with a different name. Prefer orElse, orElseGet, orElseThrow, ifPresent, or map/flatMap."
+                },
+                {
+                  "question": "orElse(computeExpensive()) vs orElseGet(this::computeExpensive): the production bug is:",
+                  "options": [
+                    "orElseGet always runs the supplier",
+                    "orElse evaluates its argument eagerly even when the Optional is present, wasting work or causing side effects",
+                    "orElseGet cannot return null",
+                    "They are identical at runtime"
+                  ],
+                  "answer": 1,
+                  "explanation": "orElse's argument is always evaluated. Logging, RPC, and object creation in orElse(...) run on the happy path too."
+                },
+                {
+                  "question": "Why is Optional as a field on a hot domain object a performance and null-safety lose?",
+                  "options": [
+                    "Optional cannot be stored on the heap",
+                    "You add an extra allocation and still can store a null Optional reference; nested emptiness is confusing",
+                    "The JIT cannot inline methods that return Optional",
+                    "Fields cannot be generic"
+                  ],
+                  "answer": 1,
+                  "explanation": "A null Optional field is legal. You now have null and Optional.empty as two absences, plus boxing overhead in every instance."
+                },
+                {
+                  "question": "Passing Optional as a method parameter is discouraged because:",
+                  "options": [
+                    "The compiler rejects it",
+                    "Callers wrap clumsily, overloads explode, and you still must handle a null Optional plus empty",
+                    "Optional cannot be in bytecode",
+                    "It breaks happens-before"
+                  ],
+                  "answer": 1,
+                  "explanation": "Overload the method or use a clearer type. Parameters that are Optional invite optional.orElse(null) at every call site."
+                },
+                {
+                  "question": "Optional.of(nullable) is wrong when the value may be null because:",
+                  "options": [
+                    "of() accepts null and stores it",
+                    "of() throws NullPointerException immediately; ofNullable is the API for unknown nullness",
+                    "ofNullable throws on null",
+                    "of() returns empty on null"
+                  ],
+                  "answer": 1,
+                  "explanation": "of() is for known-non-null. ofNullable() maps null to empty. Mixing them is a common NPE source."
+                },
+                {
+                  "question": "Returning Optional from a JPA repository method that can return many rows is a misuse because:",
+                  "options": [
+                    "Optional cannot wrap entities",
+                    "Non-unique results throw, and Optional pretends uniqueness that the query does not guarantee",
+                    "Spring cannot proxy Optional",
+                    "Optional disables transactions"
+                  ],
+                  "answer": 1,
+                  "explanation": "Use List/Stream/Page. Optional means 0 or 1. Multiple rows are an error, not empty."
+                },
+                {
+                  "question": "if (opt.isPresent()) { use(opt.get()); } is inferior to map/ifPresent mainly because:",
+                  "options": [
+                    "It is slower in all cases",
+                    "It is verbose, easy to call get() on the wrong Optional, and blocks fluent transformation of absence",
+                    "isPresent is asynchronous",
+                    "get() returns Optional again"
+                  ],
+                  "answer": 1,
+                  "explanation": "The unwrap dance reintroduces the null-check style Optional was meant to replace. Chain map/flatMap/filter/orElse."
+                },
+                {
+                  "question": "Optional in a Serializable DTO / Jackson field typically causes:",
+                  "options": [
+                    "Automatic compact JSON",
+                    "Awkward JSON (nested object or module-specific shape), extra null problems, and poor interop",
+                    "Faster serialization than raw fields",
+                    "Required presence of the field"
+                  ],
+                  "answer": 1,
+                  "explanation": "Wire formats want nullable fields or absent properties, not a Java-only container. Map at the API boundary instead."
+                },
+                {
+                  "question": "orElseThrow(MyException::new) vs orElseThrow(() -> new MyException(ctx)): choose based on:",
+                  "options": [
+                    "Always prefer the constructor reference",
+                    "Whether the exception needs captured context; the supplier is lazy and can close over useful state",
+                    "orElseThrow cannot take a supplier",
+                    "Exceptions must be preallocated"
+                  ],
+                  "answer": 1,
+                  "explanation": "The supplier runs only on absence. Use it to build a message with ids and inputs; do not prebuild exceptions in orElseThrow(prebuilt)."
+                },
+                {
+                  "question": "Optional<Optional<T>> or Optional of a collection that may be empty usually means:",
+                  "options": [
+                    "A recommended way to express two-level absence",
+                    "Confused domain: flatten to Optional<T>, or return an empty collection, not both",
+                    "Faster lookups",
+                    "Required for stream flatMap"
+                  ],
+                  "answer": 1,
+                  "explanation": "Empty list already means none. Optional<List> creates four states (null, empty optional, optional of null, optional of empty list) if mixed with nulls."
+                },
+                {
+                  "question": "filter/map on Optional vs Stream: the trap is:",
+                  "options": [
+                    "Optional.map does not unwrap nested Optionals; use flatMap when the function returns Optional",
+                    "Optional.filter removes the Optional type",
+                    "map is illegal on empty",
+                    "flatMap is only for lists"
+                  ],
+                  "answer": 0,
+                  "explanation": "map(f) where f returns Optional<U> yields Optional<Optional<U>>. That is the same nested-optional bug as in streams."
+                },
+                {
+                  "question": "Using Optional to 'document' a Map.get is often worse than:",
+                  "options": [
+                    "Leaving raw null and hoping",
+                    "Optional.ofNullable(map.get(k)) at the edge, or a getOptional helper — not storing Optional values inside the map",
+                    "Wrapping every value at insert time as Optional.ofNullable",
+                    "Replacing Map with Hashtable"
+                  ],
+                  "answer": 1,
+                  "explanation": "Maps already have null-value and missing-key ambiguity. Putting Optional in the map doubles the wrapper tax and still allows missing keys."
+                },
+                {
+                  "question": "Which is a legitimate, production-grade Optional use?",
+                  "options": [
+                    "public void setName(Optional<String> name)",
+                    "public Optional<User> findUser(Id id) implemented with ofNullable, consumed via map/orElseThrow",
+                    "class User { Optional<String> nickname; }",
+                    "Optional as a JPA @Column type without a converter"
+                  ],
+                  "answer": 1,
+                  "explanation": "Return-type Optional consumed functionally is the sweet spot. Parameters, fields, and persistence mappings are the usual misuses."
+                }
+              ],
+              "flashcards": [
+                {
+                  "front": "What Optional is for",
+                  "back": "A return type that forces the caller to confront absence. Not a field, not a parameter, not a persistence type, not a Map value wrapper."
+                },
+                {
+                  "front": "of vs ofNullable",
+                  "back": "of(null) throws NPE. ofNullable(null) is empty. Use of only when the value is known non-null."
+                },
+                {
+                  "front": "orElse vs orElseGet",
+                  "back": "orElse always evaluates its argument. orElseGet runs the supplier only on empty. Never put RPC, logging, or allocation in orElse(...)."
+                },
+                {
+                  "front": "Blind get()",
+                  "back": "Throws NoSuchElementException. It is not safer than NPE. Use orElse, orElseGet, orElseThrow, ifPresent, map."
+                },
+                {
+                  "front": "Optional as a field",
+                  "back": "Extra allocation per instance, and the field reference itself can be null — two absences. Store a nullable T (or a sentinel) instead."
+                },
+                {
+                  "front": "Nested Optional",
+                  "back": "map() on a function that returns Optional produces Optional<Optional<T>>. Use flatMap. Do not return Optional of an empty collection."
+                },
+                {
+                  "front": "JSON / JPA / parameters",
+                  "back": "Wire and DB layers want nullable columns and properties. Convert to Optional at the service boundary if you want it, not on the entity/DTO itself."
+                },
+                {
+                  "front": "isPresent/get loop",
+                  "back": "Reverts to null-check style. Chain filter/map/flatMap and terminate with orElse/orElseThrow so absence has one path."
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "title": "Synchronized vs concurrent collections",
+          "levels": [
+            {
+              "name": "production",
+              "quiz": [
+                {
+                  "question": "Collections.synchronizedMap vs ConcurrentHashMap under high read/write mix: the scalability difference is:",
+                  "options": [
+                    "They use the same lock",
+                    "synchronizedMap serializes all operations on one mutex; ConcurrentHashMap allows concurrent reads and finer-grained writes",
+                    "ConcurrentHashMap is always slower",
+                    "synchronizedMap never blocks"
+                  ],
+                  "answer": 1,
+                  "explanation": "A single intrinsic lock makes synchronized wrappers a bottleneck. CHM is designed for concurrent access."
+                },
+                {
+                  "question": "You wrap a HashMap with synchronizedMap and iterate it from another thread. What is required?",
+                  "options": [
+                    "Nothing; the wrapper synchronizes iterators automatically for the whole traversal",
+                    "You must manually synchronize on the map during iteration, or you race and can throw ConcurrentModificationException",
+                    "Iterators are fail-safe and lock-free",
+                    "Iteration is forbidden"
+                  ],
+                  "answer": 1,
+                  "explanation": "Each method is synchronized, but a compound iterate-and-act is not atomic unless you hold the map's lock for the whole loop."
+                },
+                {
+                  "question": "ConcurrentHashMap iterators are:",
+                  "options": [
+                    "Fail-fast like HashMap",
+                    "Weakly consistent: they reflect some but not necessarily all concurrent updates, and do not throw CME",
+                    "A frozen snapshot of the map at creation",
+                    "Blocking until all writers drain"
+                  ],
+                  "answer": 1,
+                  "explanation": "Do not assume a stable snapshot. Size and iteration during writes are approximate."
+                },
+                {
+                  "question": "Why is ConcurrentHashMap.compute/putIfAbsent preferred over get-then-put?",
+                  "options": [
+                    "They are faster to type",
+                    "Check-then-act on CHM is still a race; the atomic compound methods close it",
+                    "get-then-put is atomic on CHM",
+                    "putIfAbsent always overwrites"
+                  ],
+                  "answer": 1,
+                  "explanation": "Concurrency of individual ops does not make your multi-step business operation atomic. Use compute, merge, putIfAbsent."
+                },
+                {
+                  "question": "Hashtable and Vector in modern services are usually the wrong choice because:",
+                  "options": [
+                    "They are not thread-safe",
+                    "Every method locks the whole collection, they are obsolete APIs, and they still do not make compound actions safe",
+                    "They allow nulls like CHM",
+                    "They are slower than ArrayList even on one thread only because of boxing"
+                  ],
+                  "answer": 1,
+                  "explanation": "Coarse locks plus 1990s APIs. Prefer CHM, CopyOnWrite, or a dedicated lock around a plain HashMap when the protocol is richer."
+                },
+                {
+                  "question": "CopyOnWriteArrayList is a good fit when:",
+                  "options": [
+                    "Writes are frequent and reads rare",
+                    "Reads dominate and the list is small; iterators see a stable snapshot, writes copy the array",
+                    "You need O(1) random writes",
+                    "You need null-hostile semantics like CHM"
+                  ],
+                  "answer": 1,
+                  "explanation": "Listener lists and config snapshots fit. Using it as a general mutable list under write load allocates and copies constantly."
+                },
+                {
+                  "question": "CHM does not allow null keys or values. synchronizedMap(HashMap) does. The production hazard is:",
+                  "options": [
+                    "There is no hazard",
+                    "A null value cannot distinguish 'missing' from 'present but null', and migrating to CHM will NPE",
+                    "CHM stores null as Optional",
+                    "synchronizedMap rejects nulls at runtime always"
+                  ],
+                  "answer": 1,
+                  "explanation": "Null values in synchronized maps hide presence. CHM's NPE on null is a feature that forces an explicit Optional/sentinel."
+                },
+                {
+                  "question": "A ConcurrentHashMap of request-scoped data that is never removed causes:",
+                  "options": [
+                    "Automatic eviction",
+                    "A bounded leak of keys/values, promotion into old gen, and eventual heap exhaustion — concurrency does not imply boundedness",
+                    "The map to switch to weak keys",
+                    "Thread interruption"
+                  ],
+                  "answer": 1,
+                  "explanation": "Thread-safety ≠ lifecycle. Unbounded concurrent maps are a top production leak pattern."
+                },
+                {
+                  "question": "When is a single-threaded HashMap behind a lock better than CHM?",
+                  "options": [
+                    "Never",
+                    "When you must atomically update several structures, or iterate a consistent view under the same lock as writes",
+                    "When you need the highest read scaling",
+                    "When keys are ints"
+                  ],
+                  "answer": 1,
+                  "explanation": "CHM atomicity is per-key. Multi-map invariants need your own lock (or a concurrent component designed for the invariant)."
+                },
+                {
+                  "question": "synchronizedList(ArrayList) and index-based get/set from many threads: still broken because:",
+                  "options": [
+                    "ArrayList cannot store objects",
+                    "size-then-get is not atomic; an index can vanish between calls even though each call is synchronized",
+                    "synchronizedList does not wrap get",
+                    "Indexes start at 1"
+                  ],
+                  "answer": 1,
+                  "explanation": "Compound sequences need an external synchronized (list) { ... } covering the whole protocol, or a concurrent structure with atomic operations."
+                },
+                {
+                  "question": "ConcurrentLinkedQueue vs BlockingQueue for a worker pool:",
+                  "options": [
+                    "They are interchangeable",
+                    "CLQ is non-blocking and has no take() that waits; a worker pool usually wants a BlockingQueue for idle wait and backpressure",
+                    "CLQ blocks producers when full",
+                    "BlockingQueue cannot be bounded"
+                  ],
+                  "answer": 1,
+                  "explanation": "Pick the collection for the protocol: park/wait, bounding, and draining, not just 'concurrent' in the class name."
+                },
+                {
+                  "question": "size() on ConcurrentHashMap is:",
+                  "options": [
+                    "A lock-free exact count at all times",
+                    "O(n)-ish / weakly consistent; do not use it for admission control on a hot path as if it were a mutex-protected counter",
+                    "Always zero",
+                    "Forbidden"
+                  ],
+                  "answer": 1,
+                  "explanation": "Treat CHM size as an estimate. If you need exact occupancy for a bound, use a semaphore or LongAdder you control."
+                },
+                {
+                  "question": "Collections.synchronizedMap is sometimes acceptable when:",
+                  "options": [
+                    "You need maximum multi-core scaling",
+                    "Contention is low, the map is small, and you document the mutex (the map itself) for compound operations",
+                    "You iterate without locking",
+                    "You store nulls as CHM would"
+                  ],
+                  "answer": 1,
+                  "explanation": "Low-contention correctness with a simple lock can be clearer than CHM plus racy check-then-act. High contention is the wrong place for it."
+                },
+                {
+                  "question": "Which statement is true about ConcurrentHashMap.computeIfAbsent?",
+                  "options": [
+                    "The mapping function may safely modify the same map for other keys without risk",
+                    "The function must be side-effect-light and must not try to update the same map in ways that deadlock or recurse; it runs under per-key synchronization",
+                    "It is identical to get-then-put",
+                    "It allows null results to store null values"
+                  ],
+                  "answer": 1,
+                  "explanation": "compute* methods hold a key's bin lock. Re-entering the map, blocking, or returning null (which stores nothing) are common production bugs."
+                }
+              ],
+              "flashcards": [
+                {
+                  "front": "synchronized wrappers vs CHM",
+                  "back": "synchronizedMap/List lock the entire collection per call. ConcurrentHashMap allows concurrent reads and striped writes. Wrappers do not make iteration atomic."
+                },
+                {
+                  "front": "Iteration rule for synchronizedMap",
+                  "back": "Manually synchronize on the map for the whole iteration. Otherwise you race writers and can get ConcurrentModificationException."
+                },
+                {
+                  "front": "CHM iterator semantics",
+                  "back": "Weakly consistent, no CME. Not a snapshot. size() is an estimate, not a lock-protected exact count."
+                },
+                {
+                  "front": "get-then-put race",
+                  "back": "Thread-safe collections still race on compound actions. Use putIfAbsent, compute, merge, or an external lock around the invariant."
+                },
+                {
+                  "front": "CopyOnWriteArrayList",
+                  "back": "Snapshot iterators, expensive writes (full array copy). Fits rare writes and many unsynchronized readers, e.g. listener lists."
+                },
+                {
+                  "front": "Nulls",
+                  "back": "CHM forbids null keys and values. synchronized HashMap allows them, which confuses missing vs null and breaks a later CHM migration."
+                },
+                {
+                  "front": "Concurrent ≠ bounded",
+                  "back": "A ConcurrentHashMap that only puts will still OOM. Concurrency does not provide eviction, backpressure, or multi-structure atomicity."
+                },
+                {
+                  "front": "computeIfAbsent caution",
+                  "back": "Mapping function runs under per-key lock. Do not block, do not re-enter the map unsafely, and do not expect a null return to insert a null value."
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Spring Boot",
+      "topics": [
+        {
+          "title": "@Transactional self-invocation",
+          "levels": [
+            {
+              "name": "production",
+              "quiz": [
+                {
+                  "question": "Spring's @Transactional on a public method is implemented by:",
+                  "options": [
+                    "The compiler rewriting the method body",
+                    "A proxy (JDK or CGLIB) that starts/commits/rolls back around calls that go through the proxy",
+                    "The JVM verifying every bytecode invoke",
+                    "AspectJ load-time weaving in every default Boot app"
+                  ],
+                  "answer": 1,
+                  "explanation": "Default is Spring AOP proxies. Only external calls through the bean proxy hit the advisor. This is the root of self-invocation bugs."
+                },
+                {
+                  "question": "this.otherTransactionalMethod() inside the same class typically:",
+                  "options": [
+                    "Still starts a new transaction as annotated",
+                    "Bypasses the proxy, so @Transactional on the callee is ignored",
+                    "Always throws IllegalTransactionStateException",
+                    "Forces a suspend of the outer transaction"
+                  ],
+                  "answer": 1,
+                  "explanation": "Self-invocation is a direct Java call. No proxy, no interceptor, no transaction boundary (and no other AOP advice either)."
+                },
+                {
+                  "question": "A service method without @Transactional calls this.save() which is @Transactional. The save runs:",
+                  "options": [
+                    "In a transaction started by save's annotation",
+                    "With no transactional interceptor, so each repository call may auto-commit or join nothing as if save were a plain method",
+                    "In a nested transaction always",
+                    "Only if the class is final"
+                  ],
+                  "answer": 1,
+                  "explanation": "The annotation on save never runs. You get whatever the repository's default is, not the service-level unit of work you thought you declared."
+                },
+                {
+                  "question": "REQUIRED on caller, REQUIRES_NEW on callee, called via this.callee():",
+                  "options": [
+                    "The inner method still suspends and starts a new transaction",
+                    "REQUIRES_NEW is skipped; there is no inner boundary at all",
+                    "Both annotations merge into NESTED",
+                    "The outer transaction commits twice"
+                  ],
+                  "answer": 1,
+                  "explanation": "Without the proxy, propagation on the inner method does not exist. This silently destroys the 'log in a separate tx' pattern."
+                },
+                {
+                  "question": "Which visibility is ignored by the default proxy-based @Transactional?",
+                  "options": [
+                    "public methods called through the proxy",
+                    "private/package/protected methods: the annotation is typically not applied (CGLIB may subclass, but Spring's tx advisor does not advise non-public by default)",
+                    "only static methods",
+                    "only constructors"
+                  ],
+                  "answer": 1,
+                  "explanation": "Annotating private methods is a no-op with Spring AOP. People 'fix' self-invocation by making the method private — that makes it worse."
+                },
+                {
+                  "question": "A reliable fix for self-invocation when you must call another transactional method:",
+                  "options": [
+                    "Add Thread.sleep so the proxy catches up",
+                    "Move the method to another bean and inject it, or self-inject the proxy, or use AopContext.currentProxy() with expose-proxy, or switch to AspectJ weaving",
+                    "Mark the class final",
+                    "Use @Transactional on the field"
+                  ],
+                  "answer": 1,
+                  "explanation": "The call must enter the proxy (or a real AspectJ-woven body). Splitting beans is the cleanest production fix."
+                },
+                {
+                  "question": "Self-injection of the same service works because:",
+                  "options": [
+                    "Spring injects the raw target",
+                    "Spring injects the transactional proxy, so self.foo() is an advised call",
+                    "It enables AspectJ compile-time weaving",
+                    "It disables CGLIB"
+                  ],
+                  "answer": 1,
+                  "explanation": "You must call through the injected reference, not this. Circular creation is the cost; constructor injection of self is trickier than setter/lazy."
+                },
+                {
+                  "question": "Checked exceptions inside @Transactional by default:",
+                  "options": [
+                    "Always roll back",
+                    "Do not roll back unless rollbackFor includes them; RuntimeException and Error do",
+                    "Commit twice",
+                    "Disable the proxy"
+                  ],
+                  "answer": 1,
+                  "explanation": "A self-invocation bug plus a checked exception is a double miss: no interceptor, and even with an interceptor, checked exceptions commit unless declared."
+                },
+                {
+                  "question": "readOnly=true on a class-level @Transactional, then a self-called inner write method with readOnly=false:",
+                  "options": [
+                    "The write method still participates in the outer read-only transaction if called via this, and the write may fail or silently do nothing useful",
+                    "readOnly is ignored always",
+                    "Spring starts a write tx automatically on flush",
+                    "The inner annotation wins without a proxy"
+                  ],
+                  "answer": 0,
+                  "explanation": "Without a new proxy call, there is no new attribute application. You stay in the outer read-only unit of work."
+                },
+                {
+                  "question": "Why tests that call the method via the injected bean pass, but a production path that goes through this.method fails?",
+                  "options": [
+                    "Tests disable AOP",
+                    "The test invokes the proxy; the production code path is an internal call that skips interceptors",
+                    "H2 does not support transactions",
+                    "@Transactional is test-only"
+                  ],
+                  "answer": 1,
+                  "explanation": "This is why 'it works in the controller test' and still corrupts data when a facade method fans out to this.save()."
+                },
+                {
+                  "question": "@Transactional on a non-Spring-managed object (new Service()) means:",
+                  "options": [
+                    "Annotations are still discovered via the call stack",
+                    "No proxy exists, so the annotation never applies",
+                    "Spring weaves all new calls",
+                    "The transaction starts at the first JDBC call anyway"
+                  ],
+                  "answer": 1,
+                  "explanation": "Same family as self-invocation: no Spring proxy, no transaction interceptor. Always obtain collaborative beans from the context."
+                },
+                {
+                  "question": "TransactionSynchronization afterCommit registered in a self-called method with ignored @Transactional will:",
+                  "options": [
+                    "Always run after the repository commit you expected",
+                    "Bind to whatever transaction is actually active (maybe none), so it may run immediately, never, or on the wrong unit of work",
+                    "Create a new transaction to hang the sync on",
+                    "Throw if no proxy"
+                  ],
+                  "answer": 1,
+                  "explanation": "Synchronizations attach to the current ThreadLocal transaction. If the inner @Transactional did not start, your afterCommit is not the boundary you annotated."
+                },
+                {
+                  "question": "CGLIB subclass proxies still fail self-invocation because:",
+                  "options": [
+                    "CGLIB cannot subclass",
+                    "this inside the target is the target instance, not the subclass proxy wrapper sitting in the bean factory",
+                    "CGLIB copies annotations onto this",
+                    "JDK proxies would work for self-calls"
+                  ],
+                  "answer": 1,
+                  "explanation": "Both JDK and CGLIB proxies wrap the target. Internal this is the target. JDK proxies would not even apply to self calls on the concrete class."
+                },
+                {
+                  "question": "The safest team rule to prevent this outage class is:",
+                  "options": [
+                    "Put @Transactional on every private helper",
+                    "Transactional methods are entry points on a dedicated component; they are never called with this from the same class",
+                    "Disable proxies and use ThreadLocal Connection only",
+                    "Prefer checked exceptions for rollback"
+                  ],
+                  "answer": 1,
+                  "explanation": "Architecture: a transactional application service is invoked from the outside. Helpers that need a different propagation live on another bean."
+                }
+              ],
+              "flashcards": [
+                {
+                  "front": "Why self-invocation skips @Transactional",
+                  "back": "Spring applies transactions via a proxy. this.foo() is a direct call on the target, so the interceptor never runs."
+                },
+                {
+                  "front": "REQUIRES_NEW via this",
+                  "back": "The inner propagation is ignored. No suspend, no new transaction — the 'audit in a separate tx' pattern silently fails."
+                },
+                {
+                  "front": "Non-public @Transactional",
+                  "back": "Default Spring AOP does not advise private/package/protected methods. The annotation is a comment."
+                },
+                {
+                  "front": "Fixes that actually work",
+                  "back": "Split into another bean, inject the proxy (self-inject / AopContext with exposeProxy), or use AspectJ weaving so the call is advised in-body."
+                },
+                {
+                  "front": "new Service() vs Spring bean",
+                  "back": "Annotations do nothing on objects you construct yourself. No proxy, no transaction, no security, no retry."
+                },
+                {
+                  "front": "Rollback defaults",
+                  "back": "RuntimeException and Error roll back. Checked exceptions commit unless rollbackFor is set — independent of, and compounding, the self-call bug."
+                },
+                {
+                  "front": "readOnly outer + write inner via this",
+                  "back": "You remain in the outer read-only transaction. The inner readOnly=false never applies."
+                },
+                {
+                  "front": "Team rule",
+                  "back": "Transactional methods are public entry points on a boundary component. Different propagation means a different bean, not a private helper."
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "title": "Open-in-view N+1",
+          "levels": [
+            {
+              "name": "production",
+              "quiz": [
+                {
+                  "question": "Open Session/EntityManager in View in Spring Boot means:",
+                  "options": [
+                    "The persistence context is closed before the controller returns",
+                    "The EntityManager/session stays open for the whole web request so the view can lazy-load",
+                    "Only native SQL is allowed in templates",
+                    "Transactions are disabled for GET"
+                  ],
+                  "answer": 1,
+                  "explanation": "OSIV binds an EntityManager to the request thread and closes it after the view renders. Lazy associations can load during JSON serialization."
+                },
+                {
+                  "question": "The N+1 problem under OSIV typically appears as:",
+                  "options": [
+                    "One join query and no extras",
+                    "One query for a collection of roots, then one query per root (or per association) while Jackson/Thymeleaf touches lazy fields",
+                    "A single batch always",
+                    "Only at startup"
+                  ],
+                  "answer": 1,
+                  "explanation": "The service returned entities with unfetched associations. The view walking getters issues a query per object after the service transaction ended — but the session is still open."
+                },
+                {
+                  "question": "Why OSIV hides LazyInitializationException and makes N+1 worse in production:",
+                  "options": [
+                    "It closes the session earlier",
+                    "Serialization succeeds slowly with hidden per-entity SQL instead of failing fast in the service layer",
+                    "It batches all lazy loads by default",
+                    "It disables Hibernate statistics"
+                  ],
+                  "answer": 1,
+                  "explanation": "Without OSIV, the view would throw. With OSIV, you ship a correct-looking JSON payload that took 1+N round trips on the request thread."
+                },
+                {
+                  "question": "OSIV holds a database connection (or at least a persistence context) across:",
+                  "options": [
+                    "Only the @Transactional method",
+                    "Template rendering / JSON serialization, which may include remote calls if you are sloppy — stretching pool occupancy",
+                    "Application startup only",
+                    "Scheduled tasks only"
+                  ],
+                  "answer": 1,
+                  "explanation": "A long-open persistence context plus view work is how OSIV contributes to connection pool exhaustion, not only N+1."
+                },
+                {
+                  "question": "The correct place to fetch associations needed by a response is:",
+                  "options": [
+                    "In the Jackson getter via lazy load",
+                    "In the repository/service query (join fetch, entity graph, or explicit query) inside the transactional boundary",
+                    "In a @PreDestroy hook",
+                    "In the OSIV filter after commit"
+                  ],
+                  "answer": 1,
+                  "explanation": "The service should return a fully initialized graph or a DTO. The view should not be a query engine."
+                },
+                {
+                  "question": "join fetch in a Collection-valued association without care can:",
+                  "options": [
+                    "Never affect row counts",
+                    "Multiply root rows (cartesian product), so you need distinct or a two-query pattern",
+                    "Disable OSIV",
+                    "Automatically paginate"
+                  ],
+                  "answer": 1,
+                  "explanation": "Fetching multiple bags/lists in one join fetch is a classic Hibernate trap. Pagination + join fetch is especially wrong."
+                },
+                {
+                  "question": "Disabling OSIV without fixing fetch plans results in:",
+                  "options": [
+                    "Faster pages always",
+                    "LazyInitializationException during serialization — the failures OSIV was papering over",
+                    "No SQL at all",
+                    "Automatic DTO mapping"
+                  ],
+                  "answer": 1,
+                  "explanation": "Turn OSIV off in a test environment first; the exceptions tell you which graphs are incomplete."
+                },
+                {
+                  "question": "Why DTO/projection queries defeat OSIV N+1 more cleanly than initializing proxies:",
+                  "options": [
+                    "DTOs cannot be serialized",
+                    "There is no lazy graph to walk; the query selected exactly the response fields",
+                    "Projections keep the session open longer",
+                    "Entities cannot be mapped to JSON"
+                  ],
+                  "answer": 1,
+                  "explanation": "If the view never sees an entity proxy, it cannot trigger hidden SQL. That is the architectural fix."
+                },
+                {
+                  "question": "batch fetching (default_batch_fetch_size) vs eliminating N+1:",
+                  "options": [
+                    "Batching removes the extra queries entirely",
+                    "It groups lazy loads into IN-queries (N/batch + 1), a mitigation, not a substitute for fetching what you need up front",
+                    "It only works with OSIV off",
+                    "It disables lazy loading"
+                  ],
+                  "answer": 1,
+                  "explanation": "Batch size turns 1000 queries into 20. Still chatty, still tied to the view walking associations."
+                },
+                {
+                  "question": "A JSON serializer calling getOrders() on each Customer during a list endpoint is dangerous because:",
+                  "options": [
+                    "getters cannot run SQL",
+                    "Each getter is a lazy load after the service thought the unit of work was done; list size multiplies round trips",
+                    "Jackson ignores getters",
+                    "OSIV blocks getters"
+                  ],
+                  "answer": 1,
+                  "explanation": "Entity-as-API is the N+1 generator. Map to a response type with the collections you actually want."
+                },
+                {
+                  "question": "Transactional service ends, OSIV still open: writes in the view layer can:",
+                  "options": [
+                    "Never happen because the context is read-only",
+                    "Dirty-flush unexpectedly if something mutates a managed entity during rendering (rare but nasty), or at least keep connections busy",
+                    "Always roll back",
+                    "Open a second OSIV"
+                  ],
+                  "answer": 1,
+                  "explanation": "OSIV's persistence context may still be open and flushing according to flush mode. Views should be side-effect free."
+                },
+                {
+                  "question": "Pagination plus OSIV lazy collections in the page content leads to:",
+                  "options": [
+                    "Constant query count",
+                    "Page size N extra queries (or worse with nested collections), destroying the point of pagination",
+                    "Hibernate ignoring page size",
+                    "OSIV closing per page row"
+                  ],
+                  "answer": 1,
+                  "explanation": "A 'cheap' page of 20 entities can become 20+ collection queries during serialization. Measure SQL count per endpoint, not just service logs."
+                },
+                {
+                  "question": "The production metric that catches OSIV N+1 is:",
+                  "options": [
+                    "HTTP 200 rate only",
+                    "SQL count / time per request correlated with collection size, plus connection hold time",
+                    "Heap usage only",
+                    "Bean creation time"
+                  ],
+                  "answer": 1,
+                  "explanation": "If query count scales with result size, you have N+1. OSIV makes it show up in request latency rather than as an exception."
+                },
+                {
+                  "question": "Best default for a JSON API application:",
+                  "options": [
+                    "Leave OSIV on so Jackson can lazy-load freely",
+                    "Disable OSIV, fetch or project in the service, return DTOs, fail on accidental lazy access",
+                    "Use EAGER on every association",
+                    "Open a new EntityManager per getter"
+                  ],
+                  "answer": 1,
+                  "explanation": "EAGER globally is the other N+1 (or cartesian) disaster. Explicit fetch per use case plus OSIV off is the production stance for APIs."
+                }
+              ],
+              "flashcards": [
+                {
+                  "front": "Open Session in View",
+                  "back": "Spring Boot keeps the EntityManager bound to the web request until after view rendering, so lazy loads during JSON/HTML succeed."
+                },
+                {
+                  "front": "Why OSIV hides N+1",
+                  "back": "Serialization would have thrown LazyInitializationException. OSIV lets each getter hit the database instead, turning a bug into silent query storms."
+                },
+                {
+                  "front": "N+1 shape",
+                  "back": "1 query for roots + 1 query per entity per touched association. List endpoints multiply this by page size."
+                },
+                {
+                  "front": "Where to fetch",
+                  "back": "Inside the transactional service/repository with join fetch, entity graphs, or DTO/projection queries — not in the serializer."
+                },
+                {
+                  "front": "OSIV and pools",
+                  "back": "The persistence context (and often a connection) stays open through rendering. Slow views hold pool slots and amplify saturation."
+                },
+                {
+                  "front": "Turning OSIV off",
+                  "back": "Exposes LazyInitializationException at the true missing-fetch sites. Fix those with explicit fetches/DTOs, do not turn OSIV back on to silence them."
+                },
+                {
+                  "front": "join fetch pitfall",
+                  "back": "Collection join fetch duplicates roots and fights pagination. Prefer two queries or a graph designed for the use case; DISTINCT is not always enough."
+                },
+                {
+                  "front": "Batch fetch size",
+                  "back": "Mitigates N+1 by IN-clause grouping. It does not make the view a legitimate place to load a graph."
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "title": "Bean scopes",
+          "levels": [
+            {
+              "name": "production",
+              "quiz": [
+                {
+                  "question": "The default Spring bean scope is:",
+                  "options": [
+                    "prototype",
+                    "singleton — one shared instance per container",
+                    "request",
+                    "thread"
+                  ],
+                  "answer": 1,
+                  "explanation": "Unless you say otherwise, every injection of that type is the same instance. State on that instance is shared across requests/threads."
+                },
+                {
+                  "question": "A singleton bean with mutable instance fields used per request is dangerous because:",
+                  "options": [
+                    "Spring clones it per thread automatically",
+                    "Concurrent requests race on the same fields; you get cross-request data leaks and corruption",
+                    "Singletons cannot be injected",
+                    "The GC cannot collect them"
+                  ],
+                  "answer": 1,
+                  "explanation": "This is a classic user-id leak: a field set in one request is read in another. Keep singletons stateless; put request state in parameters or request-scoped beans."
+                },
+                {
+                  "question": "Injecting a prototype into a singleton does what by default?",
+                  "options": [
+                    "A new prototype is created on every method call",
+                    "The singleton receives one prototype instance at injection time and reuses it forever",
+                    "Spring rejects the injection",
+                    "The prototype becomes request-scoped"
+                  ],
+                  "answer": 1,
+                  "explanation": "Injection is a one-time wiring. Use Provider/ObjectFactory/Lookup or a scoped proxy if you need a new instance per use."
+                },
+                {
+                  "question": "request scope in a singleton without a proxy fails because:",
+                  "options": [
+                    "Request scope does not exist",
+                    "The singleton is created at startup, outside a request; there is no request instance to inject unless a scoped proxy defers access",
+                    "HTTP is not thread-safe",
+                    "Controllers cannot be singletons"
+                  ],
+                  "answer": 1,
+                  "explanation": "BeanCreationException at startup is the usual symptom. Scoped proxies (or ObjectProvider) resolve the instance on each call from the current request."
+                },
+                {
+                  "question": "prototype beans' destruction callbacks:",
+                  "options": [
+                    "Are always invoked by the container like singletons",
+                    "Are not fully managed; the client that created/obtained the instance is responsible for cleanup",
+                    "Run after every HTTP request automatically",
+                    "Are illegal"
+                  ],
+                  "answer": 1,
+                  "explanation": "Leaking prototypes that hold connections/threads is easy because Spring will not @PreDestroy them for you on arbitrary create calls."
+                },
+                {
+                  "question": "Which is the right scope for a JPA EntityManager injected into a singleton service?",
+                  "options": [
+                    "A shared singleton EntityManager field used by all threads",
+                    "A thread-bound persistence context via @PersistenceContext (proxy), not a singleton EM you created once",
+                    "prototype EntityManager stored on the service",
+                    "application scope EM"
+                  ],
+                  "answer": 1,
+                  "explanation": "EntityManagers are not thread-safe. The injected EM is a proxy that delegates to the current transactional/thread-bound context."
+                },
+                {
+                  "question": "session-scoped beans in a REST API cluster are a hazard because:",
+                  "options": [
+                    "They are always faster",
+                    "HTTP session state is per node (unless replicated/sticky), so users bounce and lose or split state; it also pins memory",
+                    "Session scope cannot store objects",
+                    "Spring forbids session scope"
+                  ],
+                  "answer": 1,
+                  "explanation": "Prefer stateless JWT/server resources. Session-scoped Spring beans couple you to sticky sessions and serialization issues."
+                },
+                {
+                  "question": "A @Scope(\"thread\") or custom thread scope without cleanup across thread-pool reuse causes:",
+                  "options": [
+                    "No issue because threads are never reused",
+                    "State leaking between unrelated tasks that share a pooled thread",
+                    "The pool to create a new JVM",
+                    "Scope to upgrade to request"
+                  ],
+                  "answer": 1,
+                  "explanation": "Thread-locals and thread-scoped beans on executors must be cleared. Tomcat/request threads are pooled too."
+                },
+                {
+                  "question": "Why are Spring MVC controllers singletons by default?",
+                  "options": [
+                    "They cannot be request-scoped",
+                    "Stateless handlers scale; making controllers prototype/request-scoped is usually hiding mutable fields that should not exist",
+                    "The dispatcher cannot find prototypes",
+                    "HTTP requires one controller per connection"
+                  ],
+                  "answer": 1,
+                  "explanation": "If you needed request scope on a controller, you probably wanted a request DTO parameter instead of fields."
+                },
+                {
+                  "question": "scoped proxy mode TARGET_CLASS vs INTERFACES:",
+                  "options": [
+                    "Irrelevant",
+                    "CGLIB vs JDK proxy for the lazy scoped target; concrete classes without interfaces need class proxy, and self-invocation issues still apply",
+                    "TARGET_CLASS creates a new singleton",
+                    "INTERFACES disable the scope"
+                  ],
+                  "answer": 1,
+                  "explanation": "The proxy is what the singleton holds. Each method call on the proxy fetches the scoped target. Internal this calls on the target still skip the proxy."
+                },
+                {
+                  "question": "Refreshing a @RefreshScope bean vs singleton collaborators that captured it at startup:",
+                  "options": [
+                    "All field-injected references see new values automatically if they stored the target",
+                    "Collaborators that injected the raw target keep the old instance; they need the refresh proxy, @ConfigurationProperties rebinding, or to read through the proxy each time",
+                    "RefreshScope restarts the JVM",
+                    "Singletons cannot inject RefreshScope beans"
+                  ],
+                  "answer": 1,
+                  "explanation": "Same injection-time capture problem as prototype-in-singleton. Capture the proxy, not a copied primitive field at @PostConstruct."
+                },
+                {
+                  "question": "prototype-scoped @Transactional bean obtained once and reused:",
+                  "options": [
+                    "Gets a new transaction interceptor each call from the factory",
+                    "Is one object; reuse is your problem, and it is a poor way to get transactions",
+                    "Cannot have @Transactional",
+                    "Automatically request-scopes the tx"
+                  ],
+                  "answer": 1,
+                  "explanation": "Do not use prototype as a transaction boundary hack. Use a singleton service with method-level @Transactional called through the proxy."
+                },
+                {
+                  "question": "Which state belongs on a singleton bean?",
+                  "options": [
+                    "The current user's id",
+                    "Thread-safe collaborators (clients, repos) and immutable config; no per-request mutable fields",
+                    "The ServletRequest stored in a field",
+                    "A non-thread-safe ArrayList of 'current items'"
+                  ],
+                  "answer": 1,
+                  "explanation": "If a field would be wrong under concurrent requests, it does not belong on a singleton."
+                },
+                {
+                  "question": "ObjectProvider<T> / Provider<T> for a prototype is used to:",
+                  "options": [
+                    "Cache the first instance only",
+                    "Ask the container for a new (or scoped) instance at the call site instead of capturing injection-time identity",
+                    "Disable the bean",
+                    "Make T a singleton"
+                  ],
+                  "answer": 1,
+                  "explanation": "getObject() is the lookup. That is how a singleton legitimately uses prototypes or request-scoped beans without a scoped proxy."
+                }
+              ],
+              "flashcards": [
+                {
+                  "front": "Default scope",
+                  "back": "Singleton: one instance per Spring container, shared across threads and requests. Mutable fields are shared mutable state."
+                },
+                {
+                  "front": "Singleton + request fields",
+                  "back": "Cross-request leaks and races. Keep singletons stateless; pass request data as method arguments or true request-scoped beans."
+                },
+                {
+                  "front": "Prototype injected into singleton",
+                  "back": "Only one prototype is created at wiring time. Use ObjectProvider, @Lookup, or a scoped proxy for per-call instances."
+                },
+                {
+                  "front": "Request scope at startup",
+                  "back": "Cannot inject a request-scoped target into a singleton at context refresh unless a scoped proxy defers lookup until a request exists."
+                },
+                {
+                  "front": "Prototype destruction",
+                  "back": "Spring does not manage the full lifecycle of prototypes it hands out. If it holds resources, you close them."
+                },
+                {
+                  "front": "EntityManager and threads",
+                  "back": "Never share a raw EM as a singleton field. @PersistenceContext injects a proxy to the thread-bound persistence context."
+                },
+                {
+                  "front": "Session scope in APIs",
+                  "back": "Ties you to HTTP session stickiness/replication and memory. Prefer stateless services."
+                },
+                {
+                  "front": "ObjectProvider",
+                  "back": "Lookup API so a singleton can obtain the current scoped/prototype instance on each use instead of capturing it once."
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "title": "Connection pool exhaustion",
+          "levels": [
+            {
+              "name": "production",
+              "quiz": [
+                {
+                  "question": "Connection pool exhaustion looks like:",
+                  "options": [
+                    "Instant OOM without waiting",
+                    "Threads blocked waiting for a connection until timeout, then errors; throughput collapses while CPU may look idle",
+                    "The database rejecting authentication only",
+                    "GC promotion storms only"
+                  ],
+                  "answer": 1,
+                  "explanation": "Callers pile up on pool checkout. You see thread dumps stuck in getConnection, rising latency, then timeout exceptions."
+                },
+                {
+                  "question": "Holding a connection while calling a remote HTTP API inside @Transactional causes exhaustion because:",
+                  "options": [
+                    "HTTP uses the same TCP port as JDBC",
+                    "The connection stays checked out for the whole transaction, including slow IO that does not need the database",
+                    "Pools cannot coexist with HTTP",
+                    "@Transactional closes the pool"
+                  ],
+                  "answer": 1,
+                  "explanation": "Short transactions: do DB work, commit, then call out. Nested remote IO is the classic pool-starve pattern."
+                },
+                {
+                  "question": "OSIV plus a slow JSON serialization or template:",
+                  "options": [
+                    "Releases the connection at service return always",
+                    "Can keep the persistence context and connection occupied until the response is written",
+                    "Never uses the pool",
+                    "Uses a second unbounded pool"
+                  ],
+                  "answer": 1,
+                  "explanation": "View-layer lazy loads and a still-open session extend checkout time beyond the service method."
+                },
+                {
+                  "question": "Pool size 10, Tomcat threads 200, each request needing a connection:",
+                  "options": [
+                    "Spring will auto-expand the pool to 200",
+                    "190 threads can block on the pool; you must size pool, timeouts, and inbound concurrency together",
+                    "Extra threads share connections safely",
+                    "The database serializes them without wait"
+                  ],
+                  "answer": 1,
+                  "explanation": "Inbound concurrency × connection hold time = required pool. If the product exceeds pool size, you queue or die."
+                },
+                {
+                  "question": "A leak of connections (checkout without close) happens when:",
+                  "options": [
+                    "You always use try-with-resources / Spring-managed DataSourceUtils",
+                    "Manual getConnection without close, or a transaction that never completes (stuck thread, missing commit, swallowed rollback)",
+                    "Hikari is enabled",
+                    "You use @Transactional on every public method including health checks only"
+                  ],
+                  "answer": 1,
+                  "explanation": "Leak detection in the pooler reports stacks of unclosed checkouts. Hung transactions are as bad as forgotten close()."
+                },
+                {
+                  "question": "Lock wait in the database plus a small pool creates a deadlock of the application because:",
+                  "options": [
+                    "Locks are held on checked-out connections; other requests need those connections to run the statements that would release the locks",
+                    "The pool ignores the database",
+                    "Spring upgrades isolation automatically",
+                    "TCP keepalive drops locks"
+                  ],
+                  "answer": 0,
+                  "explanation": "Convoy: lock holders occupy pool slots; waiters occupy the rest waiting for slots or locks. Timeouts must be shorter than cascade death."
+                },
+                {
+                  "question": "Why connectionTimeout (checkout wait) must be finite and smaller than the HTTP timeout:",
+                  "options": [
+                    "So the load balancer / caller fails fast instead of tying up all servlet threads behind an infinite pool wait",
+                    "The database requires it for correctness of SQL",
+                    "Infinite wait uses less memory",
+                    "Hikari forbids finite timeouts"
+                  ],
+                  "answer": 0,
+                  "explanation": "Infinite checkout wait turns a DB hiccup into a full inbound-thread deadlock. Fail, shed load, recover."
+                },
+                {
+                  "question": "Multiple DataSources each with a large pool on one JVM:",
+                  "options": [
+                    "Is always correct",
+                    "Can exhaust database max_connections across instances: pool size × processes × DataSources must stay under the DB cap",
+                    "Spring shares one physical connection",
+                    "Idle connections do not count against the database"
+                  ],
+                  "answer": 1,
+                  "explanation": "Idle pooled connections still occupy server slots. Over-sizing pools is a cluster-wide outage waiting for a traffic spike."
+                },
+                {
+                  "question": "self-invocation skipped @Transactional that leaves autocommit queries vs a long outer transaction: exhaustion angle is:",
+                  "options": [
+                    "No difference",
+                    "An unexpectedly long outer transaction (or, conversely, extra checkouts from unbatched autocommit) both increase occupancy; know which connection you hold",
+                    "Autocommit never uses the pool",
+                    "Transactions do not check out connections"
+                  ],
+                  "answer": 1,
+                  "explanation": "Hold time and checkout count are the two occupancy knobs. Transaction boundaries decide both."
+                },
+                {
+                  "question": "A streaming query / open ResultSet inside a transaction:",
+                  "options": [
+                    "Frees the connection immediately",
+                    "Pins a connection for the entire stream consumption; slow consumers starve the pool",
+                    "Moves the cursor off-heap without a connection",
+                    "Is executed by the web client"
+                  ],
+                  "answer": 1,
+                  "explanation": "Do not stream a ResultSet out to a slow HTTP client on the same connection you need for the rest of the app."
+                },
+                {
+                  "question": "Thread pool unbounded queue + each task needs a DB connection:",
+                  "options": [
+                    "The executor bounds the pool for you",
+                    "Accepted tasks wait on the executor, then wait on the connection pool — memory and thread/pool saturation stacked",
+                    "Tasks skip the DB if the pool is busy",
+                    "Hikari starts a thread per connection automatically matching the executor"
+                  ],
+                  "answer": 1,
+                  "explanation": "Two queues, no backpressure. Bound both and reject at the edge."
+                },
+                {
+                  "question": "The first metrics to chart for this failure:",
+                  "options": [
+                    "Only CPU",
+                    "Active/idle/pending connections, checkout time, connection leak count, in-flight transactions, servlet thread occupancy",
+                    "Only heap",
+                    "Bean count"
+                  ],
+                  "answer": 1,
+                  "explanation": "Pending threads > 0 and active == max for a sustained period is the smoking gun."
+                },
+                {
+                  "question": "read-only health checks sharing the primary pool can exhaust it during an incident because:",
+                  "options": [
+                    "Health checks do not use SQL",
+                    "Probes compete with business traffic for the last connections, causing a death spiral of failed checks and restarts",
+                    "Kubernetes ignores JDBC",
+                    "read-only queries skip the pool"
+                  ],
+                  "answer": 1,
+                  "explanation": "Isolate a tiny reserved pool or a cheap non-DB probe. Do not let liveness compete with checkout waiters."
+                },
+                {
+                  "question": "Best structural fix for 'pool exhausted under load' when SQL is already fast:",
+                  "options": [
+                    "Set pool size to 10,000",
+                    "Shorten hold time: no remote calls in tx, no OSIV lazy I/O, bound inbound concurrency to roughly pool size × (1/hold-time), fail fast on checkout",
+                    "Disable timeouts",
+                    "Switch every query to EAGER join fetch without measuring"
+                  ],
+                  "answer": 1,
+                  "explanation": "Pool size is a last-resort multiplier. Occupancy = arrivals × hold time. Cut hold time and arrivals first."
+                }
+              ],
+              "flashcards": [
+                {
+                  "front": "Exhaustion symptom",
+                  "back": "Threads blocked in connection checkout, idle CPU, latency spike, then timeout. Not necessarily high DB CPU."
+                },
+                {
+                  "front": "Don't do IO in a transaction",
+                  "back": "HTTP, queues, and sleep hold a checked-out connection. Do database work, commit, then call the world."
+                },
+                {
+                  "front": "Size formula",
+                  "back": "Needed connections ≈ concurrent requests that need the DB × hold time. Inbound threads should not wildly exceed what the pool and DB can serve."
+                },
+                {
+                  "front": "Checkout timeout",
+                  "back": "Must be finite and shorter than the client/HTTP timeout so you fail fast instead of deadlocking the servlet pool."
+                },
+                {
+                  "front": "Cluster math",
+                  "back": "instances × DataSources × maxPoolSize must stay under the database's max_connections, including idle sockets."
+                },
+                {
+                  "front": "Leaks vs hold time",
+                  "back": "Unclosed connections and never-ending transactions permanently shrink the pool. Slow but closed transactions temporarily shrink it. Both page the same."
+                },
+                {
+                  "front": "OSIV / streaming",
+                  "back": "An open persistence context or ResultSet pins a connection through view rendering or stream consumption."
+                },
+                {
+                  "front": "Health checks",
+                  "back": "Do not let probes consume the last business connections. Reserve capacity or use a cheap check so incidents do not restart healthy-but-busy nodes."
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "title": "@Async pool",
+          "levels": [
+            {
+              "name": "production",
+              "quiz": [
+                {
+                  "question": "Without a custom Executor bean, @Async often runs on:",
+                  "options": [
+                    "The request thread (so it is not async)",
+                    "A SimpleAsyncTaskExecutor that creates a new thread per task and does not reuse a bounded pool",
+                    "The fork-join common pool only",
+                    "The Tomcat worker that called it, always"
+                  ],
+                  "answer": 1,
+                  "explanation": "Default async support is not a production thread pool. You can thread-explode or lose control of concurrency. Declare a bounded TaskExecutor."
+                },
+                {
+                  "question": "@Async on a self-called method in the same class:",
+                  "options": [
+                    "Still hops threads",
+                    "Is ignored like other Spring AOP: the method runs synchronously on the caller thread",
+                    "Always uses the default executor",
+                    "Throws unless the class is final"
+                  ],
+                  "answer": 1,
+                  "explanation": "Same proxy rule as @Transactional. Internal calls are not async."
+                },
+                {
+                  "question": "An @Async method with an unbounded queue under a traffic spike:",
+                  "options": [
+                    "Rejects immediately",
+                    "Accepts work until heap/OOM while the caller thinks the job was safely offloaded",
+                    "Runs inline on Tomcat threads automatically",
+                    "Drops oldest tasks"
+                  ],
+                  "answer": 1,
+                  "explanation": "This is the executor unbounded-queue outage, now triggered by a one-line annotation. Bound the queue and define a rejection policy."
+                },
+                {
+                  "question": "Why request-thread ThreadLocals (security context, MDC, tenant) vanish in @Async:",
+                  "options": [
+                    "ThreadLocals are copied by the JVM automatically",
+                    "A new worker thread does not inherit them unless a TaskDecorator/propagating executor copies them",
+                    "@Async is not allowed to log",
+                    "SecurityContext is a singleton"
+                  ],
+                  "answer": 1,
+                  "explanation": "You will log without request ids, and run without the authenticated user, unless you decorate the executor."
+                },
+                {
+                  "question": "Exceptions from @Async void methods:",
+                  "options": [
+                    "Propagate to the HTTP client",
+                    "Go to the configured AsyncUncaughtExceptionHandler; if you did not set one, they can be swallowed after a log",
+                    "Retry forever",
+                    "Roll back the caller's transaction automatically always"
+                  ],
+                  "answer": 1,
+                  "explanation": "Fire-and-forget failures are silent unless you handle them. Prefer returning Future/CompletableFuture and observe completion."
+                },
+                {
+                  "question": "@Async + @Transactional on the same method:",
+                  "options": [
+                    "The transaction definitely runs on the caller and the work on the worker",
+                    "Interceptor order matters; the transaction typically starts on the async thread after the hop — the caller's transaction does not cover the async body",
+                    "They are illegal together",
+                    "The caller always joins the async transaction"
+                  ],
+                  "answer": 1,
+                  "explanation": "Do not expect the HTTP request's transaction to include async work. If you need after-commit async, use TransactionSynchronization afterCommit to submit."
+                },
+                {
+                  "question": "Submitting @Async work before the caller transaction commits, and the async thread reading that row, causes:",
+                  "options": [
+                    "A guaranteed read of committed data",
+                    "A race: the worker may not see uncommitted data (or may block on locks), so jobs flake",
+                    "Repeatable read across threads by default",
+                    "The async thread to join the same JDBC connection"
+                  ],
+                  "answer": 1,
+                  "explanation": "afterCommit scheduling is the correct pattern for 'do this once the row exists'."
+                },
+                {
+                  "question": "A custom ThreadPoolTaskExecutor for @Async should be exposed by:",
+                  "options": [
+                    "Replacing TaskExecutor with an unbounded cached pool to be safe",
+                    "Implementing AsyncConfigurer / naming the executor in @Async(\"name\") with bounded queue, size, and decorator",
+                    "Using Executors.newFixedThreadPool without Spring lifecycle",
+                    "Starting threads in @PostConstruct manually only"
+                  ],
+                  "answer": 1,
+                  "explanation": "You want lifecycle (graceful shutdown), metrics, and the annotation to address a specific pool. Multiple pools beat one mixed workload pool."
+                },
+                {
+                  "question": "Graceful shutdown of the @Async pool on SIGTERM:",
+                  "options": [
+                    "Happens for SimpleAsyncTaskExecutor always",
+                    "Requires a Spring-managed executor with waitForTasksToComplete / timeout; otherwise in-flight emails/jobs die mid-work on deploy",
+                    "Is guaranteed by @Async itself",
+                    "Is handled by the JVM finalizer"
+                  ],
+                  "answer": 1,
+                  "explanation": "Production deploys drop unbounded fire-and-forget work unless the pool is a bean with shutdown policy."
+                },
+                {
+                  "question": "Using the common ForkJoinPool for @Async blocking JDBC:",
+                  "options": [
+                    "Is ideal because FJP is infinite",
+                    "Starves parallel streams and other FJP users; blocking work needs a dedicated bounded pool",
+                    "Automatically upgrades to platform threads with no limit",
+                    "Shares Tomcat's pool"
+                  ],
+                  "answer": 1,
+                  "explanation": "Never put blocking IO on the common pool. @Async JDBC belongs on its own executor sized to the DB pool."
+                },
+                {
+                  "question": "@Async method called from a loop of 10k items without batching:",
+                  "options": [
+                    "Runs sequentially",
+                    "Enqueues 10k tasks; with a small pool this is a latency/queue-depth bomb, with an unbounded pool an OOM",
+                    "Spring coalesces the calls",
+                    "The loop becomes one task"
+                  ],
+                  "answer": 1,
+                  "explanation": "Bulk async still needs chunking and a bound. Annotation is not a job queue product."
+                },
+                {
+                  "question": "Which is a valid reason to have more than one @Async executor?",
+                  "options": [
+                    "Style",
+                    "Isolate latency-sensitive fan-out from bulk/email/report work so a report storm cannot steal the fan-out threads",
+                    "Spring requires one executor per method name length",
+                    "Transactions need their own executor to commit"
+                  ],
+                  "answer": 1,
+                  "explanation": "Mixed workloads on one pool create noisy-neighbor outages. Name the pools in @Async(\"reportsExecutor\")."
+                },
+                {
+                  "question": "Core size 2, max 16, unbounded queue on the @Async executor. Observed threads stay at 2. Why?",
+                  "options": [
+                    "Spring caps async at 2",
+                    "ThreadPoolExecutor only starts extra threads when the queue is full; unbounded queue never fills",
+                    "max pool is ignored for CPU reasons only",
+                    "@Async uses core and max as aliases"
+                  ],
+                  "answer": 1,
+                  "explanation": "Same Java pool trap, now behind @EnableAsync. Use a bounded queue or a scaling policy that actually fires."
+                },
+                {
+                  "question": "The HTTP request returns 200 because @Async offloaded work, but the user never sees the side effect. First checks?",
+                  "options": [
+                    "DNS only",
+                    "Self-invocation, swallowed void exceptions, transaction not committed yet, rejected/queue overflow, executor saturated, lost MDC hiding the error logs",
+                    "Whether Optional was used",
+                    "GC promotion only"
+                  ],
+                  "answer": 1,
+                  "explanation": "Fire-and-forget has many silent failure modes. Make completion observable."
+                }
+              ],
+              "flashcards": [
+                {
+                  "front": "Default @Async executor",
+                  "back": "Often SimpleAsyncTaskExecutor: new thread per task, no bound. Production code declares a named, bounded ThreadPoolTaskExecutor."
+                },
+                {
+                  "front": "@Async self-invocation",
+                  "back": "Proxy-based; this.asyncMethod() runs synchronously on the caller thread. Put async methods on another bean."
+                },
+                {
+                  "front": "Context propagation",
+                  "back": "SecurityContext, MDC, and tenant ThreadLocals do not hop threads. Use a TaskDecorator (and restore/clear in finally)."
+                },
+                {
+                  "front": "void @Async exceptions",
+                  "back": "Do not reach the caller. AsyncUncaughtExceptionHandler or a Future you actually observe. Otherwise jobs vanish."
+                },
+                {
+                  "front": "@Async vs transactions",
+                  "back": "The async body does not run in the caller's transaction. Submit after commit if the worker must see persisted rows."
+                },
+                {
+                  "front": "Shutdown",
+                  "back": "Make the executor a Spring bean with a wait/timeout on destroy, or deploys kill in-flight async work."
+                },
+                {
+                  "front": "Don't block the common pool",
+                  "back": "JDBC/HTTP inside @Async needs a dedicated pool sized to the dependency, not ForkJoinPool.commonPool()."
+                },
+                {
+                  "front": "Named pools",
+                  "back": "@Async(\"name\") plus multiple executors isolate bulk work from latency-sensitive fan-out. One shared pool is a noisy neighbor."
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "title": "Config precedence",
+          "levels": [
+            {
+              "name": "production",
+              "quiz": [
+                {
+                  "question": "In a typical Spring Boot externalized config setup, which source wins over application.properties inside the jar?",
+                  "options": [
+                    "The jar always wins",
+                    "Command-line arguments and environment variables override packaged application.properties",
+                    "Only @PropertySource wins",
+                    "Random UUID properties"
+                  ],
+                  "answer": 1,
+                  "explanation": "Packaged files are defaults. Environment-specific overlay (env vars, CLI, external config files) is meant to win. Never bake secrets as the highest source."
+                },
+                {
+                  "question": "A property appears in both application.properties and application-prod.properties with prod profile active. Which is used?",
+                  "options": [
+                    "application.properties always",
+                    "The profile-specific document overrides the same key from the default document",
+                    "They merge as a list",
+                    "Spring fails startup on duplicate keys"
+                  ],
+                  "answer": 1,
+                  "explanation": "Profile-specific application-{profile} files override the non-profile file for overlapping keys. Later/higher-precedence profiles win among profiles too."
+                },
+                {
+                  "question": "Why does an env var SPRING_DATASOURCE_URL override spring.datasource.url?",
+                  "options": [
+                    "It does not; names must match exactly including dots",
+                    "Relaxed binding maps environment variables (and some case/separator variants) onto the dotted property",
+                    "Only underscores in application.properties work",
+                    "The DataSource ignores properties"
+                  ],
+                  "answer": 1,
+                  "explanation": "Ops can set env vars without dotted keys. The trap is thinking the property is unset because you grepped for the dotted form only."
+                },
+                {
+                  "question": "You set a value in @TestPropertySource and also in application-test.yml. Typical test precedence is:",
+                  "options": [
+                    "YAML always wins over TestPropertySource",
+                    "@TestPropertySource / @DynamicPropertySource / @SpringBootTest properties generally override application-test.yml so tests can pin values",
+                    "The jar's application.properties wins in tests",
+                    "Profiles are ignored in tests"
+                  ],
+                  "answer": 1,
+                  "explanation": "If a test still sees 'wrong' config, a higher source (system property, env, inlined properties) is overlaying it. Dump the environment."
+                },
+                {
+                  "question": "Duplicate keys in the same YAML file across maps vs a dotted key in properties:",
+                  "options": [
+                    "YAML and properties never collide",
+                    "The higher-precedence PropertySource wins the flattened key; within one file, last/merge rules can surprise you — treat keys as a single namespace",
+                    "Nested YAML cannot override dotted keys",
+                    "Spring keeps both and randomly selects"
+                  ],
+                  "answer": 1,
+                  "explanation": "spring.datasource.url and a YAML spring.datasource.url: are the same key after binding. Debugging requires the flattened view."
+                },
+                {
+                  "question": "Config data imported from optional:file:./config/ vs classpath application.properties:",
+                  "options": [
+                    "Classpath always beats files next to the process",
+                    "External config locations are intended to override packaged defaults so the same artifact can run in every environment",
+                    "Files are ignored unless named settings.ini",
+                    "Import order is random per boot"
+                  ],
+                  "answer": 1,
+                  "explanation": "That is the 12-factor overlay. If a local config file is accidentally present in a container, it will silently override what you think is in the image."
+                },
+                {
+                  "question": "@Value(\"${foo}\") vs @ConfigurationProperties for a prefix:",
+                  "options": [
+                    "They always see different sources",
+                    "Both read the same Environment, but @Value does not validate unknown keys and binds a single expression; @ConfigurationProperties binds a structured object with conversion and (with the processor) unknown-field policy",
+                    "@Value ignores env vars",
+                    "@ConfigurationProperties cannot use relaxed names"
+                  ],
+                  "answer": 1,
+                  "explanation": "Production services should prefer @ConfigurationProperties for groups of settings. @Value is easy to miss in the overlay story and has no metadata list."
+                },
+                {
+                  "question": "A command-line --spring.profiles.active=prod vs SPRING_PROFILES_ACTIVE=dev in the environment: what matters?",
+                  "options": [
+                    "Profiles cannot be set twice",
+                    "Higher-precedence property source for spring.profiles.active wins; CLI typically beats env, which beats packaged files — know your runtime's actual Environment order",
+                    "The first profile file on disk wins regardless",
+                    "Both apply as a random shuffle"
+                  ],
+                  "answer": 1,
+                  "explanation": "Conflicting profile activation is a frequent 'wrong config in prod' cause. Log the accepted profiles at startup."
+                },
+                {
+                  "question": "Default values in @Value(\"${foo:bar}\") hide misconfiguration because:",
+                  "options": [
+                    "Defaults are illegal",
+                    "If foo is missing from every source, you silently run with bar instead of failing startup",
+                    "The default always overrides env vars",
+                    "@Value cannot have defaults"
+                  ],
+                  "answer": 1,
+                  "explanation": "For required prod settings (brokers, URLs), fail fast with missing-key errors rather than a default that points at localhost."
+                },
+                {
+                  "question": "spring.application.json / SPRING_APPLICATION_JSON is dangerous in ops because:",
+                  "options": [
+                    "It cannot set properties",
+                    "It injects a high-precedence JSON blob of properties that is easy to forget when debugging files and env vars",
+                    "It only works for logging",
+                    "It disables relaxed binding"
+                  ],
+                  "answer": 1,
+                  "explanation": "When a value 'cannot be found' in files, check this blob and system properties."
+                },
+                {
+                  "question": "Two jars on the classpath both contain application.properties:",
+                  "options": [
+                    "Spring merges with a documented deterministic library order you should not rely on for overrides; do not ship conflicting keys in libraries",
+                    "The JVM picks at random each request",
+                    "Both are illegal and fail startup always",
+                    "Only the Boot jar's file is read, libraries are ignored always"
+                  ],
+                  "answer": 0,
+                  "explanation": "Starter/library application.properties collisions are a classic 'works on my machine' bug. Libraries should use their own prefixes and not a root application.properties if avoidable."
+                },
+                {
+                  "question": "Encrypted values / placeholders that resolve against a later PropertySource fail when:",
+                  "options": [
+                    "Placeholders always resolve globally after all sources load in one pass with no order issues",
+                    "A source tries to resolve ${other} before 'other' is present in a higher-precedence source, or circular placeholders exist",
+                    "Environment variables cannot contain placeholders",
+                    "@Value does not resolve placeholders"
+                  ],
+                  "answer": 1,
+                  "explanation": "Placeholder resolution is order-sensitive. Dump the property origin when a value looks half-substituted."
+                },
+                {
+                  "question": "You change application.yml but Kubernetes still runs old URLs. Most likely:",
+                  "options": [
+                    "YAML is ignored in containers",
+                    "A ConfigMap/env/command-line source of higher precedence still has the old key",
+                    "Relaxed binding is disabled in prod",
+                    "The bean is prototype so it never rebinds"
+                  ],
+                  "answer": 1,
+                  "explanation": "Always inspect the origin of a bound property (actuator env, startup log). File edits do not win if ops overlays them."
+                },
+                {
+                  "question": "The practical way to debug 'which value won?' is:",
+                  "options": [
+                    "Guess from file timestamps",
+                    "Inspect the Environment / configprops (with security care): property origin, active profiles, and the bound @ConfigurationProperties object",
+                    "Recompile until it matches",
+                    "Print System.getProperties only"
+                  ],
+                  "answer": 1,
+                  "explanation": "Origins exist so you do not argue about precedence tables from memory. Lock down actuator exposure when you use them."
+                }
+              ],
+              "flashcards": [
+                {
+                  "front": "Packaged files vs runtime overlay",
+                  "back": "application.properties in the jar are defaults. Env vars, CLI args, and external config locations override them so one artifact can run everywhere."
+                },
+                {
+                  "front": "Profile files",
+                  "back": "application-{profile} overrides the same keys in application.properties when that profile is active. Conflicting spring.profiles.active sources are a prod incident waiting."
+                },
+                {
+                  "front": "Relaxed binding",
+                  "back": "SPRING_DATASOURCE_URL, spring.datasource.url, and spring.datasource.url in YAML are one property. Grep all forms when debugging."
+                },
+                {
+                  "front": "@Value default trap",
+                  "back": "${foo:localhost} silently ships localhost if foo is unset. Required prod keys should fail startup, not default."
+                },
+                {
+                  "front": "@ConfigurationProperties vs @Value",
+                  "back": "Same Environment, but typed groups, conversion, and metadata. Prefer it for operational config; @Value is a one-off expression."
+                },
+                {
+                  "front": "Hidden high-precedence sources",
+                  "back": "Command line, SPRING_APPLICATION_JSON, system properties, test inlined properties, and accidental local config files beat what is in the image."
+                },
+                {
+                  "front": "Library application.properties",
+                  "back": "Extra application.properties on the classpath collide. Libraries should not override app keys from a generic file."
+                },
+                {
+                  "front": "Debug with origins",
+                  "back": "Read the Environment/configprops origin for the key and the bound object. Do not argue from a memorized precedence list while three overlays exist."
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "title": "Actuator exposure",
+          "levels": [
+            {
+              "name": "production",
+              "quiz": [
+                {
+                  "question": "Leaving /actuator/env and /actuator/configprops fully public is dangerous because:",
+                  "options": [
+                    "They only show bean names",
+                    "They can reveal property values, including secrets that landed in the Environment, and which source they came from",
+                    "They execute arbitrary SQL",
+                    "They disable authentication globally"
+                  ],
+                  "answer": 1,
+                  "explanation": "Env/configprops are a secret dump if keys are not sanitized and the endpoint is unauthenticated or reachable from the internet."
+                },
+                {
+                  "question": "The heapdump and threaddump endpoints are a problem when exposed because:",
+                  "options": [
+                    "They are read-only and harmless",
+                    "Heap dumps contain secrets in memory; thread dumps reveal code paths, locks, and sometimes user data in stack frames",
+                    "They only work locally",
+                    "They restart the JVM always"
+                  ],
+                  "answer": 1,
+                  "explanation": "Treat dump endpoints as equivalent to handing an attacker a memory snapshot. Admin-only, network-isolated."
+                },
+                {
+                  "question": "shutdown and restart actuator operations, if enabled and unauthenticated:",
+                  "options": [
+                    "Are no-ops",
+                    "Are remote denial-of-service / control of the process",
+                    "Only work with a debugger",
+                    "Require physical access"
+                  ],
+                  "answer": 1,
+                  "explanation": "Write endpoints must be off by default in production or gated by strong authz on a private port."
+                },
+                {
+                  "question": "A safe production exposure baseline is:",
+                  "options": [
+                    "include=*",
+                    "Expose a minimal health (and maybe info) on the public port; put the rest on a management port locked down by network policy and auth",
+                    "Expose everything but hide the links in 404 body",
+                    "Disable health so attackers cannot see it"
+                  ],
+                  "answer": 1,
+                  "explanation": "Health is for probes. Everything else is for operators on a private channel. include=* is an incident."
+                },
+                {
+                  "question": "Show-details on health in production without auth:",
+                  "options": [
+                    "Only adds a boolean",
+                    "Can leak dependency hostnames, versions, disk paths, and downstream failure details useful to attackers",
+                    "Is required for Kubernetes probes",
+                    "Disables the liveness probe"
+                  ],
+                  "answer": 1,
+                  "explanation": "Probes need UP/DOWN. Details belong on the management port for humans, not the public health path."
+                },
+                {
+                  "question": "Why a separate management port helps:",
+                  "options": [
+                    "It makes actuator faster",
+                    "You can bind it to localhost or a private interface and never publish it on the load balancer that serves the API",
+                    "It disables all security",
+                    "It shares the servlet thread pool only"
+                  ],
+                  "answer": 1,
+                  "explanation": "Network isolation is stronger than hoping a path prefix is unpublished. Still authenticate."
+                },
+                {
+                  "question": "mappings / beans / conditions endpoints leak:",
+                  "options": [
+                    "Nothing beyond health",
+                    "Route tables, internal bean graphs, and auto-config decisions that map the attack surface",
+                    "Only CSS",
+                    "User passwords hashed"
+                  ],
+                  "answer": 1,
+                  "explanation": "Reconnaissance gold. Keep them off the public internet."
+                },
+                {
+                  "question": "Sanitizing keys in env is insufficient alone because:",
+                  "options": [
+                    "Sanitization is illegal",
+                    "Secrets still appear in heapdumps, logs, custom endpoints, and misspelled key names that skip the sanitizer patterns",
+                    "Env never contained secrets if sanitized",
+                    "Kubernetes secrets cannot enter the Environment"
+                  ],
+                  "answer": 1,
+                  "explanation": "Defense in depth: do not expose env, sanitize anyway, do not print secrets, do not put dumps on the web."
+                },
+                {
+                  "question": "liveness vs readiness on the same unguarded health group:",
+                  "options": [
+                    "Is ideal",
+                    "A downstream outage can fail liveness and Kubernetes will kill/restart pods that were only unready, worsening an incident",
+                    "Kubernetes ignores actuator",
+                    "Readiness cannot include DB checks"
+                  ],
+                  "answer": 1,
+                  "explanation": "Liveness should be 'process is deadlocked/broken'. Readiness can include DB. Splitting them is an actuator design job, not just security."
+                },
+                {
+                  "question": "gateway / proxy that strips /actuator from public routes but forwards /*:",
+                  "options": [
+                    "Is enough if the string 'actuator' is banned in docs",
+                    "Can still expose actuators via alternate context paths, management base-path changes, or port mix-ups — verify the actual listener",
+                    "Makes include=* safe",
+                    "Disables JMX too"
+                  ],
+                  "answer": 1,
+                  "explanation": "Security is on the process bind address and Spring security, not a reverse-proxy string filter you once configured."
+                },
+                {
+                  "question": "JMX exposure of the same actuator operations:",
+                  "options": [
+                    "Is unrelated",
+                    "Can bypass HTTP path lockdown if JMX is reachable; lock both HTTP and JMX",
+                    "JMX cannot invoke shutdown",
+                    "JMX is always local-only on every OS"
+                  ],
+                  "answer": 1,
+                  "explanation": "Two doors, one house. Disable remote JMX unless you treat it as a privileged admin channel."
+                },
+                {
+                  "question": "Logging the full /actuator/health body at INFO on every probe:",
+                  "options": [
+                    "Is cheap and safe",
+                    "Can flood logs and record internal dependency errors (and with details on, internals) on a public interval",
+                    "Is required for metrics",
+                    "Disables scraping"
+                  ],
+                  "answer": 1,
+                  "explanation": "Probes are chatty. Do not log them at info with payloads. Use metrics for probe failure counts."
+                },
+                {
+                  "question": "Custom actuator endpoint that runs a heap query or SpEL from a request parameter:",
+                  "options": [
+                    "Is fine if unnamed",
+                    "Is a remote code/data exfil channel; treat custom endpoints with the same authz as admin RCE",
+                    "Is automatically sanitized",
+                    "Cannot be mapped under /actuator"
+                  ],
+                  "answer": 1,
+                  "explanation": "Actuator is not a safe namespace. Your @Endpoint is production-privileged by default in the operator's mind — attackers agree."
+                },
+                {
+                  "question": "When adding Spring Security, a common misconfig is:",
+                  "options": [
+                    "Securing /actuator/** and leaving the management port open without security because 'it is private'",
+                    "Forgetting that permitAll() on /actuator/health also opened sibling endpoints, or that the management port has a separate security filter chain",
+                    "Actuator ignoring Spring Security always",
+                    "Health cannot be permitAll even on purpose"
+                  ],
+                  "answer": 1,
+                  "explanation": "Two ports, two chains, ant matchers that are too broad. Test unauthenticated GETs against every enabled id, not just health."
+                }
+              ],
+              "flashcards": [
+                {
+                  "front": "env and configprops",
+                  "back": "They dump the Environment, including secrets and origins. Public exposure is a credential leak. Sanitize is not a substitute for not exposing them."
+                },
+                {
+                  "front": "heapdump / threaddump",
+                  "back": "Memory and stack snapshots. Secrets, tokens, PII, lock graphs. Admin-only on a private port."
+                },
+                {
+                  "front": "include=*",
+                  "back": "Enables the full attack surface (shutdown, mappings, dumps, env). Production should whitelist the few ids probes need."
+                },
+                {
+                  "front": "Management port",
+                  "back": "Bind actuators to a separate port that is not on the public load balancer. Still authenticate. Network policy is the real gate."
+                },
+                {
+                  "front": "Health details",
+                  "back": "Probes want a boolean. Details leak topology. Keep show-details for authenticated operators, not the internet."
+                },
+                {
+                  "front": "Liveness vs readiness",
+                  "back": "Do not kill pods because a dependency is down. Split groups so liveness is process health and readiness is dependency health."
+                },
+                {
+                  "front": "JMX door",
+                  "back": "HTTP lockdown does not close JMX. Remote JMX is another admin API for the same operations."
+                },
+                {
+                  "front": "Security test",
+                  "back": "Unauthenticated GET/POST every enabled endpoint id on both ports. Broad matcher permitAll on /actuator/health is a classic sibling leak."
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

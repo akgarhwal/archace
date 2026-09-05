@@ -1,0 +1,1134 @@
+{
+  "quiz": [
+    {
+      "section": "B-tree & LSM",
+      "level": "junior",
+      "question": "A service inserts keys uniformly at random. Why does a classic B-tree usually pay more disk writes per insert than an LSM tree?",
+      "optionA": "Each insert can dirty a leaf page (and maybe split), forcing an in-place random page write",
+      "optionB": "B-trees rewrite the entire tree on every insert",
+      "optionC": "LSM trees never fsync and therefore never write",
+      "optionD": "B-trees store every key in two copies by design",
+      "correct": "A"
+    },
+    {
+      "section": "B-tree & LSM",
+      "level": "junior",
+      "question": "What is the memtable + WAL pair actually buying you in an LSM store?",
+      "optionA": "Faster range scans than reading SSTables",
+      "optionB": "A durable crash-recovery log plus a sorted in-memory buffer so acknowledged writes survive a crash",
+      "optionC": "A replacement for compaction",
+      "optionD": "A way to skip bloom filters on point lookups",
+      "correct": "B"
+    },
+    {
+      "section": "B-tree & LSM",
+      "level": "junior",
+      "question": "Why might a single LSM point lookup inspect several SSTables?",
+      "optionA": "Keys are hashed into random files with no order",
+      "optionB": "The newest version of a key can live in any of several files produced over time",
+      "optionC": "Bloom filters require reading every file",
+      "optionD": "The WAL must be scanned on every lookup",
+      "correct": "B"
+    },
+    {
+      "section": "B-tree & LSM",
+      "level": "junior",
+      "question": "On an LSM point lookup, what does a bloom filter actually tell you?",
+      "optionA": "The exact file offset of the key",
+      "optionB": "The key is definitely not in this SSTable, or it might be",
+      "optionC": "Which compaction level owns the key",
+      "optionD": "Whether the memtable is full",
+      "correct": "B"
+    },
+    {
+      "section": "B-tree & LSM",
+      "level": "junior",
+      "question": "Why are LSM range scans of a key span often heavier than the same scan on a B-tree?",
+      "optionA": "LSM trees cannot iterate keys in sorted order",
+      "optionB": "You must merge iterators across the memtable and many overlapping SSTables",
+      "optionC": "Range scans always replay the WAL",
+      "optionD": "Bloom filters block sequential access",
+      "correct": "B"
+    },
+    {
+      "section": "B-tree & LSM",
+      "level": "junior",
+      "question": "What happens when a memtable fills under normal LSM operation?",
+      "optionA": "The process blocks until the next restart",
+      "optionB": "It is frozen, flushed as an immutable SSTable, and a new memtable takes writes",
+      "optionC": "All older SSTables are deleted immediately",
+      "optionD": "The WAL is discarded before the flush finishes",
+      "correct": "B"
+    },
+    {
+      "section": "B-tree & LSM",
+      "level": "junior",
+      "question": "Write amplification in an LSM tree is dominated by which activity?",
+      "optionA": "Bloom-filter false positives",
+      "optionB": "Rewriting the same live data again during compaction",
+      "optionC": "B-tree page splits",
+      "optionD": "Replica count in the cluster",
+      "correct": "B"
+    },
+    {
+      "section": "B-tree & LSM",
+      "level": "junior",
+      "question": "What does read amplification usually mean for an LSM point get?",
+      "optionA": "Bytes written per user write",
+      "optionB": "How many disk reads or files you may touch to serve one user read",
+      "optionC": "The size of the WAL in bytes",
+      "optionD": "How many replicas must answer",
+      "correct": "B"
+    },
+    {
+      "section": "B-tree & LSM",
+      "level": "junior",
+      "question": "Why do B-trees typically win on short range scans of nearby keys?",
+      "optionA": "Leaf pages keep keys in sorted on-disk order with little file overlap, often with sibling links",
+      "optionB": "They never split pages",
+      "optionC": "They attach a bloom filter to every leaf",
+      "optionD": "They keep all data only in memory",
+      "correct": "A"
+    },
+    {
+      "section": "B-tree & LSM",
+      "level": "junior",
+      "question": "What is compaction's main job in an LSM engine?",
+      "optionA": "Increase write amplification for its own sake",
+      "optionB": "Merge SSTables, drop obsolete versions and tombstones, and bound how many files a read must check",
+      "optionC": "Turn the LSM tree into a B-tree",
+      "optionD": "Disable the WAL after the first flush",
+      "correct": "B"
+    },
+    {
+      "section": "B-tree & LSM",
+      "level": "junior",
+      "question": "After a crash, how is a lost memtable reconstructed?",
+      "optionA": "Replay the WAL to rebuild in-memory state",
+      "optionB": "Scan every SSTable for the newest key",
+      "optionC": "Rebuild it from bloom filters",
+      "optionD": "It cannot be recovered; those writes are gone",
+      "correct": "A"
+    },
+    {
+      "section": "B-tree & LSM",
+      "level": "junior",
+      "question": "A bloom filter returns a false positive for a missing key. What is the user-visible effect?",
+      "optionA": "The engine returns a wrong value",
+      "optionB": "An extra index/data read of that SSTable that then correctly reports the key absent",
+      "optionC": "On-disk data is corrupted",
+      "optionD": "Compaction starts immediately",
+      "correct": "B"
+    },
+    {
+      "section": "B-tree & LSM",
+      "level": "junior",
+      "question": "Why can LSM ingest a flood of random keys faster than a B-tree of similar durable settings?",
+      "optionA": "User writes append to WAL and memtable instead of randomly updating leaf pages",
+      "optionB": "LSM engines never fsync",
+      "optionC": "B-trees cannot store random keys",
+      "optionD": "Compaction is free and instantaneous",
+      "correct": "A"
+    },
+    {
+      "section": "B-tree & LSM",
+      "level": "junior",
+      "question": "Why does making flushed SSTables immutable matter for concurrency?",
+      "optionA": "Old files can still be mutated in place",
+      "optionB": "Readers can use a file lock-free while a new file is being written elsewhere",
+      "optionC": "The WAL can be skipped",
+      "optionD": "The memtable can grow without bound",
+      "correct": "B"
+    },
+    {
+      "section": "B-tree & LSM",
+      "level": "senior",
+      "question": "Leveled compaction vs size-tiered: which statement about amplification is the useful default intuition?",
+      "optionA": "Leveled usually trades higher write amplification for lower read and space amplification",
+      "optionB": "Size-tiered always has both lower write and lower read amplification",
+      "optionC": "Leveled never rewrites data",
+      "optionD": "The two strategies have identical amplification; only file names differ",
+      "correct": "A"
+    },
+    {
+      "section": "B-tree & LSM",
+      "level": "senior",
+      "question": "A B-tree update of a 100-byte row that lives in a 16 KiB leaf: what is the first-order write-amplification story?",
+      "optionA": "You write ~100 bytes because only the row changes",
+      "optionB": "You typically rewrite the whole leaf (and maybe ancestors on split), so amplification is page-sized not row-sized",
+      "optionC": "Write amplification is always 1 because of WAL grouping",
+      "optionD": "Only the bloom filter page is rewritten",
+      "correct": "B"
+    },
+    {
+      "section": "B-tree & LSM",
+      "level": "senior",
+      "question": "You undersize bloom filters so the false-positive rate is high. What happens to LSM point-read amplification?",
+      "optionA": "Nothing; bloom filters are only used in compaction",
+      "optionB": "More SSTables are opened and their indexes probed even though the key is absent",
+      "optionC": "Range scans become cheaper",
+      "optionD": "The WAL grows faster",
+      "correct": "B"
+    },
+    {
+      "section": "B-tree & LSM",
+      "level": "senior",
+      "question": "Why can a B-tree still beat LSM on a point get even when LSM has bloom filters?",
+      "optionA": "A well-cached B-tree often needs one leaf I/O (plus a few internal nodes), while LSM may still miss cache on several files",
+      "optionB": "B-trees never touch disk",
+      "optionC": "Bloom filters always return false",
+      "optionD": "LSM cannot store point keys",
+      "correct": "A"
+    },
+    {
+      "section": "B-tree & LSM",
+      "level": "senior",
+      "question": "A write stall in an LSM engine is most often a symptom of what imbalance?",
+      "optionA": "Bloom filters are too accurate",
+      "optionB": "Flush/compaction cannot keep up with ingest, so memtables or L0 files pile up and writes are throttled",
+      "optionC": "The WAL is too small to hold one record",
+      "optionD": "Range scans are disabled",
+      "correct": "B"
+    },
+    {
+      "section": "B-tree & LSM",
+      "level": "senior",
+      "question": "During an LSM range scan, bloom filters usually help how much?",
+      "optionA": "They eliminate almost all SSTables, same as a point get",
+      "optionB": "Little or none: a range may overlap many files, so you still merge-sort those overlapping runs",
+      "optionC": "They convert the scan into a hash lookup",
+      "optionD": "They replace the need for a block index",
+      "correct": "B"
+    },
+    {
+      "section": "B-tree & LSM",
+      "level": "senior",
+      "question": "Space amplification in LSM is high when…",
+      "optionA": "Obsolete versions and overlapping runs have not been compacted away yet",
+      "optionB": "Bloom filters use a few bits per key",
+      "optionC": "The WAL is fsynced",
+      "optionD": "The memtable is empty",
+      "correct": "A"
+    },
+    {
+      "section": "B-tree & LSM",
+      "level": "senior",
+      "question": "Why is WAL + memtable not enough by itself for long-term LSM health?",
+      "optionA": "The WAL already stores sorted SSTables",
+      "optionB": "Without flush and compaction, recovery time, file count, and obsolete versions grow without bound",
+      "optionC": "Memtables cannot hold more than one key",
+      "optionD": "Bloom filters cannot be built from SSTables",
+      "correct": "B"
+    },
+    {
+      "section": "B-tree & LSM",
+      "level": "senior",
+      "question": "A workload is update-heavy on a small key set. Which engine property should you worry about first for LSM?",
+      "optionA": "B-tree leaf splits",
+      "optionB": "Compaction must keep rewriting those hot keys, so write amplification and tombstone/version churn stay high",
+      "optionC": "Bloom filters cannot represent updates",
+      "optionD": "Range scans become hash lookups",
+      "correct": "B"
+    },
+    {
+      "section": "B-tree & LSM",
+      "level": "senior",
+      "question": "B-tree fragmentation after many random in-place updates mainly hurts which operation?",
+      "optionA": "Point gets of a single cached key, which never touch leaves",
+      "optionB": "Range scans and sequential prefetch, because leaf occupancy and locality drop",
+      "optionC": "WAL replay",
+      "optionD": "Bloom-filter construction",
+      "correct": "B"
+    },
+    {
+      "section": "B-tree & LSM",
+      "level": "senior",
+      "question": "You flush tiny memtables very frequently. What is the likely first-order effect?",
+      "optionA": "Lower write amplification because files are small",
+      "optionB": "Many overlapping SSTables, worse read amplification, and more compaction work later",
+      "optionC": "Bloom filters become exact",
+      "optionD": "Range scans no longer need merge iterators",
+      "correct": "B"
+    },
+    {
+      "section": "B-tree & LSM",
+      "level": "senior",
+      "question": "Why does a leveled LSM often bound point-read I/O to roughly one file per level (plus L0)?",
+      "optionA": "Each level (except L0) keeps key ranges mostly non-overlapping",
+      "optionB": "Only one SSTable exists in the whole tree",
+      "optionC": "Bloom filters store the level number of every key",
+      "optionD": "The memtable is searched instead of disk",
+      "correct": "A"
+    },
+    {
+      "section": "B-tree & LSM",
+      "level": "senior",
+      "question": "A B-tree checkpoint/WAL design vs LSM WAL: what is the conceptual difference for user writes?",
+      "optionA": "B-tree WAL protects in-place page mutations; LSM WAL protects memtable contents until flush",
+      "optionB": "Only LSM uses a WAL",
+      "optionC": "Only B-trees use a WAL",
+      "optionD": "Neither needs a WAL if fsync is used on data files",
+      "correct": "A"
+    },
+    {
+      "section": "B-tree & LSM",
+      "level": "senior",
+      "question": "You need both fast random writes and efficient large range scans. What is the honest tradeoff to explain?",
+      "optionA": "LSM favors ingest; scans pay merge cost across runs. B-trees favor locality; ingest pays random page writes",
+      "optionB": "One structure always wins both, so pick either",
+      "optionC": "Bloom filters make LSM scans as cheap as B-tree scans",
+      "optionD": "Compaction removes the need to think about scans",
+      "correct": "A"
+    },
+    {
+      "section": "B-tree & LSM",
+      "level": "staff",
+      "question": "The RUM conjecture is useful when choosing B-tree vs LSM because it says…",
+      "optionA": "You can independently minimize read, update, and memory/space amplification at once",
+      "optionB": "You cannot simultaneously minimize read, update, and memory/space amplification; LSM and B-tree sit on different corners",
+      "optionC": "Only RAM size matters; on-disk layout is irrelevant",
+      "optionD": "Compaction eliminates all three amplifications",
+      "correct": "B"
+    },
+    {
+      "section": "B-tree & LSM",
+      "level": "staff",
+      "question": "Universal/size-tiered compaction is piling huge overlapping runs. Which read path degrades first, and why?",
+      "optionA": "Point gets of hot cached keys in the memtable",
+      "optionB": "Wide range scans, because merge iterators fan in across many overlapping files of similar size",
+      "optionC": "WAL appends",
+      "optionD": "Bloom-filter inserts",
+      "correct": "B"
+    },
+    {
+      "section": "B-tree & LSM",
+      "level": "staff",
+      "question": "You have a block cache that already holds most inner index blocks. Where should you spend the next RAM dollar for LSM point gets?",
+      "optionA": "Always more bloom-filter bits, even if data blocks are never cached",
+      "optionB": "It depends: blooms cut negative lookups; caching data/filter blocks cuts positive lookups. Measure miss types",
+      "optionC": "Never bloom filters if any cache exists",
+      "optionD": "Always enlarge the WAL",
+      "correct": "B"
+    },
+    {
+      "section": "B-tree & LSM",
+      "level": "staff",
+      "question": "A leveled compaction write-amp estimate of ~10 (level ratio ~10) is missing which operational multiplier?",
+      "optionA": "WAL write, memtable flush, and extra L0→L1 work when L0 is unsorted/overlapping",
+      "optionB": "Bloom-filter hash count",
+      "optionC": "B-tree fanout",
+      "optionD": "Replica ping time",
+      "correct": "A"
+    },
+    {
+      "section": "B-tree & LSM",
+      "level": "staff",
+      "question": "Prefix bloom / partitioned filters exist because of which scan vs get tension?",
+      "optionA": "Whole-file blooms help point gets but not prefix/range existence checks; partitioned/prefix filters prune files for both",
+      "optionB": "They replace compaction",
+      "optionC": "They make SSTables mutable",
+      "optionD": "They store the full key in RAM",
+      "correct": "A"
+    },
+    {
+      "section": "B-tree & LSM",
+      "level": "staff",
+      "question": "Delete-heavy LSM with lazy tombstone compaction: what is the dangerous read-path failure mode?",
+      "optionA": "Point gets return random keys",
+      "optionB": "Scans and gets keep resurrecting work: they must overlay tombstones from newer files onto older versions until compaction drops them",
+      "optionC": "The WAL refuses new deletes",
+      "optionD": "Bloom filters start returning false negatives",
+      "correct": "B"
+    },
+    {
+      "section": "B-tree & LSM",
+      "level": "staff",
+      "question": "Why can a copy-on-write B-tree (or CoW page engine) still lose the LSM ingest race under random writes?",
+      "optionA": "CoW still tends to write page-granularity trees and can amplify through ancestors; LSM batches into sequential runs",
+      "optionB": "CoW never writes a WAL",
+      "optionC": "CoW cannot be crash-safe",
+      "optionD": "LSM never writes more than once",
+      "correct": "A"
+    },
+    {
+      "section": "B-tree & LSM",
+      "level": "staff",
+      "question": "An LSM write stall despite spare CPU often means which resource is the real bottleneck?",
+      "optionA": "Bloom-filter CPU hash time",
+      "optionB": "Flush/compaction bandwidth or L0 file-count limits: ingest is gated on making room, not on user-thread CPU",
+      "optionC": "Too many range-scan merge iterators on idle cores",
+      "optionD": "The B-tree splitter is running",
+      "correct": "B"
+    },
+    {
+      "section": "B-tree & LSM",
+      "level": "staff",
+      "question": "You must pick a structure for a working set that fits in RAM but a dataset that does not. Which statement is the staff-level read of amplification?",
+      "optionA": "If internal nodes/filters/hot leaves stay cached, B-tree point reads can be one I/O; LSM still pays multi-level filter/index misses on cold keys",
+      "optionB": "RAM size makes on-disk layout irrelevant",
+      "optionC": "LSM point reads become free because memtable holds the dataset",
+      "optionD": "Write amplification disappears when the working set is cached",
+      "correct": "A"
+    },
+    {
+      "section": "B-tree & LSM",
+      "level": "staff",
+      "question": "Why is naive size-tiered compaction prone to space-amp spikes right before a large merge?",
+      "optionA": "A merge of similar-sized runs temporarily keeps old and new copies until the new file is installed",
+      "optionB": "Bloom filters double on disk",
+      "optionC": "The WAL is checkpointed into every SSTable twice",
+      "optionD": "Memtables are never released",
+      "correct": "A"
+    },
+    {
+      "section": "B-tree & LSM",
+      "level": "staff",
+      "question": "A key-value API with many overwrite-in-place small rows vs append-mostly events: how do you argue the engine choice?",
+      "optionA": "In-place small-row OLTP often wants B-tree locality and cheap point/range; append-mostly ingest wants LSM sequential write and later compaction",
+      "optionB": "Always LSM because write amp is lower in every workload",
+      "optionC": "Always B-tree because compaction is impossible to operate",
+      "optionD": "The choice only depends on whether you have a WAL",
+      "correct": "A"
+    },
+    {
+      "section": "B-tree & LSM",
+      "level": "staff",
+      "question": "Merge iterator during an LSM scan must resolve duplicate keys. What is the correct recency rule?",
+      "optionA": "Oldest SSTable wins because it was flushed first",
+      "optionB": "Newest sequence/memtable-or-file generation wins, including tombstones that hide older values",
+      "optionC": "Largest value wins",
+      "optionD": "Bloom filters pick the winner",
+      "correct": "B"
+    },
+    {
+      "section": "B-tree & LSM",
+      "level": "staff",
+      "question": "You observe LSM read amp rising while write amp falls after switching compaction style. What did you likely just do?",
+      "optionA": "Moved toward more aggressive leveling (more rewrite, fewer overlapping files)",
+      "optionB": "Moved toward lazier tiered/universal merging (less rewrite, more overlapping runs)",
+      "optionC": "Disabled the WAL",
+      "optionD": "Replaced blooms with a full in-memory index of every key",
+      "correct": "B"
+    },
+    {
+      "section": "B-tree & LSM",
+      "level": "staff",
+      "question": "Why is fsync of the WAL not the same as fsync of SSTables for crash correctness?",
+      "optionA": "WAL fsync makes the latest memtable mutations recoverable; SSTable fsync makes a flush durable so WAL can be truncated",
+      "optionB": "Only SSTable fsync matters; WAL is a cache",
+      "optionC": "Only WAL fsync matters; SSTables can be torn forever",
+      "optionD": "Both are optional if bloom filters are used",
+      "correct": "A"
+    },
+    {
+      "section": "Cassandra",
+      "level": "junior",
+      "question": "What does the partition key actually control in Cassandra?",
+      "optionA": "The on-disk sort order of rows inside a partition",
+      "optionB": "Which node(s) own the data: it hashes to a token and thus a replica set",
+      "optionC": "The consistency level of the query",
+      "optionD": "Whether a bloom filter is used",
+      "correct": "B"
+    },
+    {
+      "section": "Cassandra",
+      "level": "junior",
+      "question": "What do clustering columns control?",
+      "optionA": "Which datacenter gets the write",
+      "optionB": "Sort order of rows within a partition on disk and in queries",
+      "optionC": "The replication factor",
+      "optionD": "Whether hinted handoff is enabled",
+      "correct": "B"
+    },
+    {
+      "section": "Cassandra",
+      "level": "junior",
+      "question": "Replication factor (RF) vs consistency level (CL): which statement is accurate?",
+      "optionA": "RF is how many replicas store a partition; CL is how many replicas must respond for this read or write",
+      "optionB": "They are the same setting with two names",
+      "optionC": "CL decides where data is stored; RF decides how many acknowledgements you wait for",
+      "optionD": "RF only applies to reads; CL only applies to writes",
+      "correct": "A"
+    },
+    {
+      "section": "Cassandra",
+      "level": "junior",
+      "question": "With RF=3, what does a QUORUM write mean?",
+      "optionA": "All 3 replicas must acknowledge",
+      "optionB": "At least 2 replicas must acknowledge (majority of RF)",
+      "optionC": "Only the coordinator stores the write",
+      "optionD": "Exactly 1 replica must acknowledge",
+      "correct": "B"
+    },
+    {
+      "section": "Cassandra",
+      "level": "junior",
+      "question": "Why can a hot partition ruin a Cassandra cluster even when total QPS looks modest?",
+      "optionA": "One token/partition is owned by a small replica set, so those nodes take all the load for that key",
+      "optionB": "Cassandra cannot store large partitions",
+      "optionC": "QUORUM is disabled for hot keys",
+      "optionD": "Bloom filters stop working on busy nodes",
+      "correct": "A"
+    },
+    {
+      "section": "Cassandra",
+      "level": "junior",
+      "question": "What is a tombstone in Cassandra?",
+      "optionA": "A backup of a deleted SSTable",
+      "optionB": "A deletion marker that must be stored and compacted away later so old values do not resurrect",
+      "optionC": "A hint stored on a coordinator",
+      "optionD": "A repair session identifier",
+      "correct": "B"
+    },
+    {
+      "section": "Cassandra",
+      "level": "junior",
+      "question": "What is hinted handoff for?",
+      "optionA": "Speeding up range scans",
+      "optionB": "The coordinator stores a hint when a replica is down, then replays it when the replica returns",
+      "optionC": "Choosing the partition key",
+      "optionD": "Replacing anti-entropy repair entirely",
+      "correct": "B"
+    },
+    {
+      "section": "Cassandra",
+      "level": "junior",
+      "question": "Why is a full-table scan (ALLOW FILTERING / unbounded partition scan) a junior anti-pattern?",
+      "optionA": "Cassandra cannot read more than one row",
+      "optionB": "Data is partitioned by token; a cluster-wide scan fans out and can overwhelm many nodes",
+      "optionC": "QUORUM forbids scans",
+      "optionD": "Tombstones cannot be read",
+      "correct": "B"
+    },
+    {
+      "section": "Cassandra",
+      "level": "junior",
+      "question": "LWTs (lightweight transactions / IF clauses) are expensive mainly because they…",
+      "optionA": "Skip the commit log",
+      "optionB": "Run a Paxos-style round of agreement instead of a regular quorum write",
+      "optionC": "Store extra bloom filters",
+      "optionD": "Disable compaction",
+      "correct": "B"
+    },
+    {
+      "section": "Cassandra",
+      "level": "junior",
+      "question": "What does repair (anti-entropy) try to fix?",
+      "optionA": "Hot partitions by splitting tokens automatically",
+      "optionB": "Replicas that have diverged because of missed writes, downtime, or missed hints",
+      "optionC": "The need for a partition key",
+      "optionD": "Tombstone creation",
+      "correct": "B"
+    },
+    {
+      "section": "Cassandra",
+      "level": "junior",
+      "question": "You write at CL=ONE and later read at CL=ONE. Why might you miss your own write?",
+      "optionA": "Cassandra never reads your own writes",
+      "optionB": "The read may hit a replica that has not received the write yet",
+      "optionC": "ONE always waits for all replicas",
+      "optionD": "Tombstones block all reads at ONE",
+      "correct": "B"
+    },
+    {
+      "section": "Cassandra",
+      "level": "junior",
+      "question": "Why should a partition not grow without bound (wide partition)?",
+      "optionA": "Clustering order breaks after a few rows",
+      "optionB": "Compaction, repair, caching, and reads of that partition concentrate work on one token and huge SSTable pieces",
+      "optionC": "RF becomes 1 automatically",
+      "optionD": "QUORUM cannot count replicas for wide partitions",
+      "correct": "B"
+    },
+    {
+      "section": "Cassandra",
+      "level": "junior",
+      "question": "The coordinator node in a write path is responsible for…",
+      "optionA": "Storing the only copy of the data",
+      "optionB": "Sending the mutation to the replica set and waiting for CL acknowledgements",
+      "optionC": "Choosing a new partition key",
+      "optionD": "Running repair before every write",
+      "correct": "B"
+    },
+    {
+      "section": "Cassandra",
+      "level": "junior",
+      "question": "If RF=3 and you choose CL=ALL, what availability tradeoff did you make?",
+      "optionA": "You can tolerate one replica down",
+      "optionB": "Any one replica down makes the request fail, in exchange for seeing all copies",
+      "optionC": "Writes become local-only",
+      "optionD": "Hints are no longer stored",
+      "correct": "B"
+    },
+    {
+      "section": "Cassandra",
+      "level": "senior",
+      "question": "For RF=3, why is write QUORUM + read QUORUM the classic 'strong enough' pairing?",
+      "optionA": "It contacts every node in the cluster",
+      "optionB": "W+R>RF so the read set and write set must overlap on at least one replica",
+      "optionC": "QUORUM ignores RF",
+      "optionD": "It disables hinted handoff",
+      "correct": "B"
+    },
+    {
+      "section": "Cassandra",
+      "level": "senior",
+      "question": "You write QUORUM and read ONE. What consistency property did you give up?",
+      "optionA": "Durability of the commit log",
+      "optionB": "The guarantee that the read intersects the write quorum; you can read a stale replica",
+      "optionC": "The partition key hash",
+      "optionD": "The ability to compact SSTables",
+      "correct": "B"
+    },
+    {
+      "section": "Cassandra",
+      "level": "senior",
+      "question": "A query with no restriction on partition key but a clustering-column filter is slow. Why?",
+      "optionA": "Clustering filters require LWT",
+      "optionB": "Without a partition key, Cassandra cannot target a replica set; it must scatter or reject/filter broadly",
+      "optionC": "Bloom filters only work on clustering columns",
+      "optionD": "QUORUM cannot be used without clustering columns",
+      "correct": "B"
+    },
+    {
+      "section": "Cassandra",
+      "level": "senior",
+      "question": "Range deletes and TTL expiry create many tombstones. Which read is most likely to time out?",
+      "optionA": "A point get of a live key in a tiny partition with no deletes",
+      "optionB": "A slice scan that must walk and skip huge runs of tombstones before finding live rows",
+      "optionC": "A LOCAL_QUORUM write",
+      "optionD": "A schema-agreement check",
+      "correct": "B"
+    },
+    {
+      "section": "Cassandra",
+      "level": "senior",
+      "question": "Why can hinted handoff not replace repair?",
+      "optionA": "Hints only cover some missed writes for a limited window; they do not reconcile all replica divergence",
+      "optionB": "Hints always corrupt data",
+      "optionC": "Repair cannot run if hints exist",
+      "optionD": "Hints only work at CL=ALL",
+      "correct": "A"
+    },
+    {
+      "section": "Cassandra",
+      "level": "senior",
+      "question": "LWT on a hot partition is especially painful because…",
+      "optionA": "Paxos storage is on a different cluster",
+      "optionB": "Each LWT serializes competing proposers on that partition; hot keys queue behind in-progress rounds",
+      "optionC": "LWT disables the partitioner",
+      "optionD": "LWT requires RF=1",
+      "correct": "B"
+    },
+    {
+      "section": "Cassandra",
+      "level": "senior",
+      "question": "LOCAL_QUORUM vs QUORUM in a multi-DC cluster: what did you change?",
+      "optionA": "RF in every DC",
+      "optionB": "You wait for a majority in the local DC only, not a cluster-wide majority, cutting cross-DC latency",
+      "optionC": "Tombstone gc grace",
+      "optionD": "The number of clustering columns",
+      "correct": "B"
+    },
+    {
+      "section": "Cassandra",
+      "level": "senior",
+      "question": "A single huge partition with millions of clustering rows: which maintenance operation becomes dangerous first?",
+      "optionA": "Schema agreement",
+      "optionB": "Compaction and repair of that partition, which must stream/merge a massive contiguous piece of data",
+      "optionC": "Gossip",
+      "optionD": "Native-protocol version negotiation",
+      "correct": "B"
+    },
+    {
+      "section": "Cassandra",
+      "level": "senior",
+      "question": "Read repair vs full/incremental anti-entropy repair: how should you think about them?",
+      "optionA": "They are identical background jobs",
+      "optionB": "Read repair may fix replicas touched by a query; anti-entropy repair walks token ranges to reconcile even cold data",
+      "optionC": "Read repair rewrites the schema",
+      "optionD": "Anti-entropy repair only runs on the coordinator's memtable",
+      "correct": "B"
+    },
+    {
+      "section": "Cassandra",
+      "level": "senior",
+      "question": "Why does Cassandra still need gc_grace-style delay before dropping tombstones?",
+      "optionA": "To keep bloom filters warm",
+      "optionB": "A replica that was down could otherwise resurrect deleted data after tombstones are gone",
+      "optionC": "QUORUM counts tombstones as live votes",
+      "optionD": "LWTs require tombstones forever",
+      "correct": "B"
+    },
+    {
+      "section": "Cassandra",
+      "level": "senior",
+      "question": "You model 'all events for a user' as partition=user_id, clustering=time. What hot-partition pattern should you expect?",
+      "optionA": "Users are perfectly balanced by definition",
+      "optionB": "Celebrity/hot users concentrate writes and reads on one partition and its replica set",
+      "optionC": "Clustering by time spreads data across all tokens",
+      "optionD": "QUORUM automatically shards hot users",
+      "correct": "B"
+    },
+    {
+      "section": "Cassandra",
+      "level": "senior",
+      "question": "A coordinator stores many hints for a down replica. What operational risk follows?",
+      "optionA": "Hints improve read latency forever",
+      "optionB": "Hint replay can storm the recovering node, and hints can expire so divergence remains until repair",
+      "optionC": "The down replica is removed from RF automatically",
+      "optionD": "LWT becomes free",
+      "correct": "B"
+    },
+    {
+      "section": "Cassandra",
+      "level": "senior",
+      "question": "Why is 'RF=3, CL=QUORUM, but NetworkTopologyStrategy with RF=3 in only one DC' a different failure domain than two DCs of RF=3?",
+      "optionA": "It is not; RF is global",
+      "optionB": "Quorum is computed from the keyspace's replica placement; one DC of 3 means a DC outage loses quorum, unlike per-DC RF=3 with LOCAL_QUORUM",
+      "optionC": "Consistency level ignores replica placement",
+      "optionD": "Two DCs always require CL=ALL",
+      "correct": "B"
+    },
+    {
+      "section": "Cassandra",
+      "level": "senior",
+      "question": "An LSM-style memtable flush in Cassandra is most analogous to which cost you already pay in the storage engine?",
+      "optionA": "Token hashing",
+      "optionB": "Write path is fast sequential; later compaction and many SSTables create read amplification for that partition",
+      "optionC": "Gossip heartbeats",
+      "optionD": "Native CQL parsing",
+      "correct": "B"
+    },
+    {
+      "section": "Cassandra",
+      "level": "staff",
+      "question": "W+R>RF is necessary but not sufficient for 'I always read my write' in Cassandra. Which extra caveat is staff-level?",
+      "optionA": "There are no caveats if W+R>RF",
+      "optionB": "Clock/last-write-wins, partial replica failures, digest mismatch paths, and CL computed per-DC can still yield surprising recency without LWT/SERIAL",
+      "optionC": "Partition keys are not hashed when W+R>RF",
+      "optionD": "Tombstones disable W+R>RF",
+      "correct": "B"
+    },
+    {
+      "section": "Cassandra",
+      "level": "staff",
+      "question": "You need linearizable compare-and-set on a counter-like row. Why is 'read QUORUM then write QUORUM' the wrong tool?",
+      "optionA": "QUORUM cannot read counters",
+      "optionB": "Two clients can both read the same value and both write; you need LWT/Paxos (or an external consensus) to serialize the RMW",
+      "optionC": "Repair already serializes all writes",
+      "optionD": "Hinted handoff provides linearizability",
+      "correct": "B"
+    },
+    {
+      "section": "Cassandra",
+      "level": "staff",
+      "question": "A repair that misses a recently deleted partition (gc grace elapsed, tombstone dropped, replica was down) produces what?",
+      "optionA": "A harmless no-op",
+      "optionB": "Data resurrection: the stale replica's live data is copied back to others",
+      "optionC": "Automatic RF increase",
+      "optionD": "LWT abort of the repair",
+      "correct": "B"
+    },
+    {
+      "section": "Cassandra",
+      "level": "staff",
+      "question": "Hot-partition mitigation via bucketing (user_id + bucket) changes which costs?",
+      "optionA": "It removes the need for RF",
+      "optionB": "Writes spread across tokens, but reads of 'all buckets' become scatter-gather and you reintroduce merge/limit logic in the app",
+      "optionC": "Clustering order is lost forever",
+      "optionD": "QUORUM is no longer defined",
+      "correct": "B"
+    },
+    {
+      "section": "Cassandra",
+      "level": "staff",
+      "question": "Why can EACH_QUORUM writes be the right multi-DC choice even though they are slow?",
+      "optionA": "They contact only one node",
+      "optionB": "They require a quorum in every DC, so a DC that was partitioned does not silently accept a CL that later cannot be read locally",
+      "optionC": "They skip the commit log",
+      "optionD": "They disable tombstones",
+      "correct": "B"
+    },
+    {
+      "section": "Cassandra",
+      "level": "staff",
+      "question": "LWT cost is not just extra round trips. What local storage-engine cost also shows up?",
+      "optionA": "Paxos state (promises/commits) is persisted per partition, adding writes, contention, and more compaction on that key",
+      "optionB": "LWT bypasses memtables entirely",
+      "optionC": "LWT stores a full cluster snapshot",
+      "optionD": "LWT turns off bloom filters cluster-wide",
+      "correct": "A"
+    },
+    {
+      "section": "Cassandra",
+      "level": "staff",
+      "question": "Incremental repair vs a naive full repair: what failure mode are you trying to avoid?",
+      "optionA": "Token-aware routing",
+      "optionB": "Repeatedly streaming already-agreed ranges, overloading disks/network, and extending the window where unrepaired data can resurrect after tombstone GC",
+      "optionC": "The need for partition keys",
+      "optionD": "Use of clustering columns",
+      "correct": "B"
+    },
+    {
+      "section": "Cassandra",
+      "level": "staff",
+      "question": "A coordinator chooses replicas for a QUORUM read. Why might it still do extra digest reads?",
+      "optionA": "To hash the partition key again",
+      "optionB": "To detect replica disagreement cheaply, then fetch full data and reconcile, which is a form of read repair work",
+      "optionC": "Digest reads replace QUORUM",
+      "optionD": "Digests are only for hinted handoff",
+      "correct": "B"
+    },
+    {
+      "section": "Cassandra",
+      "level": "staff",
+      "question": "Dropping gc_grace to 'clean tombstones faster' after a mass delete: what must already be true?",
+      "optionA": "Nothing; it is always safe",
+      "optionB": "Every replica has received the deletes and repair has covered the ranges; otherwise dropped tombstones invite resurrection",
+      "optionC": "CL=ONE is in use",
+      "optionD": "LWTs are disabled",
+      "correct": "B"
+    },
+    {
+      "section": "Cassandra",
+      "level": "staff",
+      "question": "Why is a monotonically growing clustering key that is also the only partition key a dual foot-gun?",
+      "optionA": "It is the recommended time-series pattern",
+      "optionB": "One ever-growing partition (hot + wide) lands on one token; time-series wants time in clustering and a bounded partition key (and often time buckets)",
+      "optionC": "Clustering keys cannot be timestamps",
+      "optionD": "QUORUM forbids time-series",
+      "correct": "B"
+    },
+    {
+      "section": "Cassandra",
+      "level": "staff",
+      "question": "Hinted handoff during a rolling outage of two of three replicas at RF=3, CL=QUORUM: what happens to writes?",
+      "optionA": "Writes succeed because hints count as quorum votes",
+      "optionB": "QUORUM writes fail; hints are not a substitute for live acknowledgements, so availability drops until a replica returns",
+      "optionC": "CL is automatically lowered to ONE",
+      "optionD": "The remaining replica becomes RF=1 silently",
+      "correct": "B"
+    },
+    {
+      "section": "Cassandra",
+      "level": "staff",
+      "question": "You must explain why Cassandra's last-write-wins on conflicting replicas is not a substitute for LWT.",
+      "optionA": "LWW always waits for Paxos",
+      "optionB": "LWW picks a timestamp winner after the fact; concurrent RMWs can lose updates. LWT prevents the lost update by agreeing before commit",
+      "optionC": "LWW and LWT are identical on the same partition",
+      "optionD": "Repair turns LWW into linearizability",
+      "correct": "B"
+    },
+    {
+      "section": "Cassandra",
+      "level": "staff",
+      "question": "A staff review of a 'one partition per tenant, all rows clustered' multi-tenant design should flag what first?",
+      "optionA": "CQL cannot filter clustering columns",
+      "optionB": "Tenant size skew becomes hot/wide partitions; noisy tenants dominate compaction, repair, and replica CPU with no token isolation",
+      "optionC": "RF cannot be greater than 1 for multi-tenant data",
+      "optionD": "QUORUM does not work with clustering columns",
+      "correct": "B"
+    },
+    {
+      "section": "Cassandra",
+      "level": "staff",
+      "question": "When would you accept CL=ONE writes in production despite stale-read risk?",
+      "optionA": "Always; QUORUM is never worth it",
+      "optionB": "When the workload is write-availability-first, reads can tolerate staleness, and repair/hints/read-repair are operated as the reconciliation path",
+      "optionC": "When you also need linearizable CAS",
+      "optionD": "When RF=1 already, so CL does not matter and you still claim multi-replica durability",
+      "correct": "B"
+    }
+  ],
+  "flashcards": [
+    {
+      "section": "B-tree & LSM",
+      "level": "junior",
+      "question": "Why does a random insert usually cost a B-tree a full leaf-page write?",
+      "answer": "The engine updates a key in place inside a fixed-size leaf. Durability means writing that whole page (and maybe split parents), so amplification is page-sized, not row-sized."
+    },
+    {
+      "section": "B-tree & LSM",
+      "level": "junior",
+      "question": "What roles do the memtable and WAL play together?",
+      "answer": "The memtable absorbs sorted in-memory writes for fast ingest. The WAL records those mutations durably first so a crash can rebuild the memtable before the next flush."
+    },
+    {
+      "section": "B-tree & LSM",
+      "level": "junior",
+      "question": "Why can one LSM point get touch several SSTables?",
+      "answer": "Flushes create new files over time. The latest version of a key may live in a newer file, so the engine checks memtable then potentially multiple SSTables until it finds the newest value or proves absence."
+    },
+    {
+      "section": "B-tree & LSM",
+      "level": "junior",
+      "question": "What does a bloom filter guarantee on an LSM lookup?",
+      "answer": "If it says no, the key is definitely not in that SSTable. If it says maybe, you must read the index/data; false positives only waste I/O, they do not return wrong values."
+    },
+    {
+      "section": "B-tree & LSM",
+      "level": "junior",
+      "question": "Why are LSM range scans heavier than B-tree range scans of the same span?",
+      "answer": "A B-tree walk follows sorted leaves with little overlap. An LSM scan must merge-sort the memtable plus every overlapping SSTable that might contain keys in the range."
+    },
+    {
+      "section": "B-tree & LSM",
+      "level": "junior",
+      "question": "What problem does compaction solve?",
+      "answer": "It merges SSTables, drops obsolete versions and tombstones, and bounds how many files a read must inspect—at the cost of rewriting live data (write amplification)."
+    },
+    {
+      "section": "B-tree & LSM",
+      "level": "junior",
+      "question": "How is the memtable recovered after a crash?",
+      "answer": "SSTables already on disk stay. The WAL is replayed to reconstruct unflushed memtable writes, then normal flush/compaction can continue."
+    },
+    {
+      "section": "B-tree & LSM",
+      "level": "junior",
+      "question": "In one sentence, contrast LSM write amplification vs read amplification.",
+      "answer": "Write amplification is extra bytes rewritten (WAL, flush, compaction) per user write. Read amplification is extra files/I/Os touched per user read."
+    },
+    {
+      "section": "B-tree & LSM",
+      "level": "senior",
+      "question": "How do leveled vs size-tiered compaction typically trade amplification?",
+      "answer": "Leveled keeps key ranges disjoint per level, lowering read/space amp but rewriting more (higher write amp). Size-tiered/universal merges similar-sized files, writing less often but leaving more overlap for reads and scans."
+    },
+    {
+      "section": "B-tree & LSM",
+      "level": "senior",
+      "question": "When do bloom filters stop helping?",
+      "answer": "On wide range scans (files overlap the range anyway) and when the false-positive rate is so high that you still open most SSTables. They help negative point lookups most."
+    },
+    {
+      "section": "B-tree & LSM",
+      "level": "senior",
+      "question": "What causes an LSM write stall?",
+      "answer": "Ingest outruns flush/compaction: too many memtables or L0 files. The engine throttles or blocks writers until compaction makes room, even if user-thread CPU is idle."
+    },
+    {
+      "section": "B-tree & LSM",
+      "level": "senior",
+      "question": "Why can a cached B-tree still beat LSM on point gets?",
+      "answer": "Internal nodes stay in RAM, so a hit is often one leaf I/O. LSM may still miss on several per-file filters/indexes unless those are also cached and blooms are sharp."
+    },
+    {
+      "section": "B-tree & LSM",
+      "level": "senior",
+      "question": "Why do tiny frequent flushes hurt later reads?",
+      "answer": "They create many overlapping SSTables. Point gets and especially range scans fan out across more files, and compaction must later rewrite that mess."
+    },
+    {
+      "section": "B-tree & LSM",
+      "level": "senior",
+      "question": "What is space amplification in an LSM?",
+      "answer": "Live data plus obsolete versions, tombstones, and temporary extra copies during merge. It stays high until compaction installs the new file and drops the old ones."
+    },
+    {
+      "section": "B-tree & LSM",
+      "level": "senior",
+      "question": "B-tree WAL vs LSM WAL: what is each protecting?",
+      "answer": "B-tree WAL (or equivalent redo) protects in-place page mutations until checkpoint. LSM WAL protects memtable contents until they are flushed to an SSTable and that file is durable."
+    },
+    {
+      "section": "B-tree & LSM",
+      "level": "senior",
+      "question": "For update-heavy small key sets on LSM, what dominates cost?",
+      "answer": "Compaction keeps rewriting the same hot keys and their old versions. You pay write amp and tombstone/version churn even though the logical dataset is tiny."
+    },
+    {
+      "section": "B-tree & LSM",
+      "level": "staff",
+      "question": "How does the RUM conjecture frame B-tree vs LSM?",
+      "answer": "You cannot minimize read, update, and memory/space amplification together. B-trees lean toward cheaper reads/locality; LSM leans toward cheaper updates/ingest; each inflates the other dimensions."
+    },
+    {
+      "section": "B-tree & LSM",
+      "level": "staff",
+      "question": "You have RAM for either extra bloom bits or extra block cache. How do you choose?",
+      "answer": "Measure miss type. Extra bloom bits cut SSTable probes on negatives. Cache helps positive lookups and index/data blocks. There is no universal winner."
+    },
+    {
+      "section": "B-tree & LSM",
+      "level": "staff",
+      "question": "Why is 'write amp ≈ level ratio' an underestimate for leveled LSM?",
+      "answer": "It ignores WAL, flush (L0), overlapping L0→L1 compaction, and any rewrites from deletes/updates. Operational write amp is those layers multiplied, not just per-level merge."
+    },
+    {
+      "section": "B-tree & LSM",
+      "level": "staff",
+      "question": "How must an LSM merge iterator treat duplicates and tombstones?",
+      "answer": "Newest sequence/generation wins. A newer tombstone hides older values until compaction drops both. Oldest-file-wins would resurrect deleted data."
+    },
+    {
+      "section": "B-tree & LSM",
+      "level": "staff",
+      "question": "Why can CoW B-trees still lose the random-ingest race to LSM?",
+      "answer": "CoW still tends to copy page-granularity nodes and ancestors. LSM batches many random keys into sequential runs; it defers random I/O into compaction instead of paying it on the user write."
+    },
+    {
+      "section": "B-tree & LSM",
+      "level": "staff",
+      "question": "Why do prefix/partitioned blooms exist?",
+      "answer": "A whole-file bloom only answers 'is this exact key maybe in the file?' Partitioned/prefix filters can prune files for prefix or range existence without merging every overlapping run."
+    },
+    {
+      "section": "B-tree & LSM",
+      "level": "staff",
+      "question": "If write amp falls and read amp rises after a compaction-policy change, what happened?",
+      "answer": "You likely moved toward lazier tiered/universal merging: fewer rewrites, more overlapping runs. The inverse move (more leveling) raises write amp and cuts read amp."
+    },
+    {
+      "section": "B-tree & LSM",
+      "level": "staff",
+      "question": "Why must SSTable fsync and WAL fsync both happen, at different times?",
+      "answer": "WAL fsync makes the latest acknowledged memtable mutations recoverable. SSTable fsync makes a flush durable so the WAL can be truncated; skipping either breaks crash correctness."
+    },
+    {
+      "section": "Cassandra",
+      "level": "junior",
+      "question": "Partition key vs clustering columns: who does what?",
+      "answer": "The partition key hashes to a token and chooses the replica set (where data lives). Clustering columns sort rows inside that partition on disk and in queries."
+    },
+    {
+      "section": "Cassandra",
+      "level": "junior",
+      "question": "What is the difference between RF and consistency level?",
+      "answer": "RF is how many replicas store each partition. CL is how many replicas must acknowledge this specific read or write before success."
+    },
+    {
+      "section": "Cassandra",
+      "level": "junior",
+      "question": "With RF=3, how many replicas is QUORUM?",
+      "answer": "A majority of RF, so 2. ALL would be 3; ONE would be 1."
+    },
+    {
+      "section": "Cassandra",
+      "level": "junior",
+      "question": "Why are hot partitions dangerous?",
+      "answer": "All reads/writes for that key hash to the same token and the same small replica set. Those nodes become the bottleneck even if the cluster average looks fine."
+    },
+    {
+      "section": "Cassandra",
+      "level": "junior",
+      "question": "What is a tombstone and why must it exist?",
+      "answer": "It is a deletion marker stored like data. Without it, an older SSTable could resurrect a value after a delete. Compaction removes tombstones only after it is safe."
+    },
+    {
+      "section": "Cassandra",
+      "level": "junior",
+      "question": "What is hinted handoff?",
+      "answer": "If a replica is down, the coordinator may store a hint and replay the mutation when the replica returns. It is a short-term miss buffer, not full repair."
+    },
+    {
+      "section": "Cassandra",
+      "level": "junior",
+      "question": "Why are LWTs more expensive than ordinary writes?",
+      "answer": "IF / CAS uses a Paxos-style agreement round on the partition instead of a regular quorum write, adding round trips and contention."
+    },
+    {
+      "section": "Cassandra",
+      "level": "junior",
+      "question": "What does repair fix that normal reads/writes might miss?",
+      "answer": "Replica divergence from downtime, dropped hints, or missed mutations. Anti-entropy compares token ranges and streams missing data."
+    },
+    {
+      "section": "Cassandra",
+      "level": "senior",
+      "question": "Why does write QUORUM + read QUORUM with RF=3 give a replica overlap?",
+      "answer": "W+R>RF (2+2>3), so the set of replicas that took the write and the set that serve the read must share at least one node holding the data."
+    },
+    {
+      "section": "Cassandra",
+      "level": "senior",
+      "question": "Why can hinted handoff not replace repair?",
+      "answer": "Hints cover some missed writes for a limited time and can expire. They do not walk all token ranges or fix every kind of divergence. Repair still required."
+    },
+    {
+      "section": "Cassandra",
+      "level": "senior",
+      "question": "Why do tombstone-heavy slice queries time out?",
+      "answer": "The replica must scan and skip deletion markers to find live rows. Huge tombstone runs burn CPU/I/O and hit tombstone-failure thresholds before returning data."
+    },
+    {
+      "section": "Cassandra",
+      "level": "senior",
+      "question": "LOCAL_QUORUM vs QUORUM in multi-DC: what latency did you buy?",
+      "answer": "LOCAL_QUORUM waits for a majority in the local DC only, avoiding cross-DC round trips. Cluster-wide QUORUM may wait on remote DCs."
+    },
+    {
+      "section": "Cassandra",
+      "level": "senior",
+      "question": "Why must tombstones wait for a gc-grace window?",
+      "answer": "A replica that missed the delete could otherwise resurrect data once tombstones are gone. Grace gives time for hints/repair to propagate deletes first."
+    },
+    {
+      "section": "Cassandra",
+      "level": "senior",
+      "question": "Why is LWT on a hot partition especially bad?",
+      "answer": "Paxos serializes proposers per partition. Competing CAS operations on the same key queue behind in-flight rounds, amplifying latency far more than regular quorum writes."
+    },
+    {
+      "section": "Cassandra",
+      "level": "senior",
+      "question": "Read repair vs anti-entropy repair?",
+      "answer": "Read repair may fix replicas actually touched by a query. Anti-entropy repair walks ranges (including cold data) to reconcile the replica set systematically."
+    },
+    {
+      "section": "Cassandra",
+      "level": "senior",
+      "question": "What goes wrong with an unbounded partition (millions of clustering rows)?",
+      "answer": "Compaction, cache, repair, and reads concentrate on one token's huge contiguous data. Streaming and merging that partition can stall a replica."
+    },
+    {
+      "section": "Cassandra",
+      "level": "staff",
+      "question": "Why is W+R>RF not the same as linearizability?",
+      "answer": "It only argues replica-set overlap for a single write/read pair. Concurrent RMWs, LWW timestamps, per-DC CLs, and partial failures can still lose updates. Use LWT/SERIAL when you need CAS."
+    },
+    {
+      "section": "Cassandra",
+      "level": "staff",
+      "question": "What resurrection scenario must staff operators keep in mind?",
+      "answer": "A replica stays down past gc grace, tombstones drop, then repair/bootstrap copies the stale live rows back. Deletes vanish because the markers are gone."
+    },
+    {
+      "section": "Cassandra",
+      "level": "staff",
+      "question": "How does partition bucketing trade one problem for another?",
+      "answer": "user_id+bucket spreads writes across tokens (fixes hot/wide partitions) but reads of the full entity become scatter-gather with app-side merge/limit."
+    },
+    {
+      "section": "Cassandra",
+      "level": "staff",
+      "question": "Besides round trips, where does LWT cost show up in storage?",
+      "answer": "Paxos promise/commit state is persisted per partition, adding extra writes, contention on that key, and more compaction—not just extra network hops."
+    },
+    {
+      "section": "Cassandra",
+      "level": "staff",
+      "question": "Why can EACH_QUORUM be worth its latency?",
+      "answer": "It requires a quorum in every DC, so a DC that was partitioned cannot accept a write that the other DCs will never see, which LOCAL_QUORUM can allow."
+    },
+    {
+      "section": "Cassandra",
+      "level": "staff",
+      "question": "Do hints count toward QUORUM?",
+      "answer": "No. QUORUM needs live replica acknowledgements. If two of three replicas are down at RF=3, QUORUM writes fail; hints cannot vote in their place."
+    },
+    {
+      "section": "Cassandra",
+      "level": "staff",
+      "question": "LWW vs LWT for concurrent updates: what is lost without LWT?",
+      "answer": "Last-write-wins picks a timestamp after the fact, so two RMWs can both read the same base and one update disappears. LWT agrees on the CAS before commit."
+    },
+    {
+      "section": "Cassandra",
+      "level": "staff",
+      "question": "What is the first staff flag on 'one partition per tenant'?",
+      "answer": "Tenant skew becomes hot/wide partitions. A noisy tenant dominates compaction, repair, and replica CPU with no token isolation from others."
+    }
+  ]
+}

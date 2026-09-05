@@ -1,6 +1,8 @@
 import Papa from 'papaparse';
+import { questionId } from './questionSelector';
 
 export interface QuizQuestion {
+    id: string;
     question: string;
     options: string[];
     correctAnswerIndex: number;
@@ -16,14 +18,11 @@ interface QuizRow {
 }
 
 const mapLetterToIndex = (letter: string): number => {
-    const map: Record<string, number> = { 'A': 0, 'B': 1, 'C': 2, 'D': 3 };
-    return map[letter.toUpperCase()] ?? -1;
+    const map: Record<string, number> = { A: 0, B: 1, C: 2, D: 3 };
+    return map[letter.trim().toUpperCase()] ?? -1;
 };
 
 export const fetchQuizData = async (gid: string): Promise<QuizQuestion[]> => {
-    // Construct URL with GID
-    // Base URL is the same, just need to switch query params or use the full URL if simplified
-    // The provided URL format was: .../pub?gid=...&single=true&output=csv
     const baseUrl = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQYnXVJn7BdJlgGZl9svLhgshjtQMn1J_TejMtxdY2XKKPpaPwgDsG6Krz6SlJoCYn2wTyOfacLFFQ7/pub';
     const url = `${baseUrl}?gid=${gid}&single=true&output=csv`;
 
@@ -36,24 +35,31 @@ export const fetchQuizData = async (gid: string): Promise<QuizQuestion[]> => {
                 header: true,
                 skipEmptyLines: true,
                 complete: (results) => {
-                    const questions: QuizQuestion[] = results.data.map(row => ({
-                        question: row.Question,
-                        options: [row['Option A'], row['Option B'], row['Option C'], row['Option D']],
-                        correctAnswerIndex: mapLetterToIndex(row['Correct Answer'])
-                    })).filter(q => q.question && q.correctAnswerIndex !== -1); // Basic validation
+                    const questions: QuizQuestion[] = results.data
+                        .map((row) => {
+                            const question = row.Question?.trim() || '';
+                            return {
+                                id: questionId(question),
+                                question,
+                                options: [row['Option A'], row['Option B'], row['Option C'], row['Option D']],
+                                correctAnswerIndex: mapLetterToIndex(row['Correct Answer'] || ''),
+                            };
+                        })
+                        .filter((q) => q.question && q.correctAnswerIndex !== -1);
 
                     resolve(questions);
                 },
-                error: (error: Error) => reject(error)
+                error: (error: Error) => reject(error),
             });
         });
     } catch (error) {
-        console.error("Failed to fetch quiz data:", error);
+        console.error('Failed to fetch quiz data:', error);
         return [];
     }
 };
 
 export interface Flashcard {
+    id: string;
     question: string;
     answer: string;
 }
@@ -77,19 +83,23 @@ export const fetchFlashcardData = async (gid: string): Promise<Flashcard[]> => {
                 skipEmptyLines: true,
                 complete: (results) => {
                     const cards: Flashcard[] = results.data
-                        .map(row => ({
-                            question: row.Question?.trim() || '',
-                            answer: row['Correct Answer']?.trim() || ''
-                        }))
-                        .filter(c => c.question && c.answer); // Basic validation
+                        .map((row) => {
+                            const question = row.Question?.trim() || '';
+                            return {
+                                id: questionId(question),
+                                question,
+                                answer: row['Correct Answer']?.trim() || '',
+                            };
+                        })
+                        .filter((c) => c.question && c.answer);
 
                     resolve(cards);
                 },
-                error: (error: Error) => reject(error)
+                error: (error: Error) => reject(error),
             });
         });
     } catch (error) {
-        console.error("Failed to fetch flashcard data:", error);
+        console.error('Failed to fetch flashcard data:', error);
         return [];
     }
 };

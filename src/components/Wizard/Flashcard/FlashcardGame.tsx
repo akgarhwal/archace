@@ -2,6 +2,8 @@ import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Loader2, ChevronLeft, ChevronRight, LogOut, Eye, EyeOff, Shuffle } from 'lucide-react';
 import { fetchFlashcardData, type Flashcard } from '../../../services/sheetService';
+import { selectSessionItems } from '../../../services/questionSelector';
+import { lecturePathKey, loadPathProgress, markCorrect, progressSets } from '../../../services/progressStore';
 import { clsx } from 'clsx';
 import type { Level } from '../types';
 
@@ -14,7 +16,7 @@ interface FlashcardGameProps {
 
 type FlashcardState = 'loading' | 'playing';
 
-const FLASHCARDS_COUNT = 20;
+const FLASHCARDS_COUNT = 30;
 
 export const FlashcardGame: React.FC<FlashcardGameProps> = ({ sheetGid, technologyName, level, onExit }) => {
     const [gameState, setGameState] = useState<FlashcardState>('loading');
@@ -24,6 +26,12 @@ export const FlashcardGame: React.FC<FlashcardGameProps> = ({ sheetGid, technolo
     const [knownCount, setKnownCount] = useState(0);
 
     const isInitialized = useRef(false);
+    const pathKey = lecturePathKey(level ?? 'junior', 'flashcards');
+
+    const pickCards = (allCards: Flashcard[]) => {
+        const progress = progressSets(loadPathProgress(pathKey));
+        return selectSessionItems(allCards, progress, FLASHCARDS_COUNT);
+    };
 
     useEffect(() => {
         const loadCards = async () => {
@@ -33,8 +41,7 @@ export const FlashcardGame: React.FC<FlashcardGameProps> = ({ sheetGid, technolo
             setGameState('loading');
             try {
                 const allQuestions = await fetchFlashcardData(sheetGid);
-                const shuffled = [...allQuestions].sort(() => 0.5 - Math.random());
-                setCards(shuffled.slice(0, FLASHCARDS_COUNT));
+                setCards(pickCards(allQuestions));
                 setGameState('playing');
             } catch (error) {
                 console.error("Failed to load flashcards:", error);
@@ -59,16 +66,24 @@ export const FlashcardGame: React.FC<FlashcardGameProps> = ({ sheetGid, technolo
     };
 
     const markKnown = () => {
+        const current = cards[currentIndex];
+        if (current) markCorrect(pathKey, current.id);
         setKnownCount(prev => prev + 1);
         goNext();
     };
 
-    const reshuffleCards = () => {
-        const shuffled = [...cards].sort(() => 0.5 - Math.random());
-        setCards(shuffled);
+    const reshuffleCards = async () => {
+        setGameState('loading');
         setCurrentIndex(0);
         setIsFlipped(false);
         setKnownCount(0);
+        try {
+            const allQuestions = await fetchFlashcardData(sheetGid);
+            setCards(pickCards(allQuestions));
+        } catch (error) {
+            console.error("Failed to reload flashcards:", error);
+        }
+        setGameState('playing');
     };
 
     const levelLabel = level === 'junior' ? 'Easy' : level === 'senior' ? 'Medium' : 'Hard';
@@ -78,6 +93,21 @@ export const FlashcardGame: React.FC<FlashcardGameProps> = ({ sheetGid, technolo
             <div className="flex flex-col items-center justify-center min-h-[400px]">
                 <Loader2 className="animate-spin text-emerald-600 mb-4" size={48} />
                 <p className="text-gray-500 font-medium">Loading flashcards...</p>
+            </div>
+        );
+    }
+
+    if (cards.length === 0) {
+        return (
+            <div className="flex flex-col items-center justify-center min-h-[50vh] text-center p-8">
+                <h2 className="text-2xl font-bold text-gray-900 mb-3">No flashcards available</h2>
+                <p className="text-gray-500 mb-6">This sheet did not return any valid cards.</p>
+                <button
+                    onClick={onExit}
+                    className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-gray-500 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                >
+                    <LogOut size={16} /> Exit
+                </button>
             </div>
         );
     }

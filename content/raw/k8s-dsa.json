@@ -1,0 +1,1166 @@
+{
+  "sections": [
+    {
+      "name": "Kubernetes",
+      "levels": {
+        "beginner": {
+          "quiz": [
+            {
+              "question": "A pod is serving traffic correctly, but you wire the liveness probe to the same database health check as readiness. The database blips for 10 seconds. What happens?",
+              "options": {
+                "A": "kubelet kills the process and restarts the container, dropping in-flight work",
+                "B": "Endpoints stay populated; only new connections are paused",
+                "C": "The Deployment freezes rolling updates until the database recovers",
+                "D": "kube-proxy retries the probe against a different replica"
+              },
+              "correct": "A",
+              "explanation": "Liveness failure means 'this process is dead, restart it.' Tying liveness to a dependency turns a blip into a self-inflicted crash loop. Readiness should drop the pod from Endpoints; liveness should only catch a wedged process."
+            },
+            {
+              "question": "What is the correct split of responsibility between liveness and readiness?",
+              "options": {
+                "A": "Liveness: am I stuck and need a restart. Readiness: should I receive traffic right now",
+                "B": "Liveness: CPU saturation. Readiness: memory saturation",
+                "C": "Liveness: can the Service select me. Readiness: can the node schedule me",
+                "D": "Liveness: PVC attached. Readiness: ConfigMap mounted"
+              },
+              "correct": "A",
+              "explanation": "Liveness answers 'restart me.' Readiness answers 'include me in Endpoints.' Mixing them is the classic probe misuse."
+            },
+            {
+              "question": "You see CrashLoopBackOff on a new Deployment. What does that state actually mean?",
+              "options": {
+                "A": "The container started, exited non-zero (or failed liveness), and kubelet is applying exponential backoff before the next restart",
+                "B": "The node is out of CPU and the pod cannot be scheduled",
+                "C": "etcd rejected the pod spec as too large",
+                "D": "The Service has no matching selectors"
+              },
+              "correct": "A",
+              "explanation": "CrashLoopBackOff is a restart policy outcome, not a scheduling failure. kubelet restarts, then waits longer each time (up to a cap) so a broken image does not hammer the node."
+            },
+            {
+              "question": "During a default rolling update, why can you briefly run more pods than spec.replicas?",
+              "options": {
+                "A": "maxSurge allows extra new pods while old pods are still terminating",
+                "B": "HPA always adds 1 replica during any rollout",
+                "C": "etcd duplicates the ReplicaSet until compaction",
+                "D": "kube-proxy clones Endpoints for session affinity"
+              },
+              "correct": "A",
+              "explanation": "RollingUpdate uses maxSurge (extra new) and maxUnavailable (how many can be down). Default surge is why replica count temporarily exceeds the desired count."
+            },
+            {
+              "question": "A PodDisruptionBudget with minAvailable: 2 on a 3-replica app is mainly protecting you from what?",
+              "options": {
+                "A": "Voluntary disruptions such as node drains and rolling evictions going below 2 ready pods",
+                "B": "OOMKills and kernel panics on the node",
+                "C": "etcd quorum loss",
+                "D": "Image pull failures from :latest"
+              },
+              "correct": "A",
+              "explanation": "PDBs constrain voluntary disruptions (drain, eviction API, some rolling operations). They do not stop crashes, OOM, or hardware failure."
+            },
+            {
+              "question": "HPA and VPA solve different bottlenecks. Which pairing is right?",
+              "options": {
+                "A": "HPA adds/removes replica count; VPA changes CPU/memory requests (and optionally limits) on the pod",
+                "B": "HPA resizes PVCs; VPA resizes Services",
+                "C": "HPA tunes etcd compaction; VPA tunes kubelet GC",
+                "D": "HPA and VPA are two names for the same controller"
+              },
+              "correct": "A",
+              "explanation": "Horizontal scaling changes how many pods. Vertical scaling changes how big a pod is. Running both aggressively on the same metric fights itself."
+            },
+            {
+              "question": "The scheduler places pods using which resource field?",
+              "options": {
+                "A": "requests — that is the reservation the node must still have free",
+                "B": "limits — that is the only number the scheduler reads",
+                "C": "HPA targetUtilization",
+                "D": "the container image size on disk"
+              },
+              "correct": "A",
+              "explanation": "Scheduling is based on requests (the guaranteed slice). Limits cap runtime usage (CPU throttle or memory OOM) and do not reserve capacity by themselves."
+            },
+            {
+              "question": "Why is deploying image: myapp:latest a production foot-gun?",
+              "options": {
+                "A": "The tag is mutable, so nodes can run different binaries under the same name and rollbacks become guesswork",
+                "B": "Kubernetes refuses to pull tags that are not semver",
+                "C": ":latest disables liveness probes",
+                "D": "etcd cannot store tags named latest"
+              },
+              "correct": "A",
+              "explanation": "latest (any floating tag) is not an immutable content address. imagePullPolicy IfNotPresent can keep a stale local image, or a later pull can silently change what runs."
+            },
+            {
+              "question": "You kubectl delete a pod. What should the process do in the terminationGracePeriodSeconds window?",
+              "options": {
+                "A": "Catch SIGTERM (or preStop), stop taking new work, drain in-flight requests, then exit 0 before the grace period ends",
+                "B": "Ignore signals; kubelet will always wait forever",
+                "C": "Call the HPA API to scale to zero",
+                "D": "Unmount its PVC so other pods can bind it immediately"
+              },
+              "correct": "A",
+              "explanation": "Delete sends SIGTERM after optional preStop. If the process is still running when grace expires, kubelet SIGKILLs it and clients see cut connections."
+            },
+            {
+              "question": "Every object you kubectl apply is persisted where, and why does that become a cluster bottleneck?",
+              "options": {
+                "A": "etcd — it is the consistent store; watch fan-out, large objects, and write bursts all hit it",
+                "B": "Each node's local disk only; the API server is stateless forever",
+                "C": "The container runtime graph driver",
+                "D": "CoreDNS zone files"
+              },
+              "correct": "A",
+              "explanation": "API server is the front door; etcd is the source of truth. Oversized Secrets, high churn, and too many watches make etcd the ceiling for the control plane."
+            },
+            {
+              "question": "A pod that needs disk should reference a PVC, not a raw disk path. Why?",
+              "options": {
+                "A": "PVC is the claim; a PV (often via StorageClass) is the actual volume. Binding decouples app spec from storage backend",
+                "B": "PVCs bypass etcd so disk I/O is faster",
+                "C": "A PVC is just an alias for emptyDir",
+                "D": "Only PVCs can be used with :latest images"
+              },
+              "correct": "A",
+              "explanation": "Pod -> PVC -> PV (provisioned by a StorageClass) is the portable model. The pod should not hard-code cloud volume IDs."
+            },
+            {
+              "question": "CPU limit is set to 100m, request to 100m. The process tries to use a full core. What do you observe?",
+              "options": {
+                "A": "CFS throttling — the container is not OOMKilled for CPU; it just runs slower in bursts",
+                "B": "Immediate CrashLoopBackOff",
+                "C": "The scheduler moves the pod to a bigger node mid-request",
+                "D": "etcd rejects further status updates"
+              },
+              "correct": "A",
+              "explanation": "CPU limits throttle. Memory limits OOMKill. Mixing those failure modes is a common incident-review mistake."
+            },
+            {
+              "question": "Readiness probe is failing, liveness is passing. User impact?",
+              "options": {
+                "A": "Pod stays running but is removed from Service Endpoints, so it gets no new Service traffic",
+                "B": "kubelet SIGKILLs the container every 10s",
+                "C": "The node is cordoned automatically",
+                "D": "PDB is violated and the cluster panics"
+              },
+              "correct": "A",
+              "explanation": "Failed readiness is 'don't send me traffic.' Failed liveness is 'restart me.' That distinction is the whole point of two probes."
+            },
+            {
+              "question": "A rolling update is stuck: new pods are not Ready, old pods are still serving. Which knob is doing its job?",
+              "options": {
+                "A": "The Deployment will not proceed past maxUnavailable / surge until new pods pass readiness — by design",
+                "B": "PDB always blocks Deployment rollouts regardless of replica count",
+                "C": "VPA freezes ReplicaSets during any probe failure",
+                "D": ":latest tags cannot roll forward, only backward"
+              },
+              "correct": "A",
+              "explanation": "Readiness is the gate for rolling updates. If new pods never become Ready, the rollout stalls instead of replacing all healthy pods with broken ones — unless you misconfigured maxUnavailable to allow that."
+            }
+          ],
+          "flashcards": [
+            {
+              "front": "Liveness vs readiness, one sentence each",
+              "back": "Liveness: restart this container, it is wedged. Readiness: keep it running but take it out of Endpoints until it can serve. Never point liveness at a shared dependency."
+            },
+            {
+              "front": "What CrashLoopBackOff is telling you",
+              "back": "The container keeps dying after start (bad config, missing secret, failed liveness, OOM). kubelet restarts with exponential backoff. Inspect previous logs, exit code, and events — it is not a pending/schedule problem."
+            },
+            {
+              "front": "Rolling update: maxSurge vs maxUnavailable",
+              "back": "maxSurge = extra new pods allowed above desired. maxUnavailable = how many can be down. Together they bound capacity during a Deployment rollout."
+            },
+            {
+              "front": "What a PDB actually blocks",
+              "back": "Voluntary disruptions (drain, eviction API) that would take ready pods below minAvailable / exceed maxUnavailable. Not node crashes, OOM, or failed liveness."
+            },
+            {
+              "front": "HPA vs VPA",
+              "back": "HPA changes replica count from metrics (CPU, custom). VPA changes resource requests/limits on the pod. They conflict if both chase the same saturation signal."
+            },
+            {
+              "front": "requests vs limits",
+              "back": "requests = scheduler reservation and (for CPU) baseline share. limits = runtime cap (CPU throttle, memory OOMKill). A pod with no request can be packed tightly and then starved."
+            },
+            {
+              "front": "Why :latest (or any mutable tag) is unsafe",
+              "back": "The name does not pin a digest. Nodes may run different bits, rollbacks are lies, and IfNotPresent may never pick up the 'new latest.' Pin digest or immutable tags."
+            },
+            {
+              "front": "Graceful shutdown sequence on pod delete",
+              "back": "preStop hook (if any) → SIGTERM → app drains connections → exit. If still running at terminationGracePeriodSeconds, SIGKILL. Also fail readiness immediately so the Service stops sending work."
+            }
+          ]
+        },
+        "intermediate": {
+          "quiz": [
+            {
+              "question": "An HTTP server needs 30s to warm caches. Liveness and readiness both hit /healthz with failureThreshold: 1 and no initialDelay. Symptom?",
+              "options": {
+                "A": "kubelet restarts the container during warmup (liveness) and the pod never joins Endpoints long enough to stay stable",
+                "B": "Only HPA scales to zero",
+                "C": "PVC bind is delayed until the first 200",
+                "D": "etcd compaction deletes the pod spec"
+              },
+              "correct": "A",
+              "explanation": "Startup/warmup belongs to startupProbe or a long initialDelaySeconds on liveness. Using a tight liveness probe during boot is a CrashLoop factory."
+            },
+            {
+              "question": "You need zero dropped requests during rollout. Besides a correct readiness probe, what else must be true?",
+              "options": {
+                "A": "preStop/sleep or SIGTERM drain longer than kube-proxy/Endpoint slice propagation, plus terminationGracePeriodSeconds that covers the drain",
+                "B": "Set maxUnavailable: 100% so old pods vanish instantly",
+                "C": "Use :latest so kubelet always pulls a fresh binary",
+                "D": "Disable PDB so drains are unrestricted"
+              },
+              "correct": "A",
+              "explanation": "Ready=false must happen before the process stops accepting, and the process must keep serving in-flight work until proxies forget the IP. Race those and you 502 during a 'successful' rollout."
+            },
+            {
+              "question": "A 3-replica Deployment, PDB minAvailable: 3, cluster autoscaler wants to drain a node. What happens?",
+              "options": {
+                "A": "Eviction is blocked until extra ready pods exist (or the PDB is loosened); the node drain stalls",
+                "B": "Kubernetes ignores PDB for autoscaler drains",
+                "C": "etcd force-deletes the PDB",
+                "D": "VPA shrinks the pods so three fit on one node automatically"
+              },
+              "correct": "A",
+              "explanation": "minAvailable equal to replica count means zero voluntary disruption. Autoscaler and cluster upgrades get stuck. Leave disruption budget on purpose."
+            },
+            {
+              "question": "HPA on CPU and VPA in auto mode on the same Deployment. What goes wrong?",
+              "options": {
+                "A": "VPA raises requests (CPU looks lower), HPA then scales replicas down (or the reverse) — the two controllers chase each other",
+                "B": "Kubernetes forbids installing both CRDs in one cluster",
+                "C": "etcd stores only HPA or only VPA, never both",
+                "D": "PDB converts all HPAs into VPAs"
+              },
+              "correct": "A",
+              "explanation": "They share the same saturation signal. Typical pattern: HPA for replica count, VPA in recommendation mode only, or VPA for memory with HPA on a custom queue metric."
+            },
+            {
+              "question": "Burstable pod: request 100Mi, limit 1Gi. Node memory pressure hits. Who dies first among BestEffort / Burstable / Guaranteed?",
+              "options": {
+                "A": "BestEffort first, then Burstable that exceeded requests, Guaranteed last — QoS is eviction order, not a fairness scheduler for CPU",
+                "B": "Guaranteed always dies first because it reserved the most",
+                "C": "Only pods without PVCs are evicted",
+                "D": "Eviction order is random by UID"
+              },
+              "correct": "A",
+              "explanation": "QoS (Guaranteed = request==limit for all containers) drives kubelet eviction. Limits without matching requests put you in Burstable, which is cheaper until the node is full."
+            },
+            {
+              "question": "imagePullPolicy: IfNotPresent plus myapp:latest. You push a new latest. A new pod lands on a node that already pulled it last week. Result?",
+              "options": {
+                "A": "kubelet reuses the old local image — the new bits never run on that node",
+                "B": "kubelet always re-pulls latest regardless of policy",
+                "C": "The pod CrashLoopBackOffs with ImagePullBackOff",
+                "D": "etcd invalidates the node cache"
+              },
+              "correct": "A",
+              "explanation": "IfNotPresent + mutable tag = sticky old image. AlwaysPull or, better, pin by digest."
+            },
+            {
+              "question": "A gRPC server ignores SIGTERM. terminationGracePeriodSeconds: 30. Clients during Deploy?",
+              "options": {
+                "A": "After 30s kubelet SIGKILLs; in-flight RPCs reset. Combined with slow Endpoint removal, you also get connection refused / 502",
+                "B": "kube-proxy holds the connections open indefinitely",
+                "C": "PDB extends the grace period automatically",
+                "D": "HPA intercepts SIGKILL"
+              },
+              "correct": "A",
+              "explanation": "If the app does not drain, grace period is just a delay before a hard kill. Handle SIGTERM and fail readiness first."
+            },
+            {
+              "question": "Controllers go slow, API list/watch latency climbs, events about etcd timeouts. Highest-leverage first look?",
+              "options": {
+                "A": "Object size and write QPS — giant CRDs/Secrets, too many objects, watch storms — etcd disk fsync and DB size",
+                "B": "Whether pods use :latest",
+                "C": "PVC reclaim policy",
+                "D": "HPA sync period only"
+              },
+              "correct": "A",
+              "explanation": "etcd is sensitive to fsync latency, DB size, and expensive watches. Treating it as an app database (huge blobs, high churn) is how control planes die."
+            },
+            {
+              "question": "Pod mounts a PVC that is already Bound to a PV on another AZ, and the node is in a different AZ. Typical outcome?",
+              "options": {
+                "A": "Pod stays Pending (or volume attach fails) — topology and accessMode (RWO) constrain where that claim can run",
+                "B": "kubelet copies the PV across AZs automatically",
+                "C": "etcd replicates block devices",
+                "D": "HPA creates a second PV"
+              },
+              "correct": "A",
+              "explanation": "RWO + zonal disks pin the pod. WaitForFirstConsumer StorageClasses delay binding until a node is chosen for a reason."
+            },
+            {
+              "question": "maxUnavailable: 0, maxSurge: 1, 2 replicas, new image fails readiness. Cluster capacity?",
+              "options": {
+                "A": "One extra failing pod may exist; both old Ready pods stay — capacity holds, rollout waits",
+                "B": "Both old pods are killed immediately because surge is 1",
+                "C": "PDB is the only thing that can keep old pods",
+                "D": "VPA deletes the new ReplicaSet"
+              },
+              "correct": "A",
+              "explanation": "maxUnavailable: 0 is the 'never drop capacity' setting. It depends on surge room and readiness of the new pods."
+            },
+            {
+              "question": "Liveness probe hits / on a server that deadlocks its only thread while still having a listening socket. TCP probe vs HTTP handler probe?",
+              "options": {
+                "A": "tcpSocket can still succeed on a deadlocked process; an HTTP (or exec) check of a real handler is required to detect the wedge",
+                "B": "tcpSocket always fails if the app is deadlocked",
+                "C": "Only exec probes can open ports",
+                "D": "Readiness cannot use HTTP"
+              },
+              "correct": "A",
+              "explanation": "A listening socket is not a healthy app. Cheap TCP liveness gives false life. That is probe misuse of a different flavor than 'probe the database.'"
+            },
+            {
+              "question": "OOMKilled, then CrashLoopBackOff. Memory limit is 128Mi, request 128Mi. Fix shape?",
+              "options": {
+                "A": "Raise limit (and request if you want Guaranteed) after measuring RSS — the restart loop is the symptom of the cgroup kill, not a probe bug",
+                "B": "Switch the probe from HTTP to TCP so memory is not checked",
+                "C": "Set :latest so a smaller image is pulled",
+                "D": "Add a PDB of minAvailable: 0 to stop OOMs"
+              },
+              "correct": "A",
+              "explanation": "Exit 137 / Reason: OOMKilled is the limit. Probes and PDBs do not add RAM."
+            },
+            {
+              "question": "You need HPA to scale on queue depth, not CPU. Why is CPU often the wrong signal for that worker?",
+              "options": {
+                "A": "A blocked worker can be at 0% CPU with a huge backlog; CPU HPA will scale in and make the queue worse",
+                "B": "HPA cannot use custom metrics in any cluster",
+                "C": "Queue depth is stored only in etcd",
+                "D": "VPA is required before any custom metric"
+              },
+              "correct": "A",
+              "explanation": "Scale on the actual backlog/latency SLO. CPU is a proxy that lies for I/O-bound and lock-bound work."
+            },
+            {
+              "question": "PV reclaimPolicy Retain vs Delete after PVC is gone. Operational difference?",
+              "options": {
+                "A": "Retain leaves the PV and data (Released, manual recover); Delete asks the provisioner to destroy the backing disk",
+                "B": "Retain wipes data; Delete keeps it",
+                "C": "They only affect etcd key TTL",
+                "D": "Reclaim policy changes accessMode from RWO to RWX"
+              },
+              "correct": "A",
+              "explanation": "Delete is convenient and dangerous for stateful data. Retain is how you keep the disk after a namespace/PVC accident."
+            }
+          ],
+          "flashcards": [
+            {
+              "front": "Classic liveness misuse patterns",
+              "back": "1) Probe a downstream DB/queue. 2) Tight liveness during slow boot (no startupProbe). 3) TCP probe on a deadlocked but listening process. Result: restart storms or silent unhealth."
+            },
+            {
+              "front": "Rolling update + readiness + graceful shutdown as one system",
+              "back": "New pod must become Ready before old is dropped (surge/unavailable). Old pod should fail readiness, drain, then exit inside grace. Endpoint propagation lag needs a preStop delay or similar."
+            },
+            {
+              "front": "PDB vs replica count",
+              "back": "minAvailable == replicas blocks drains and some voluntary evictions entirely. You want a budget (e.g. 1 down) so upgrades and autoscaler can move pods."
+            },
+            {
+              "front": "When VPA fights HPA",
+              "back": "Both react to CPU/memory saturation. VPA resizing changes utilization, which changes HPA replica math. Prefer one autoscaler on that signal, or split: HPA on traffic, VPA recs for rightsizing."
+            },
+            {
+              "front": "etcd as the real bottleneck",
+              "back": "Every object and watch lands there. Large Secrets/CRDs, thousands of objects per ns, noisy status updates, slow disks. Symptoms: API latency, leader elections, controller lag — not 'the node is slow.'"
+            },
+            {
+              "front": "PVC binding and topology",
+              "back": "WaitForFirstConsumer binds after a node is chosen so zonal PVs match. Immediate binding can strand a PVC in the wrong AZ; RWO volumes cannot attach to two nodes."
+            },
+            {
+              "front": "Mutable tags vs digests",
+              "back": "myapp:v3 or sha256:… is a pin. :latest plus IfNotPresent freezes yesterday's bits; Always plus :latest makes each node a lottery. Controllers and rollbacks need immutability."
+            },
+            {
+              "front": "QoS from requests/limits",
+              "back": "Guaranteed: every container request==limit. Burstable: some request. BestEffort: none. Under node memory pressure, BestEffort is evicted first. Limits without requests do not make you Guaranteed."
+            }
+          ]
+        },
+        "advanced": {
+          "quiz": [
+            {
+              "question": "A mesh sidecar is injected. App readiness is true, sidecar is still warming. Traffic hits the pod and 503s. Root cause class?",
+              "options": {
+                "A": "Pod Ready is a conjunction you must encode (aggregate probe / sidecar-aware) — default app-only readiness lies about the data path",
+                "B": "PDB cannot count sidecars so Kubernetes marks Ready anyway",
+                "C": "etcd does not store sidecar status",
+                "D": "HPA always routes to the newest pod"
+              },
+              "correct": "A",
+              "explanation": "Ready means 'the whole pod can serve.' If the proxy is not listening, the app container's 200 is the wrong signal. This is readiness misuse at the pod level."
+            },
+            {
+              "question": "You set a liveness exec probe that deadlocks on the same global lock as the request path. Failure mode?",
+              "options": {
+                "A": "When the app wedges, the probe wedges too; kubelet may restart late or the probe timeout becomes your only detection — and a slow probe can starve other probes",
+                "B": "exec probes run in a separate kernel and cannot deadlock",
+                "C": "kubelet promotes exec to a TCP probe automatically",
+                "D": "VPA kills exec probes"
+              },
+              "correct": "A",
+              "explanation": "Probes must use an independent, cheap path. Sharing locks with the request thread recreates the hang you wanted to detect, or makes kubelet probe workers pile up."
+            },
+            {
+              "question": "RollingUpdate maxUnavailable: 1 on a StatefulSet of 5 databases, each with a PVC. Why is this not the same as a Deployment surge?",
+              "options": {
+                "A": "StatefulSet updates ordinal-by-ordinal, keeps stable network IDs and PVCs; there is no extra surge replica with a new volume — you are trading capacity of that member",
+                "B": "StatefulSet always creates maxSurge extra PVCs",
+                "C": "PDB is ignored for StatefulSets",
+                "D": ":latest is required for ordered pods"
+              },
+              "correct": "A",
+              "explanation": "You cannot 'surge' a unique identity + disk the way you surge stateless pods. Partitioned rolling updates and PDBs are how you keep quorum."
+            },
+            {
+              "question": "Cluster upgrade drains nodes. App has HPA min=2, PDB minAvailable=50%, and a slow SIGTERM handler (90s) with grace 30s. Incident pattern?",
+              "options": {
+                "A": "Drains SIGKILL in-flight work (grace too short) while PDB/HPA still try to keep replica floors — you get both dropped requests and stuck drains",
+                "B": "PDB extends grace to 90s automatically",
+                "C": "HPA disables SIGKILL",
+                "D": "etcd pauses drains until all handlers finish"
+              },
+              "correct": "A",
+              "explanation": "Grace period must exceed drain time. PDB minAvailable must allow a node to empty. Those knobs plus HPA min replicas have to be designed together for upgrades."
+            },
+            {
+              "question": "VPA recommender suggests 8Gi, HPA target is 70% CPU, Guaranteed QoS. You apply VPA in-place resize where supported vs restart. Risk to availability?",
+              "options": {
+                "A": "Resize that needs a restart is an eviction; without surge/PDB room you dip below SLO. In-place CPU/memory still changes utilization and can flap HPA",
+                "B": "VPA never restarts pods in any mode",
+                "C": "Guaranteed QoS blocks all resizes",
+                "D": "etcd stores only the original request forever"
+              },
+              "correct": "A",
+              "explanation": "Vertical change is still a disruption if it recreates the pod. Treat it like a rollout: budget, surge, and don't dual-control the same metric."
+            },
+            {
+              "question": "A noisy neighbor on a node: your Guaranteed pod has CPU request=limit=1 core but still sees tail latency. Why limits don't isolate you fully?",
+              "options": {
+                "A": "CPU limit is CFS quota, not a hard core; last-level cache, noisy disk, and CPU steal still leak. Memory is a cgroup hard cap (OOM), CPU is time slices",
+                "B": "Guaranteed pods pin a physical core by definition",
+                "C": "requests pin the NUMA node and nothing else can run there",
+                "D": "etcd enforces per-pod cache isolation"
+              },
+              "correct": "A",
+              "explanation": "requests/limits are not a hypervisor. For true isolation you need topology/CPU manager policies, separate node pools, or better tenancy — not just matching request to limit."
+            },
+            {
+              "question": "Admission defaulted imagePullPolicy Always for :latest, but your air-gapped nodes use a rewrite mutating webhook to a digest. A human later kubectl set image …:latest. What breaks first?",
+              "options": {
+                "A": "Pulls against a tag that is not in the internal registry, or different nodes resolve different digests if the webhook is skipped on some paths",
+                "B": "Kubernetes converts latest to a digest in etcd forever, so nothing breaks",
+                "C": "PDB blocks all image changes",
+                "D": "HPA refuses to scale pods with latest"
+              },
+              "correct": "A",
+              "explanation": "Policy has to sit on every mutation path (CI, helm, kubectl, operators). :latest is unsafe unless the digest is what is actually recorded on the PodSpec."
+            },
+            {
+              "question": "preStop sleeps 5s, app drain takes 20s, EndpointSlice propagation p50 is 2s, grace 15s. Still 502s. The math?",
+              "options": {
+                "A": "Grace (15) < preStop (5) + drain (20) so SIGKILL cuts the drain; also Ready may still be true during the sleep if you did not fail the probe first",
+                "B": "preStop always runs after SIGKILL",
+                "C": "EndpointSlice propagation cannot cause 502s",
+                "D": "15s grace is a Kubernetes minimum that cannot SIGKILL"
+              },
+              "correct": "A",
+              "explanation": "terminationGracePeriodSeconds is a hard wall that includes preStop. Fail readiness immediately, size grace to sleep + drain + slack, and don't sleep without dropping Endpoints."
+            },
+            {
+              "question": "API server / etcd: thousands of Endpoints with notReadyAddresses flapping because readiness is tied to a flappy dependency. Control-plane effect?",
+              "options": {
+                "A": "Watch traffic and etcd writes explode (Endpoints/EndpointSlice churn) — you DDoS the control plane with probe misuse",
+                "B": "etcd ignores Endpoint updates",
+                "C": "Only kube-proxy on that node is affected; API QPS is unchanged",
+                "D": "VPA compresses Endpoint objects"
+              },
+              "correct": "A",
+              "explanation": "Readiness flaps are not just user 502s. They write objects. At scale this is how a bad probe becomes an etcd incident."
+            },
+            {
+              "question": "Two pods, ReadWriteOnce PVC, StatefulSet replica 2, same StorageClass. Why the second pod is Pending?",
+              "options": {
+                "A": "Each ordinal needs its own PVC (volumeClaimTemplates). Sharing one RWO claim is invalid; the volume attaches to at most one node",
+                "B": "StatefulSet requires RWX for replica 0 only",
+                "C": "Pending means CrashLoopBackOff",
+                "D": "HPA must create PVCs and it is not installed"
+              },
+              "correct": "A",
+              "explanation": "RWO = one attacher. Scale-out stateful apps get one PVC per pod via templates, or an RWX filesystem with a clear consistency story."
+            },
+            {
+              "question": "You mark a Deployment progressDeadlineSeconds too low while image pulls are slow. Interaction with rolling update?",
+              "options": {
+                "A": "The rollout is marked failed (Progressing=false) even though pods might still become Ready — automation may abort or rollback while surge pods exist",
+                "B": "progressDeadline pauses etcd",
+                "C": "It only affects CronJobs",
+                "D": "It overrides PDB"
+              },
+              "correct": "A",
+              "explanation": "Rollout success is a time-bounded condition. Tight deadlines plus slow pulls/readiness look like a failed rollout even when the strategy math is fine."
+            },
+            {
+              "question": "Memory-backed emptyDir plus a container memory limit. Process writes a huge file to the volume. Who kills it?",
+              "options": {
+                "A": "The emptyDir counts against the pod's memory cgroup — you can OOMKill without a 'real' leak in the heap",
+                "B": "emptyDir is always disk and cannot OOM",
+                "C": "Only PVCs count toward limits",
+                "D": "kubelet moves the file to the PV automatically"
+              },
+              "correct": "A",
+              "explanation": "medium: Memory is tmpfs in the memory cgroup. Limits apply. This shows up as mysterious OOMs next to 'but RSS looked fine in the app metric.'"
+            },
+            {
+              "question": "You need disruption-safe cluster autoscaler + PDB + HPA. Which invariant is the one that actually allows a node to go away?",
+              "options": {
+                "A": "After a pod is evicted, HPA/scheduler can place a replacement elsewhere AND the PDB still holds on remaining Ready pods — if utilization is so tight no extra pod can schedule, drains deadlock",
+                "B": "PDB guarantees a new node is created first in all cases",
+                "C": "HPA minReplicas always includes surge nodes",
+                "D": "etcd reserves one empty node per PDB"
+              },
+              "correct": "A",
+              "explanation": "PDBs do not create capacity. If the cluster is packed to 100% requests, voluntary disruption cannot proceed. Headroom is part of the PDB design."
+            },
+            {
+              "question": "Secret stored as a whole kubeconfig in etcd, updated every minute by an operator, mounted in 200 pods. Primary harm?",
+              "options": {
+                "A": "Huge, hot objects in etcd plus mount/watch storms on every kubelet — control plane and node I/O, not just 'a secret rotated'",
+                "B": "PVCs cannot mount Secrets",
+                "C": "HPA will scale to 200 automatically",
+                "D": ":latest will be rewritten into the Secret"
+              },
+              "correct": "A",
+              "explanation": "etcd is a small consistent store. Treating it as a blob store for frequently mutated large objects is the textbook bottleneck. Externalize blobs; keep etcd keys small and rare."
+            }
+          ],
+          "flashcards": [
+            {
+              "front": "Readiness must describe the data path",
+              "back": "Include sidecars, listen ports, and warmup. App /healthz 200 while the proxy is down still blackholes Service traffic. Flappy readiness also churns EndpointSlices in etcd."
+            },
+            {
+              "front": "startupProbe vs lying with delayed liveness",
+              "back": "startupProbe disables liveness/readiness until boot succeeds (with its own failure budget). A long initialDelay on liveness is a cruder version and still leaves a dead-during-delay window."
+            },
+            {
+              "front": "StatefulSet + PDB + PVC during drain",
+              "back": "Identities and disks do not surge. PDB must protect quorum (e.g. majority of members Ready). RWO volumes pin AZ/node; drains need replacement capacity in the same topology."
+            },
+            {
+              "front": "terminationGracePeriodSeconds includes preStop",
+              "back": "Clock starts at deletion. preStop sleep + app drain must fit. Fail readiness first so Endpoints drop while you still serve in-flight. Then SIGKILL is a last resort, not the plan."
+            },
+            {
+              "front": "Control-plane load from 'app' misconfig",
+              "back": "Probe flaps, status spam, huge CRDs/Secrets, per-pod objects with high churn. You will see API latency and etcd fsync saturation before you see 'the Deployment is slow.'"
+            },
+            {
+              "front": "HPA/VPA/PDB/CA as one budget",
+              "back": "HPA wants replicas, VPA wants restarts/resizes, PDB wants a Ready floor, cluster autoscaler wants to drain. If requests fill every node, nothing voluntary can move. Design headroom."
+            },
+            {
+              "front": "Image identity that CI and cluster agree on",
+              "back": "Record image@sha256 in the PodSpec. Webhooks that rewrite :latest must run on kubectl, operators, and CI alike. Mixed pull policies across nodes produce split-brain binaries."
+            },
+            {
+              "front": "PV lifecycle traps",
+              "back": "Retain: Released PV needs manual claimRef clear to reuse. Delete: provisioner destroys data. WaitForFirstConsumer vs Immediate. RWO attach to one node. tmpfs emptyDir counts as memory against the limit."
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "Data Structures & Algorithms",
+      "levels": {
+        "beginner": {
+          "quiz": [
+            {
+              "question": "You need 'get user by id' at huge QPS, ids are arbitrary strings, no range queries. Which shape fits the workload?",
+              "options": {
+                "A": "Hash table (average O(1) point lookup) — a tree adds comparison overhead you do not need, a heap is not a dictionary",
+                "B": "Binary heap, because it always stores the minimum id on top",
+                "C": "Linked list, because pointers are faster than arrays",
+                "D": "DFS forest, because ids form a graph"
+              },
+              "correct": "A",
+              "explanation": "Point lookup by exact key is the hash table job. Trees win when you need ordered scans or predecessor. Heaps win when you need extract-min, not search-by-key."
+            },
+            {
+              "question": "Why do textbook linked-list queues often lose to a ring buffer of the same logical operations on real hardware?",
+              "options": {
+                "A": "Each node is a separate allocation; pointer chasing misses cache and TLB, while a contiguous buffer hits cache lines and prefetches",
+                "B": "Linked lists have worse big-O for enqueue than arrays in the RAM model",
+                "C": "CPUs cannot follow pointers at all",
+                "D": "The kernel refuses to allocate list nodes"
+              },
+              "correct": "A",
+              "explanation": "Big-O counts pointer operations, not cache misses. A list 'O(1) insert' can be far slower than compact array work that the CPU actually likes."
+            },
+            {
+              "question": "A Bloom filter says 'this user id is not in the set.' What can you conclude?",
+              "options": {
+                "A": "It is definitely not in the set — Bloom filters have false positives, not false negatives (for a static membership filter)",
+                "B": "It might still be in the set; negatives are probabilistic",
+                "C": "You must re-hash with a tree to confirm negatives",
+                "D": "The filter is corrupted whenever it says no"
+              },
+              "correct": "A",
+              "explanation": "Standard Bloom: 'no' is certain, 'yes' means 'maybe — check the source of truth.' That is the whole product contract."
+            },
+            {
+              "question": "You add a cache node and want existing keys to mostly stay put. Why not hash(key) % N?",
+              "options": {
+                "A": "Changing N remaps almost every key; consistent hashing (or Rendezvous) moves only a ~1/N fraction",
+                "B": "Modulo is cryptographically unsafe, so caches reject it",
+                "C": "% N cannot be computed for strings",
+                "D": "Heaps cannot store the modulus"
+              },
+              "correct": "A",
+              "explanation": "The operational cost is cache stampedes and data movement, not the CPU cost of modulo. Consistent hashing exists to stabilize ownership under membership change."
+            },
+            {
+              "question": "An LRU cache is hit on every request for a hot key. What must the structure do in O(1) expected time?",
+              "options": {
+                "A": "Hash map to the node plus a recency list (or equivalent) so lookup, move-to-front, and eviction of the tail are cheap",
+                "B": "Scan the whole array to find the oldest timestamp",
+                "C": "Rebuild a heap from scratch on every hit",
+                "D": "BFS the keyspace"
+              },
+              "correct": "A",
+              "explanation": "LRU is 'dictionary + recency order.' Map alone has no order; list alone has slow find. Together they match the workload."
+            },
+            {
+              "question": "You need the shortest number of hops in an unweighted graph (site crawler, maze). BFS or DFS?",
+              "options": {
+                "A": "BFS — the first time you reach a node is a minimum-hop path; DFS can dive down a long dead end first",
+                "B": "DFS — recursion always yields shortest paths",
+                "C": "Either, because both visit the same nodes",
+                "D": "A heap of random nodes"
+              },
+              "correct": "A",
+              "explanation": "Unweighted shortest path is the BFS workload. DFS is for reachability, topological-style exploration, and some memory tricks — not hop distance."
+            },
+            {
+              "question": "You sort invoices by date, then by customer, and you need all of one customer's invoices to stay in date order. What property do you need from the second sort?",
+              "options": {
+                "A": "Stability — equal keys (same customer) keep their previous (date) order",
+                "B": "In-place partitioning",
+                "C": "That the sort is a heap sort, which is always stable",
+                "D": "Bloom-filter uniqueness of dates"
+              },
+              "correct": "A",
+              "explanation": "Stable sort is why multi-key sorting by successive passes works. Unstable sorts scramble the earlier key among ties."
+            },
+            {
+              "question": "You have n chat rooms and union operations 'merge these two rooms' plus 'are these users in the same room?' Which structure?",
+              "options": {
+                "A": "Union-find (disjoint-set) with path compression / union by rank",
+                "B": "A max-heap of room ids",
+                "C": "BFS from user 0 on every query",
+                "D": "A Bloom filter of pairs"
+              },
+              "correct": "A",
+              "explanation": "Dynamic connectivity with unions is union-find's workload. A heap does not answer 'same component.' Repeated BFS is the slow version of the same idea."
+            },
+            {
+              "question": "You need the next job with the highest priority, repeatedly, while jobs arrive. Hash, tree, or heap?",
+              "options": {
+                "A": "Heap (priority queue) — extract-max/min is the operation; a hash has no order, an ordered tree can do it but with more overhead if you only need the extreme",
+                "B": "Hash table keyed by priority, because priorities are unique",
+                "C": "Singly linked list scanned from the head only",
+                "D": "Bloom filter of finished jobs"
+              },
+              "correct": "A",
+              "explanation": "Match the structure to the query: 'give me the extreme, then the next.' That is a heap. Need delete-arbitrary and successor too? Then a tree (or heap+map)."
+            },
+            {
+              "question": "A Bloom filter says 'yes, this email was seen.' You skip sending. Risk?",
+              "options": {
+                "A": "False positive — you may skip a never-seen email; if skips are costly, store a real set or a cache in front of source of truth",
+                "B": "False negative — Bloom filters invent missing emails",
+                "C": "Union-find will correct it on the next hop",
+                "D": "LRU will convert the maybe into a no"
+              },
+              "correct": "A",
+              "explanation": "Product choice: Bloom is for cheap negative checks (don't hit disk if definitely absent). Using the 'yes' as ground truth is the false-positive bug."
+            },
+            {
+              "question": "DFS vs BFS for 'does a path exist in a huge, deep, narrow maze if you are memory-constrained'?",
+              "options": {
+                "A": "DFS uses stack proportional to depth, which can be smaller than BFS's frontier in a wide graph — but it can also go infinitely deep without extra guards",
+                "B": "BFS always uses less memory than DFS",
+                "C": "They use identical memory on every graph",
+                "D": "Only union-find can test connectivity"
+              },
+              "correct": "A",
+              "explanation": "Pick BFS/DFS by what you need (shortest vs any path) and by the shape of the frontier vs the depth. Memory is a workload constraint, not a trivia identity."
+            },
+            {
+              "question": "You iterate a large array of structs vs a linked list of the same structs, summing one field. Why is the array usually much faster?",
+              "options": {
+                "A": "Sequential access prefetches; the list jumps to heap allocations that evict useful cache lines",
+                "B": "Arrays have better big-O for a linear scan than lists",
+                "C": "Linked lists cannot store structs",
+                "D": "The compiler forbids summing list nodes"
+              },
+              "correct": "A",
+              "explanation": "Both are linear scans in the RAM model. Hardware makes locality the real complexity."
+            },
+            {
+              "question": "Consistent hashing places both keys and nodes on a ring. A node dies. What should happen to its keys?",
+              "options": {
+                "A": "They move to the next node(s) on the ring (or to replicas), not to a random reshuffle of the whole keyspace",
+                "B": "Every key is rehashed with % (N-1)",
+                "C": "A Bloom filter deletes the node",
+                "D": "LRU evicts all keys cluster-wide"
+              },
+              "correct": "A",
+              "explanation": "Local movement is the point. Virtual nodes exist to even out the slice sizes when physical nodes are few."
+            },
+            {
+              "question": "You sort a list of (name, score) by score descending with an unstable sort, then by name. What breaks?",
+              "options": {
+                "A": "People with the same name no longer keep score order from the first pass — the second key scramble depends on stability of the name sort",
+                "B": "Unstable sorts cannot compare integers",
+                "C": "Heaps cannot sort pairs",
+                "D": "BFS will restore the score order"
+              },
+              "correct": "A",
+              "explanation": "If you compose sorts, each pass except the last must be stable (or you sort by a composite key in one pass). Stability is a product requirement, not a curiosity."
+            }
+          ],
+          "flashcards": [
+            {
+              "front": "Pick hash vs tree vs heap from the query",
+              "back": "Exact key lookup / membership → hash. Ordered range, predecessor, sorted iteration → tree. Repeated extract-min/max → heap. Do not store a dictionary in a heap."
+            },
+            {
+              "front": "Why linked lists lose on real machines",
+              "back": "Pointer chasing: poor spatial locality, extra allocations, no prefetch. An array/ring buffer does the same O(1) enqueue with contiguous loads. Measure cache misses, not just big-O."
+            },
+            {
+              "front": "Bloom filter contract",
+              "back": "'No' = definitely absent. 'Yes' = maybe present (false positives). Size and hash count trade memory for that error rate. Never treat yes as proof."
+            },
+            {
+              "front": "Why consistent hashing exists",
+              "back": "hash % N reshuffles nearly all keys when N changes. Consistent hashing moves ~keys/N. Use it for caches, shards, and DHT-style ownership."
+            },
+            {
+              "front": "LRU as two structures",
+              "back": "Hash map: key → node. Doubly linked list (or clock/2Q variant): recency. Hit = splice to front. Evict = drop tail. One without the other misses the workload."
+            },
+            {
+              "front": "BFS vs DFS, pick from the question",
+              "back": "Fewest hops / unweighted shortest / level order → BFS. Explore one branch, cycle detect in directed graphs, topo-style recursion, lower memory on skinny graphs → DFS."
+            },
+            {
+              "front": "When stability of a sort matters",
+              "back": "Ties must keep input order: multi-pass sorts (sort by last key first), UI that should not jump rows, and merging already-ordered groups. Unstable is fine if you sort a total unique key."
+            },
+            {
+              "front": "Union-find workload",
+              "back": "Disjoint sets with merge and same-component queries (networks, Kruskal, clustering). Path compression + union by rank makes the operations effectively tiny. Not a replacement for shortest path."
+            }
+          ]
+        },
+        "intermediate": {
+          "quiz": [
+            {
+              "question": "Workload: 10M keys, need 'all keys between A and B' and occasional insert. Engineer proposes a hash map. What fails?",
+              "options": {
+                "A": "Hashes do not keep order — range scan becomes a full table scan; an ordered tree (or B-tree / LSM with keys in order) matches the scan",
+                "B": "Hash maps cannot insert after construction",
+                "C": "Trees cannot store 10M keys",
+                "D": "A heap can range-scan in sorted order without extra cost"
+              },
+              "correct": "A",
+              "explanation": "Match access pattern: ranges want ordered layout. Hash is the wrong invariant, even if point get would be faster."
+            },
+            {
+              "question": "You implement LRU with a hash map plus singly linked list. Evict-the-tail is easy; a hit in the middle is not O(1). Missing piece?",
+              "options": {
+                "A": "You need a back pointer (doubly linked) or an explicit prev in the map so you can unlink in O(1)",
+                "B": "Singly linked lists are always O(1) to move a middle node",
+                "C": "A Bloom filter of the tail replaces the list",
+                "D": "BFS from the head on each hit is the standard LRU"
+              },
+              "correct": "A",
+              "explanation": "O(1) LRU is about unlinking. Singly linked + no prev forces a scan. This is a structure-vs-workload miss, not a 'linked lists are slow' slogan."
+            },
+            {
+              "question": "Bloom filter at 1% false positive, you then always fetch the DB on 'yes.' What did you actually save?",
+              "options": {
+                "A": "Negative lookups skip the DB; positives (true and false) still pay the DB round trip — win is skewed to mostly-miss workloads",
+                "B": "You saved the DB on all yes answers",
+                "C": "False positives delete DB rows",
+                "D": "The filter replaces the DB for yes and no"
+              },
+              "correct": "A",
+              "explanation": "Bloom is a negative cache in front of a source of truth. If the workload is almost all hits, it barely helps and still costs CPU/memory."
+            },
+            {
+              "question": "Consistent hashing without virtual nodes, 3 physical caches of unequal capacity. Typical pain?",
+              "options": {
+                "A": "Arc sizes are lumpy — one node owns a huge key range; virtual nodes (many labels per physical) smooth load",
+                "B": "All keys hash to node 0 by definition",
+                "C": "Union-find is required to split the ring",
+                "D": "LRU cannot run on a ring"
+              },
+              "correct": "A",
+              "explanation": "The ring is fair only in expectation with enough points. Virtual nodes (or bounded loads / jump hashing) are how you make it operationally even."
+            },
+            {
+              "question": "Graph of a social network: find people within 2 hops. Why BFS beats DFS here?",
+              "options": {
+                "A": "You care about distance layers; BFS emits level 1 then 2 and can stop. DFS can wander to hop 40 before it has finished hop 2",
+                "B": "DFS cannot mark visited nodes",
+                "C": "BFS cannot handle cycles",
+                "D": "Heaps compute hop count faster than queues"
+              },
+              "correct": "A",
+              "explanation": "The query is a ball around a node. BFS is layered. DFS would need extra distance bookkeeping and still does extra work."
+            },
+            {
+              "question": "You must sort 1e8 records that are already almost sorted by timestamp, and equal timestamps must not reorder events. Which concern dominates?",
+              "options": {
+                "A": "Stability (and preferably an algorithm that is fast on nearly-ordered input) — a random-swap unstable sort both scrambles ties and fights the existing order",
+                "B": "Only whether the textbook name is merge sort",
+                "C": "Converting to a linked list first for locality",
+                "D": "Inserting into a Bloom filter then iterating it"
+              },
+              "correct": "A",
+              "explanation": "The requirement is 'do not reorder equal keys, and don't shuffle a nearly-sorted stream.' That is stability plus adaptivity — not reciting an algorithm's classroom bound."
+            },
+            {
+              "question": "Online connectivity: unions arrive, and you also need the size of each component. Union-find tweak?",
+              "options": {
+                "A": "Store subtree/component size on the root; union by size and add sizes on merge — queries read the root's size after find",
+                "B": "Run BFS from every node after each union",
+                "C": "Put components in a max-heap keyed by an arbitrary id",
+                "D": "Hash each pair of nodes"
+              },
+              "correct": "A",
+              "explanation": "Augment the root. That is the usual way union-find carries extra aggregates (size, min, parity)."
+            },
+            {
+              "question": "A priority queue of tasks also needs 'cancel task by id.' Plain binary heap problem?",
+              "options": {
+                "A": "Find-by-id is not a heap operation — keep a hash from id → heap index (or a tree of tasks) so decrease-key/delete is possible",
+                "B": "Heaps already index by arbitrary id",
+                "C": "Cancel is a BFS of the heap array",
+                "D": "Use a Bloom filter as the heap"
+              },
+              "correct": "A",
+              "explanation": "Heap = partial order for the extreme. Dictionary = identity. Real schedulers compose them (or use an ordered tree)."
+            },
+            {
+              "question": "You store a graph as adjacency lists of linked nodes, then BFS a high-degree vertex. Hardware issue?",
+              "options": {
+                "A": "The neighbor list itself pointer-chases; a compact CSR/adjacency array scans neighbors in cache-line bursts and BFS gets faster without changing the algorithm",
+                "B": "BFS is impossible without linked lists",
+                "C": "DFS requires arrays; BFS requires lists",
+                "D": "Union-find will pack the lists"
+              },
+              "correct": "A",
+              "explanation": "Same graph algorithm, different layout. Locality of the frontier and of adjacency is why some BFS implementations crush others."
+            },
+            {
+              "question": "Cache with consistent hashing. Client hashes to node A; A misses and fills from DB. Node A is added/removed and the key now lives on B, which is empty. User-visible issue?",
+              "options": {
+                "A": "Those keys thundering-herd the DB until B fills — consistent hashing reduces movement but does not zero it; replicas/shadow fills exist for that",
+                "B": "Consistent hashing forbids misses after a membership change",
+                "C": "LRU on B automatically contains A's memory",
+                "D": "Bloom filters migrate the bytes"
+              },
+              "correct": "A",
+              "explanation": "Ownership move ≠ data move. Plan for a miss storm on the receiving node."
+            },
+            {
+              "question": "You need a set-membership check in a scraper: 'have I already queued this URL?' Memory is tight, duplicates are annoying but not fatal. Structure?",
+              "options": {
+                "A": "Bloom filter (accept some extra fetches) — a hash set of all URLs may not fit; a tree of URLs is even heavier",
+                "B": "A heap of URLs ordered by length",
+                "C": "DFS stack as the only store",
+                "D": "Union-find on characters of the URL"
+              },
+              "correct": "A",
+              "explanation": "False positives here mean 'skip a URL that was new' (lost work) or you invert the sense: use Bloom to skip known-seen if you only insert after success. Tune which error you accept."
+            },
+            {
+              "question": "A UI table sorts by selected column. Rows with equal values jump around every click. Users complain. Fix?",
+              "options": {
+                "A": "Use a stable sort, or add a hidden unique tie-breaker (original index) so the order is deterministic",
+                "B": "Switch from array to linked list of rows",
+                "C": "BFS the table model",
+                "D": "Put rows in a Bloom filter"
+              },
+              "correct": "A",
+              "explanation": "Stability (or an explicit unique key) is UX. Unstable in-place sorts reshuffle ties because equal keys may swap."
+            },
+            {
+              "question": "Kruskal-style clustering: merge closest pairs until k clusters. Why union-find instead of rerunning DFS?",
+              "options": {
+                "A": "Each merge and 'same cluster?' is cheap with disjoint sets; DFS from scratch every edge is repeating connectivity work",
+                "B": "DFS cannot detect connected components",
+                "C": "Heaps find components faster than union-find",
+                "D": "Bloom filters cluster by hash collisions on purpose"
+              },
+              "correct": "A",
+              "explanation": "The algorithm's inner loop is dynamic connectivity. Union-find is that loop. Pair it with a heap/sort of edges if you also need 'closest.'"
+            },
+            {
+              "question": "Hash table vs balanced tree for a language runtime dictionary. Hash is faster on average. When do you still pick the tree?",
+              "options": {
+                "A": "You need worst-case bounds, ordered iteration, or keys that are expensive/adversarial to hash — trees give comparable keys an order hash does not",
+                "B": "Trees always beat hashes on point lookup",
+                "C": "Heaps iterate in hash order",
+                "D": "Linked lists iterate faster than both"
+              },
+              "correct": "A",
+              "explanation": "Average vs worst case, and extra operations (lower_bound). The workload, not the classroom 'hash is O(1),' decides."
+            }
+          ],
+          "flashcards": [
+            {
+              "front": "Range query vs point query",
+              "back": "Point: hash. Range/predecessor/in-order: tree (in memory) or B-tree/LSM (on disk). Heap only gives you the current extreme, not a range."
+            },
+            {
+              "front": "LRU delete/move needs prev",
+              "back": "Map to node + doubly linked recency list (or indexed array). Singly linked forces scans. Clock/2Q trade exact LRU for fewer pointer writes — still a layout choice."
+            },
+            {
+              "front": "Bloom pays off on negative-heavy traffic",
+              "back": "Each 'no' avoids a slower check. Each 'yes' still goes to source of truth, including false positives. Size the filter from n and target error; rebuild or counting variants if deletes matter."
+            },
+            {
+              "front": "Virtual nodes on a hash ring",
+              "back": "Many tokens per physical server so ranges are small and mix well. Unequal capacity → proportional token count. Still plan warmup when a token range moves."
+            },
+            {
+              "front": "BFS frontier vs DFS stack",
+              "back": "Wide shallow graphs: BFS queue can explode (social hops). Deep graphs: DFS stack can explode. Bidirectional BFS shrinks the frontier for shortest paths between two nodes."
+            },
+            {
+              "front": "Stable sort as a product feature",
+              "back": "Preserve earlier sort keys; keep original row order on ties; merge sorted runs without scrambling equals. If you need a total order, add a unique tie-break instead of hoping."
+            },
+            {
+              "front": "Union-find plus extra payload",
+              "back": "Keep aggregates on the root (size, min id, XOR, bipartite parity). After find, both nodes share a root so the payload is the component's. Rebuild payload on union."
+            },
+            {
+              "front": "Heap is not a map",
+              "back": "extract-min is fast; find/cancel by id is not unless you add a hash of indices or use a tree. Schedulers, Dijkstra decrease-key, and timers all hit this."
+            }
+          ]
+        },
+        "advanced": {
+          "quiz": [
+            {
+              "question": "Hot-key workload: 1 key is 40% of QPS. Hash partition across 50 caches. What structure-level fact did you ignore?",
+              "options": {
+                "A": "Hashing spreads keys, not load — one key still lives on one shard; you need replication, local LRU on every node, or a different split (by session, by request) for that key",
+                "B": "A balanced tree on the same key automatically shards it",
+                "C": "A heap of caches will split the key each extract-min",
+                "D": "Consistent hashing splits a single key across the ring by definition"
+              },
+              "correct": "A",
+              "explanation": "Partitioning is per key. Hot keys are a workload the hash cannot save you from. Trees and heaps do not change that."
+            },
+            {
+              "question": "You replace an array-backed deque with a linked list to get 'true O(1) insert in the middle' for a 1e7-element structure you mostly iterate. Net effect on a modern CPU?",
+              "options": {
+                "A": "Middle insert may allocate and patch two pointers, but iteration becomes cache-hostile; if iterates dominate, you slowed the real workload",
+                "B": "Linked lists always dominate arrays once n > 10^4",
+                "C": "The allocator colocates list nodes so they prefetch like arrays",
+                "D": "TLB prefers pointer graphs to contiguous pages"
+              },
+              "correct": "A",
+              "explanation": "Optimize for the common operation and for locality. 'O(1) middle insert' is irrelevant if you almost never insert in the middle and you scan constantly."
+            },
+            {
+              "question": "Counting Bloom / cuckoo / quotient filters exist. You need deletes and a hard bound on false positives for a security denylist. Why a vanilla Bloom is the wrong contract?",
+              "options": {
+                "A": "Standard Bloom cannot delete safely and never gives 0% false positives — a 'yes' could allow or deny the wrong principal; use an exact set or a structure with bounded, understood errors",
+                "B": "Vanilla Bloom has false negatives, which are worse for denylists",
+                "C": "Union-find can delete Bloom bits",
+                "D": "LRU turns Bloom into an exact set"
+              },
+              "correct": "A",
+              "explanation": "Security denylist: false negative (missing a bad id) or false positive (blocking a good id) are product bugs. Bloom's maybe-yes is the wrong invariant unless you always fall back to exact check."
+            },
+            {
+              "question": "Rendezvous hashing vs consistent ring: you want minimal disruption and easy weighted nodes without virtual node explosion. Which idea?",
+              "options": {
+                "A": "Highest random weight / Rendezvous: score(key, node), pick max — membership change only moves keys that preferred the lost node; weights fold into the score",
+                "B": "Always use hash % N with sticky sessions",
+                "C": "Put nodes in a heap and extract-min per key",
+                "D": "DFS the node list until a Bloom filter says yes"
+              },
+              "correct": "A",
+              "explanation": "Same goal as consistent hashing (stable ownership), different math. Rings need many vnodes for balance; HRW weights naturally. Both still don't split a hot key."
+            },
+            {
+              "question": "LRU under scan-heavy traffic (a job reads every key once). What happens to the cache of hot keys?",
+              "options": {
+                "A": "The scan fills the recency list and evicts the working set — classic LRU failure; use scan-resistant policy (2Q, ARC, LRU-K) or pin/hot-bit",
+                "B": "LRU is scan-proof because hashes skip one-time keys",
+                "C": "A heap ordered by key length stops scans",
+                "D": "BFS insertion order is immune"
+              },
+              "correct": "A",
+              "explanation": "LRU assumes recency predicts reuse. A sequential scan violates that. The structure still 'works'; the replacement policy is wrong for the workload."
+            },
+            {
+              "question": "Directed graph, detect if adding an edge would create a cycle, online, many queries. DFS every time is too slow. Better?",
+              "options": {
+                "A": "If the graph is a DAG of components you merge, union-find works for undirected; for directed you need incremental topo / reachability (or full topo + DFS on the relevant region) — union-find alone is the wrong connectivity model",
+                "B": "Union-find is identical for directed cycles",
+                "C": "A Bloom filter of edges proves acyclicity",
+                "D": "BFS from a random node never sees directed cycles"
+              },
+              "correct": "A",
+              "explanation": "Union-find is undirected disjoint sets. Directed cycle detection is reachability. Using the wrong connectivity structure is a common 'I know union-find' miss."
+            },
+            {
+              "question": "You external-sort huge files. Runs are written, then merged. Why does 'stable' still matter on disk?",
+              "options": {
+                "A": "Equal keys from earlier files/runs must keep their input order (e.g. original row id, replica timestamp) or the merge invents a new ordering that downstream consumers did not ask for",
+                "B": "Stability only exists in RAM arrays, not files",
+                "C": "Heaps used in k-way merge are stable by nature for all equal keys",
+                "D": "BFS merge of runs preserves order automatically"
+              },
+              "correct": "A",
+              "explanation": "A k-way heap merge is not stable unless you add a tie-break (run index, original offset). Stability is an extra key you encode, not a magic property of 'merge.'"
+            },
+            {
+              "question": "Dijkstra on a huge sparse graph: binary heap vs array vs Fibonacci-style vs just BFS. Workload split?",
+              "options": {
+                "A": "If all weights are equal, BFS (or 0-1 deque) — a heap is wasted. If weights vary, you need a PQ; which PQ depends on decrease-key volume and graph size, not the brand name",
+                "B": "Always Fibonacci heap because the bound is famous",
+                "C": "DFS with a Bloom filter replaces Dijkstra",
+                "D": "Union-find extracts the next closest node"
+              },
+              "correct": "A",
+              "explanation": "Equal weights → BFS. Positive varying weights → PQ. The structure follows the weight model. Do not import a heap because the textbook picture had one."
+            },
+            {
+              "question": "CHAMP / HAMT / B-tree vs open-addressing hash for a persistent (immutable) map in a language runtime. Why the tree-like hash trie?",
+              "options": {
+                "A": "Structural sharing on update: you copy a path, not the whole table — a flat hash array maps poorly onto persistent workloads even if lookups are similar",
+                "B": "Trees cannot share structure",
+                "C": "Open addressing is required for immutability",
+                "D": "Heaps persist better because extract-min copies nothing"
+              },
+              "correct": "A",
+              "explanation": "Workload is 'copy-on-write map with many versions.' Layout and sharing beat a slightly faster ephemeral hash."
+            },
+            {
+              "question": "False-positive rate of a Bloom filter after you insert more items than it was sized for. What actually happens?",
+              "options": {
+                "A": "Bits saturate, 'yes' becomes almost always — the filter silently degrades toward useless; there is no crash, which is why ops miss it",
+                "B": "It starts emitting false negatives to compensate",
+                "C": "Union-find rebuilds the bitset",
+                "D": "LRU evicts bits in recency order"
+              },
+              "correct": "A",
+              "explanation": "Capacity is part of the contract. Overfill does not throw; it lies more. Monitor fill and rebuild/rotate filters."
+            },
+            {
+              "question": "You need an LRU across a fleet. Local LRU per node + consistent hashing. A key's node jumps; the new node has a cold LRU. Besides miss storm, what invariant broke?",
+              "options": {
+                "A": "Recency is per process — the global working set is not on the ring. Hashing moves identity, not the linked-list order; replicas or session stickiness are how you keep recency",
+                "B": "Consistent hashing copies the doubly linked list to the successor automatically",
+                "C": "A heap of timestamps is globally shared via hashing",
+                "D": "BFS of the ring rebuilds LRU"
+              },
+              "correct": "A",
+              "explanation": "Two structures, two jobs. The ring assigns owners; LRU is local memory order. Don't expect one to implement the other."
+            },
+            {
+              "question": "Union-find with path compression, no union-by-rank, adversarial unions always attaching large to small via the wrong root. Practical issue?",
+              "options": {
+                "A": "Trees get tall; even with later compression, a bad sequence plus no rank/size can make individual finds scan long chains before they flatten",
+                "B": "Path compression without rank is undefined",
+                "C": "The structure becomes a heap and extract-min breaks",
+                "D": "Bloom filter bits collide with the parent array"
+              },
+              "correct": "A",
+              "explanation": "The pairing of compression + rank/size is what keeps forests flat in the real sequences you get before compression runs. Production UF uses both."
+            },
+            {
+              "question": "A 'linked list of buffers' vs a small number of large slabs for a network server. Same abstract list of bytes. Why slabs?",
+              "options": {
+                "A": "Fewer allocations, sequential DMA/cache, cheaper to coalesce; the pointer-rich list maximizes syscall and miss cost per byte",
+                "B": "The kernel can only send linked lists",
+                "C": "Slabs cannot represent a queue",
+                "D": "BFS requires one malloc per byte"
+              },
+              "correct": "A",
+              "explanation": "This is the linked-list-vs-hardware lesson at systems scale: iovecs/slabs/rings, not node-per-object, unless the object lifetimes truly demand it."
+            },
+            {
+              "question": "You sort events by (user_id, event_time) for per-user sessionization. One-pass composite compare vs sort-by-time then stable sort-by-user. When is the two-pass actually what you want?",
+              "options": {
+                "A": "When event_time order among a user must be the original sort's order and that first sort was already done (or is expensive to redo as a composite) — stability composes existing order; a new unstable composite can still break equal (user, time) ties you cared about",
+                "B": "Two-pass is always slower and never justified",
+                "C": "Heaps can only do one key",
+                "D": "BFS requires two-pass sorts"
+              },
+              "correct": "A",
+              "explanation": "Composite keys are usually cleaner. Two-pass + stable is how you reuse an existing ordering or add a key without rewriting the comparator. Either way you must define tie-breaks on purpose."
+            }
+          ],
+          "flashcards": [
+            {
+              "front": "Hash shards keys, not QPS",
+              "back": "One hot key hashes to one owner. Consistent hashing, trees, and heaps do not split that key. Replicate it, split by a finer workload key, or keep it in a special cache."
+            },
+            {
+              "front": "Locality is the real 'complexity' of lists",
+              "back": "Node-per-element structures lose to arrays, rings, CSR graphs, and slab buffers because of cache, TLB, allocator, and prefetch. Use links when identity and splice truly dominate scans."
+            },
+            {
+              "front": "Bloom overfill and the security misuse",
+              "back": "Over-inserting → bits fill → almost every query is 'yes.' For denylist/allow decisions, 'maybe' is not an answer unless an exact check follows. Deletes need a different filter."
+            },
+            {
+              "front": "Ring vs Rendezvous vs % N",
+              "back": "% N reshuffles everything. Ring + vnodes: local moves, watch load lumps. Rendezvous/HRW: per-key max score, natural weights, no vnode explosion. None of them move payload bytes for you."
+            },
+            {
+              "front": "LRU policy vs LRU structure",
+              "back": "The map+list is O(1) recency. The policy still fails on scans and one-hit wonders. ARC/2Q/W-TinyLFU change who gets evicted without changing 'we need a dictionary.'"
+            },
+            {
+              "front": "Directed vs undirected connectivity",
+              "back": "Union-find = undirected components. Shortest hops = BFS (unweighted) or PQ (weighted). Directed cycles = reachability/topo, not disjoint sets. Pick the invariant, then the structure."
+            },
+            {
+              "front": "Stability as an extra sort key",
+              "back": "Heap merge and many in-place sorts are not stable. Encode original index / run id in the comparator. Multi-key sorts are either one composite compare or stable passes from last key to first."
+            },
+            {
+              "front": "Compose structures for the real API",
+              "back": "Scheduler: heap + hash (cancel). LRU: hash + list. Kruskal: sort/heap of edges + union-find. Cache cluster: consistent hash + local LRU + Bloom negative cache. One textbook type is rarely the product."
+            }
+          ]
+        }
+      }
+    }
+  ]
+}
