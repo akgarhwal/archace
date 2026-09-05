@@ -88,6 +88,7 @@ QUIZ_FIELDS = [
 ]
 FLASH_FIELDS = ["Section", "Level", "Question", "Correct Answer"]
 SHEET_QUIZ_FIELDS = [
+    "Section",
     "Question",
     "Option A",
     "Option B",
@@ -95,11 +96,71 @@ SHEET_QUIZ_FIELDS = [
     "Option D",
     "Correct Answer",
 ]
-SHEET_FLASH_FIELDS = ["Question", "Correct Answer"]
+SHEET_FLASH_FIELDS = ["Section", "Question", "Correct Answer"]
+
+# If a question never names the system, readers are guessing the domain
+# (e.g. "What does GAC do?" with no DynamoDB). Prefix those stems.
+CONTEXT_LEAD = {
+    "PostgreSQL": "In PostgreSQL",
+    "MySQL": "In MySQL",
+    "B-tree & LSM": "For B-trees and LSM trees",
+    "Cassandra": "In Cassandra",
+    "DynamoDB": "In DynamoDB",
+    "Redis": "In Redis",
+    "AWS & S3": "In AWS / S3",
+    "Kubernetes": "In Kubernetes",
+    "Java": "In Java",
+    "Spring Boot": "In Spring Boot",
+    "Python": "In Python",
+    "C++": "In C++",
+    "Data Structures & Algorithms": "In data structures and algorithms",
+    "Gen AI": "In generative AI",
+    "AI Agents": "For AI agents",
+}
+CONTEXT_HINTS = {
+    "PostgreSQL": ("postgres", "postgresql"),
+    "MySQL": ("mysql", "innodb"),
+    "B-tree & LSM": ("b-tree", "btree", "lsm tree", "lsm-tree", "lsm engine"),
+    "Cassandra": ("cassandra",),
+    "DynamoDB": ("dynamodb", "dynamo db", "dynamo"),
+    "Redis": ("redis",),
+    "AWS & S3": ("aws", "s3", "amazon s3"),
+    "Kubernetes": ("kubernetes", "k8s", "kubelet", "kubectl"),
+    "Java": ("java", "jvm", "jdk"),
+    "Spring Boot": ("spring",),
+    "Python": ("python", "cpython"),
+    "C++": ("c++", "cpp"),
+    "Data Structures & Algorithms": ("data structure", "algorithm", "big-o"),
+    "Gen AI": ("generative ai", "llm", "language model"),
+    "AI Agents": ("agent",),
+}
 
 
 def norm(text: str) -> str:
     return re.sub(r"\s+", " ", (text or "").strip())
+
+
+def mentions_section(question: str, section: str) -> bool:
+    q = question.lower()
+    if section.lower() in q:
+        return True
+    return any(hint in q for hint in CONTEXT_HINTS.get(section, ()))
+
+
+def with_context(question: str, section: str) -> str:
+    if mentions_section(question, section):
+        return question
+    lead = CONTEXT_LEAD.get(section)
+    if not lead:
+        return question
+    if question.lower().startswith(lead.lower()):
+        return question
+    rest = question
+    two = rest[:2]
+    looks_like_acronym = len(two) == 2 and two.isalpha() and two.isupper()
+    if rest[:1].isupper() and not looks_like_acronym:
+        rest = rest[0].lower() + rest[1:]
+    return f"{lead}, {rest}"
 
 
 def canon_section(value: str) -> str | None:
@@ -324,6 +385,7 @@ def main() -> int:
     dropped = 0
 
     for row in quiz_raw:
+        row = {**row, "question": with_context(row["question"], row["section"])}
         err = valid_quiz(row, quiz_seen)
         if err:
             dropped += 1
@@ -331,6 +393,7 @@ def main() -> int:
         quiz_rows.append(to_quiz_csv(row))
 
     for row in flash_raw:
+        row = {**row, "question": with_context(row["question"], row["section"])}
         err = valid_flash(row, flash_seen)
         if err:
             dropped += 1
@@ -344,11 +407,14 @@ def main() -> int:
     write_csv(OUT / "questions-flashcards.csv", FLASH_FIELDS, flash_rows)
 
     sheets = OUT / "sheets"
+    public_data = ROOT / "public" / "data"
     for level in ("junior", "senior", "staff"):
         q = [{k: r[k] for k in SHEET_QUIZ_FIELDS} for r in quiz_rows if r["Level"] == level]
         f = [{k: r[k] for k in SHEET_FLASH_FIELDS} for r in flash_rows if r["Level"] == level]
         write_csv(sheets / f"{level}-quiz.csv", SHEET_QUIZ_FIELDS, q)
         write_csv(sheets / f"{level}-flashcards.csv", SHEET_FLASH_FIELDS, f)
+        write_csv(public_data / f"{level}-quiz.csv", SHEET_QUIZ_FIELDS, q)
+        write_csv(public_data / f"{level}-flashcards.csv", SHEET_FLASH_FIELDS, f)
 
     print(f"kept {len(quiz_rows)} quiz, {len(flash_rows)} flashcards; dropped {dropped}")
     for level in ("junior", "senior", "staff"):
