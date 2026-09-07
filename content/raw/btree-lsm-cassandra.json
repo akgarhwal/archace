@@ -236,8 +236,8 @@
       "question": "B-tree fragmentation after many random in-place updates mainly hurts which operation?",
       "optionA": "Point gets of a single cached key, which never touch leaves",
       "optionB": "Range scans and sequential prefetch, because leaf occupancy and locality drop",
-      "optionC": "WAL replay",
-      "optionD": "Bloom-filter construction",
+      "optionC": "Crash-recovery WAL replay, which is sequential and does not depend on leaf packing",
+      "optionD": "Bloom-filter construction for an LSM, which this B-tree workload does not use",
       "correct": "B"
     },
     {
@@ -296,8 +296,8 @@
       "question": "Universal/size-tiered compaction is piling huge overlapping runs. Which read path degrades first, and why?",
       "optionA": "Point gets of hot cached keys in the memtable",
       "optionB": "Wide range scans, because merge iterators fan in across many overlapping files of similar size",
-      "optionC": "WAL appends",
-      "optionD": "Bloom-filter inserts",
+      "optionC": "WAL appends on the write path, which do not consult those overlapping runs",
+      "optionD": "Bloom-filter inserts during memtable flush, which do not merge the old runs",
       "correct": "B"
     },
     {
@@ -634,11 +634,21 @@
       "section": "Cassandra",
       "level": "senior",
       "question": "A single huge partition with millions of clustering rows: which maintenance operation becomes dangerous first?",
-      "optionA": "Schema agreement",
+      "optionA": "Schema agreement across nodes, which exchanges CQL definitions not row data",
       "optionB": "Compaction and repair of that partition, which must stream/merge a massive contiguous piece of data",
-      "optionC": "Gossip",
-      "optionD": "Native-protocol version negotiation",
+      "optionC": "Gossip cluster membership, which carries heartbeats rather than partition bytes",
+      "optionD": "Native-protocol version negotiation when a driver first connects",
       "correct": "B"
+    },
+    {
+      "section": "Cassandra",
+      "level": "senior",
+      "question": "A Cassandra time-series table uses TTL on every event and default size-tiered compaction. Reads of 'recent' data get slower even though live rows are small. Why is time-window compaction (TWCS) the better default?",
+      "optionA": "STCS mixes ages in the same SSTables, so expired data and tombstones stay entangled until a later compact; TWCS groups windows that expire together and drops whole files",
+      "optionB": "TWCS disables repair, which is why TTLs become free",
+      "optionC": "Size-tiered compaction cannot store TTL columns at all",
+      "optionD": "TWCS stores each event in its own partition so range reads become point gets",
+      "correct": "A"
     },
     {
       "section": "Cassandra",
@@ -1129,6 +1139,12 @@
       "level": "staff",
       "question": "What is the first staff flag on 'one partition per tenant'?",
       "answer": "Tenant skew becomes hot/wide partitions. A noisy tenant dominates compaction, repair, and replica CPU with no token isolation from others."
+    },
+    {
+      "section": "Cassandra",
+      "level": "senior",
+      "question": "Why TWCS for TTL time-series instead of size-tiered?",
+      "answer": "STCS mixes ages in the same SSTables, so expired data and tombstones stay tangled and reads pay a graveyard tax. TWCS compact windows that expire together and drop whole files. Wrong window size (too wide or too narrow) reintroduces the mix."
     }
   ]
 }

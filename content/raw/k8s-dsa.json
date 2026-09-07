@@ -52,13 +52,13 @@
             {
               "question": "A PodDisruptionBudget with minAvailable: 2 on a 3-replica app is mainly protecting you from what?",
               "options": {
-                "A": "Voluntary disruptions such as node drains and rolling evictions going below 2 ready pods",
+                "A": "Voluntary disruptions via the Eviction API (node drains, cluster autoscaler) going below 2 ready pods — not Deployment rolling updates, which follow maxUnavailable",
                 "B": "OOMKills and kernel panics on the node",
                 "C": "etcd quorum loss",
                 "D": "Image pull failures from :latest"
               },
               "correct": "A",
-              "explanation": "PDBs constrain voluntary disruptions (drain, eviction API, some rolling operations). They do not stop crashes, OOM, or hardware failure."
+              "explanation": "PDBs constrain Eviction API disruptions (drain, cluster autoscaler). Deployment/StatefulSet rollouts DELETE pods and are bounded by maxUnavailable/maxSurge, not the PDB. PDBs do not stop crashes, OOM, or hardware failure."
             },
             {
               "question": "HPA and VPA solve different bottlenecks. Which pairing is right?",
@@ -175,7 +175,7 @@
             },
             {
               "front": "What a PDB actually blocks",
-              "back": "Voluntary disruptions (drain, eviction API) that would take ready pods below minAvailable / exceed maxUnavailable. Not node crashes, OOM, or failed liveness."
+              "back": "Eviction API disruptions (drain, cluster autoscaler) that would take Ready pods below minAvailable / exceed maxUnavailable. Not node crashes, OOM, failed liveness, or a Deployment rollout (that uses maxUnavailable)."
             },
             {
               "front": "HPA vs VPA",

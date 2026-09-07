@@ -299,7 +299,7 @@
                   "question": "Old generation fragmentation after repeated promotions of mixed-size objects leads to:",
                   "options": [
                     "Faster young GCs",
-                    "Promotion failures: young GC cannot tenure objects and escalates to a full/concurrent-mode failure collection",
+                    "Promotion/evacuation failure: young GC cannot tenure objects and falls back to a Full GC (G1) or an allocation stall (ZGC)",
                     "Automatic heap shrinkage",
                     "Disablement of TLABs only"
                   ],
@@ -604,12 +604,12 @@
               "name": "production",
               "quiz": [
                 {
-                  "question": "Happens-before is:",
+                  "question": "Thread A writes a payload then a flag; thread B spins on the flag then reads the payload. No volatile, no lock. Why can B still miss the payload?",
                   "options": [
-                    "A wall-clock ordering of statements",
-                    "A JMM guarantee that memory writes before a given action are visible to reads after a related action",
-                    "The order the JIT must emit instructions on one core",
-                    "A debugger stepping rule"
+                    "Wall-clock order of the statements is already a happens-before edge",
+                    "Without a JMM synchronization edge, B may see a stale payload (or even a stale flag) indefinitely; elapsed time is not visibility",
+                    "The JIT must emit the writes in source order on every core, so the payload is always visible first",
+                    "Debuggers insert the missing barrier, so the bug only exists when a debugger is not attached"
                   ],
                   "answer": 1,
                   "explanation": "If A happens-before B, then A's side effects are visible to B. It is about visibility and ordering, not measured time."
@@ -674,8 +674,8 @@
                   "options": [
                     "Any later join() that successfully returns",
                     "Any later interrupt of a third thread",
-                    "The next GC",
-                    "Any write in the parent thread"
+                    "The next garbage-collection cycle in the JVM",
+                    "Any write the parent thread performs after start() returns"
                   ],
                   "answer": 0,
                   "explanation": "join (and Thread.get/isAlive after termination, in effect via join) observes the worker's writes. Fire-and-forget threads do not publish back."
@@ -717,12 +717,12 @@
                   "question": "Which statement about data races is correct?",
                   "options": [
                     "A data race is only a performance issue; values are still well-defined",
-                    "A data race (conflicting accesses with no HB) makes behavior undefined for those accesses; you can see torn/stale/impossible values",
+                    "A data race has no happens-before: you can see stale values and surprising reorderings, and non-volatile long/double may tear. It is not C++ undefined behavior — still type-safe. Fix with volatile, a lock, or an atomic",
                     "The JMM forbids the JIT from reordering around a data race",
                     "AtomicInteger still has data races on get/set"
                   ],
                   "answer": 1,
-                  "explanation": "Correct concurrent programs must be data-race-free. Atomics/volatiles/locks exist to eliminate the race, not to paper over it."
+                  "explanation": "The JMM still constrains racy reads (you see some write of that field; you do not get C++ nasal demons). Stale values, reorderings, and long/double tearing are the real bugs. Volatile/lock/atomic exist to eliminate the race."
                 },
                 {
                   "question": "ConcurrentHashMap publication of an object as a value: after a successful put, another thread's get of that key:",
@@ -1088,12 +1088,12 @@
                   "explanation": "Thread-safety ≠ lifecycle. Unbounded concurrent maps are a top production leak pattern."
                 },
                 {
-                  "question": "When is a single-threaded HashMap behind a lock better than CHM?",
+                  "question": "When is a single-threaded HashMap behind a lock better than ConcurrentHashMap?",
                   "options": [
-                    "Never",
+                    "Never: ConcurrentHashMap is a strict upgrade for every map use",
                     "When you must atomically update several structures, or iterate a consistent view under the same lock as writes",
-                    "When you need the highest read scaling",
-                    "When keys are ints"
+                    "When you need the highest read scaling across many cores",
+                    "Whenever the keys happen to be boxed integers"
                   ],
                   "answer": 1,
                   "explanation": "CHM atomicity is per-key. Multi-map invariants need your own lock (or a concurrent component designed for the invariant)."
@@ -1121,12 +1121,12 @@
                   "explanation": "Pick the collection for the protocol: park/wait, bounding, and draining, not just 'concurrent' in the class name."
                 },
                 {
-                  "question": "size() on ConcurrentHashMap is:",
+                  "question": "You use ConcurrentHashMap.size() on the request path to decide whether to admit more work. Why is that a production trap?",
                   "options": [
-                    "A lock-free exact count at all times",
-                    "O(n)-ish / weakly consistent; do not use it for admission control on a hot path as if it were a mutex-protected counter",
-                    "Always zero",
-                    "Forbidden"
+                    "size() is a lock-free exact count at all times, so it is the right admission signal",
+                    "size() is weakly consistent (a LongAdder-style estimate since JDK 8, not exact occupancy); do not use it for admission control on a hot path as if it were a mutex-protected counter",
+                    "size() is specified to always return zero on ConcurrentHashMap",
+                    "Calling size() is forbidden and throws UnsupportedOperationException"
                   ],
                   "answer": 1,
                   "explanation": "Treat CHM size as an estimate. If you need exact occupancy for a bound, use a semaphore or LongAdder you control."
@@ -1346,12 +1346,12 @@
                   "explanation": "Both JDK and CGLIB proxies wrap the target. Internal this is the target. JDK proxies would not even apply to self calls on the concrete class."
                 },
                 {
-                  "question": "The safest team rule to prevent this outage class is:",
+                  "question": "In Spring Boot, what team rule best prevents @Transactional self-invocation outages?",
                   "options": [
-                    "Put @Transactional on every private helper",
+                    "Put @Transactional on every private helper so inner calls are covered",
                     "Transactional methods are entry points on a dedicated component; they are never called with this from the same class",
-                    "Disable proxies and use ThreadLocal Connection only",
-                    "Prefer checked exceptions for rollback"
+                    "Disable proxies and use a ThreadLocal Connection as the only transaction story",
+                    "Prefer checked exceptions so rollback happens even on self-invocation"
                   ],
                   "answer": 1,
                   "explanation": "Architecture: a transactional application service is invoked from the outside. Helpers that need a different propagation live on another bean."
@@ -1599,12 +1599,12 @@
               "name": "production",
               "quiz": [
                 {
-                  "question": "The default Spring bean scope is:",
+                  "question": "A Spring Boot @Service holds a mutable field you set per HTTP request. You never declared a scope. What is the production bug?",
                   "options": [
-                    "prototype",
-                    "singleton — one shared instance per container",
-                    "request",
-                    "thread"
+                    "Spring makes it prototype by default, so each injection is a fresh instance",
+                    "The default scope is singleton: concurrent requests share that field and leak or corrupt per-request state",
+                    "The default scope is request, so the field is isolated per HTTP request automatically",
+                    "The default scope is thread, so a thread pool isolates the field for you"
                   ],
                   "answer": 1,
                   "explanation": "Unless you say otherwise, every injection of that type is the same instance. State on that instance is shared across requests/threads."
@@ -1648,7 +1648,7 @@
                     "Are always invoked by the container like singletons",
                     "Are not fully managed; the client that created/obtained the instance is responsible for cleanup",
                     "Run after every HTTP request automatically",
-                    "Are illegal"
+                    "Are rejected at startup because prototype beans cannot implement DisposableBean"
                   ],
                   "answer": 1,
                   "explanation": "Leaking prototypes that hold connections/threads is easy because Spring will not @PreDestroy them for you on arbitrary create calls."
@@ -1700,10 +1700,10 @@
                 {
                   "question": "scoped proxy mode TARGET_CLASS vs INTERFACES:",
                   "options": [
-                    "Irrelevant",
+                    "The choice is irrelevant; Spring always uses the same proxy machinery",
                     "CGLIB vs JDK proxy for the lazy scoped target; concrete classes without interfaces need class proxy, and self-invocation issues still apply",
-                    "TARGET_CLASS creates a new singleton",
-                    "INTERFACES disable the scope"
+                    "TARGET_CLASS creates a new singleton and ignores the declared scope",
+                    "INTERFACES disable the scope and force a shared instance"
                   ],
                   "answer": 1,
                   "explanation": "The proxy is what the singleton holds. Each method call on the proxy fetches the scoped target. Internal this calls on the target still skip the proxy."
@@ -1918,12 +1918,12 @@
                   "explanation": "Two queues, no backpressure. Bound both and reject at the edge."
                 },
                 {
-                  "question": "The first metrics to chart for this failure:",
+                  "question": "Hikari says the pool is exhausted while DB CPU is idle. Which metrics should you chart first?",
                   "options": [
-                    "Only CPU",
+                    "Host CPU only — pool exhaustion is always a compute problem",
                     "Active/idle/pending connections, checkout time, connection leak count, in-flight transactions, servlet thread occupancy",
-                    "Only heap",
-                    "Bean count"
+                    "JVM heap only — exhausted pools are a symptom of GC",
+                    "Spring bean count — extra beans each hold a connection"
                   ],
                   "answer": 1,
                   "explanation": "Pending threads > 0 and active == max for a sustained period is the smoking gun."
@@ -1995,15 +1995,15 @@
               "name": "production",
               "quiz": [
                 {
-                  "question": "Without a custom Executor bean, @Async often runs on:",
+                  "question": "Without a custom Executor bean, @Async in Spring Boot often runs on:",
                   "options": [
                     "The request thread (so it is not async)",
-                    "A SimpleAsyncTaskExecutor that creates a new thread per task and does not reuse a bounded pool",
+                    "Boot's applicationTaskExecutor: a ThreadPoolTaskExecutor with a small core pool and an unbounded queue (or unbounded virtual threads if enabled) — the failure is queue/heap, not one native thread per task",
                     "The fork-join common pool only",
                     "The Tomcat worker that called it, always"
                   ],
                   "answer": 1,
-                  "explanation": "Default async support is not a production thread pool. You can thread-explode or lose control of concurrency. Declare a bounded TaskExecutor."
+                  "explanation": "Boot auto-configures a TaskExecutor. The production bug is an unbounded queue (or unbounded virtual-thread concurrency), not SimpleAsyncTaskExecutor unless you opted into that. Bound the queue, name the pool, and size against the scarce resource."
                 },
                 {
                   "question": "@Async on a self-called method in the same class:",
@@ -2118,7 +2118,7 @@
                 {
                   "question": "Which is a valid reason to have more than one @Async executor?",
                   "options": [
-                    "Style",
+                    "Naming style only — one shared pool is always the right operational default",
                     "Isolate latency-sensitive fan-out from bulk/email/report work so a report storm cannot steal the fan-out threads",
                     "Spring requires one executor per method name length",
                     "Transactions need their own executor to commit"
@@ -2140,10 +2140,10 @@
                 {
                   "question": "The HTTP request returns 200 because @Async offloaded work, but the user never sees the side effect. First checks?",
                   "options": [
-                    "DNS only",
+                    "DNS resolution only — async work cannot fail inside the JVM",
                     "Self-invocation, swallowed void exceptions, transaction not committed yet, rejected/queue overflow, executor saturated, lost MDC hiding the error logs",
-                    "Whether Optional was used",
-                    "GC promotion only"
+                    "Whether Optional was used on the controller return type",
+                    "GC promotion only — async tasks are dropped during old-gen collections"
                   ],
                   "answer": 1,
                   "explanation": "Fire-and-forget has many silent failure modes. Make completion observable."
@@ -2152,7 +2152,7 @@
               "flashcards": [
                 {
                   "front": "Default @Async executor",
-                  "back": "Often SimpleAsyncTaskExecutor: new thread per task, no bound. Production code declares a named, bounded ThreadPoolTaskExecutor."
+                  "back": "In Spring Boot, applicationTaskExecutor: small core pool, unbounded queue (or unbounded virtual threads if enabled). Failure mode is heap/queue growth or exhausting a JDBC pool — not one native thread per task. Production code declares a named, bounded pool."
                 },
                 {
                   "front": "@Async self-invocation",
@@ -2415,10 +2415,10 @@
                 {
                   "question": "shutdown and restart actuator operations, if enabled and unauthenticated:",
                   "options": [
-                    "Are no-ops",
+                    "Are no-ops unless a debugger is attached to the process",
                     "Are remote denial-of-service / control of the process",
-                    "Only work with a debugger",
-                    "Require physical access"
+                    "Only work with a debugger attached on the same machine",
+                    "Require physical access to the host and cannot be invoked over HTTP"
                   ],
                   "answer": 1,
                   "explanation": "Write endpoints must be off by default in production or gated by strong authz on a private port."
@@ -2426,7 +2426,7 @@
                 {
                   "question": "A safe production exposure baseline is:",
                   "options": [
-                    "include=*",
+                    "management.endpoints.web.exposure.include=* so operators never miss a tool",
                     "Expose a minimal health (and maybe info) on the public port; put the rest on a management port locked down by network policy and auth",
                     "Expose everything but hide the links in 404 body",
                     "Disable health so attackers cannot see it"
@@ -2459,10 +2459,10 @@
                 {
                   "question": "mappings / beans / conditions endpoints leak:",
                   "options": [
-                    "Nothing beyond health",
+                    "Nothing beyond the same UP/DOWN bit as health",
                     "Route tables, internal bean graphs, and auto-config decisions that map the attack surface",
-                    "Only CSS",
-                    "User passwords hashed"
+                    "Only static CSS paths used by the Actuator UI",
+                    "User passwords, but only in hashed form so exposure is acceptable"
                   ],
                   "answer": 1,
                   "explanation": "Reconnaissance gold. Keep them off the public internet."
@@ -2481,10 +2481,10 @@
                 {
                   "question": "liveness vs readiness on the same unguarded health group:",
                   "options": [
-                    "Is ideal",
+                    "Is ideal, because one probe group keeps Kubernetes config small",
                     "A downstream outage can fail liveness and Kubernetes will kill/restart pods that were only unready, worsening an incident",
-                    "Kubernetes ignores actuator",
-                    "Readiness cannot include DB checks"
+                    "Kubernetes ignores Actuator health groups and always uses process liveness",
+                    "Readiness cannot include DB checks, so sharing the group is harmless"
                   ],
                   "answer": 1,
                   "explanation": "Liveness should be 'process is deadlocked/broken'. Readiness can include DB. Splitting them is an actuator design job, not just security."

@@ -4,9 +4,11 @@
 from __future__ import annotations
 
 import csv
+import hashlib
 import json
 import re
 import sys
+from collections import Counter
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -346,6 +348,27 @@ def valid_flash(row: dict, seen: set[str]) -> str | None:
     return None
 
 
+def balance_options(row: dict) -> dict:
+    """Spread the correct letter with a stable per-stem rotation.
+
+    A large share of the bank originally stored the right answer in B, which
+    is a test-taking tell. Hash the published stem so order is deterministic
+    across rebuilds and A/B/C/D land near evenly.
+    """
+    opts = [row["optionA"], row["optionB"], row["optionC"], row["optionD"]]
+    src = "ABCD".index(row["correct"])
+    target = hashlib.sha256(row["question"].encode("utf-8")).digest()[0] % 4
+    rotated = [opts[(i - target + src) % 4] for i in range(4)]
+    return {
+        **row,
+        "optionA": rotated[0],
+        "optionB": rotated[1],
+        "optionC": rotated[2],
+        "optionD": rotated[3],
+        "correct": "ABCD"[target],
+    }
+
+
 def to_quiz_csv(row: dict) -> dict:
     return {
         "Section": row["section"],
@@ -389,14 +412,22 @@ def main() -> int:
         err = valid_quiz(row, quiz_seen)
         if err:
             dropped += 1
+            print(
+                f"drop quiz [{err}] {row['section']}/{row['level']}: {row['question'][:120]}",
+                file=sys.stderr,
+            )
             continue
-        quiz_rows.append(to_quiz_csv(row))
+        quiz_rows.append(to_quiz_csv(balance_options(row)))
 
     for row in flash_raw:
         row = {**row, "question": with_context(row["question"], row["section"])}
         err = valid_flash(row, flash_seen)
         if err:
             dropped += 1
+            print(
+                f"drop flash [{err}] {row['section']}/{row['level']}: {row['question'][:120]}",
+                file=sys.stderr,
+            )
             continue
         flash_rows.append(to_flash_csv(row))
 
@@ -426,6 +457,12 @@ def main() -> int:
         by_sec[r["Section"]] = by_sec.get(r["Section"], 0) + 1
     for sec in sorted(by_sec):
         print(f"  quiz/{sec}: {by_sec[sec]}")
+    letters = Counter(r["Correct Answer"] for r in quiz_rows)
+    total = sum(letters.values()) or 1
+    dist = ", ".join(
+        f"{k}={letters[k]} ({100 * letters[k] / total:.0f}%)" for k in "ABCD"
+    )
+    print(f"  quiz correct letters: {dist}")
     return 0
 
 

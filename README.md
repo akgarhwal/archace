@@ -60,13 +60,13 @@ PostgreSQL · MySQL · B-tree & LSM · Cassandra · DynamoDB · Redis · AWS & S
 
 Widely used tools only. No obscure databases nobody runs.
 
-**1,273 items** in this version (803 quiz + 470 flashcards):
+**1,423 items** in this version (902 quiz + 521 flashcards):
 
 | Level | Quiz | Flashcards |
 | --- | ---: | ---: |
-| Junior | 215 | 122 |
-| Senior | 379 | 226 |
-| Staff | 209 | 122 |
+| Junior | 252 | 143 |
+| Senior | 409 | 236 |
+| Staff | 241 | 142 |
 
 The app loads `public/data/{level}-quiz.csv` (and flashcards) that ship with the build. Master files with `Section` + `Level` live in [`content/`](content/). Rebuild with:
 

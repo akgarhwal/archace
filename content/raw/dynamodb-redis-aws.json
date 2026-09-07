@@ -333,9 +333,9 @@
     {
       "section": "DynamoDB",
       "level": "Advanced",
-      "question": "Global tables give you multi-region copies. What do they not give you?",
+      "question": "Default DynamoDB global tables (MREC) give you multi-region copies. What do they not give you unless you opt into MRSC?",
       "optionA": "Lower read latency near a replica",
-      "optionB": "A single globally strongly consistent item view for every read",
+      "optionB": "A single globally strongly consistent item view on every replica — that is a separate, higher-latency MRSC mode, not the default async replica",
       "optionC": "Regional isolation if you design for it",
       "optionD": "The same partition-key model in each region",
       "correct": "B"
@@ -403,8 +403,8 @@
     {
       "section": "DynamoDB",
       "level": "Advanced",
-      "question": "Strongly consistent reads cost more and still do not make a GSI or a global-table replica 'the truth everywhere'. The honest contract is:",
-      "optionA": "Strong reads are a quorum read of that table's item in that region, not a global lock",
+      "question": "Strongly consistent reads cost more and still do not make a GSI or a default global-table replica 'the truth everywhere'. The honest contract is:",
+      "optionA": "A strong GetItem is a read of that region's partition leader, not a global lock; GSIs stay eventually consistent, and default (MREC) global tables are async unless you chose MRSC",
       "optionB": "Strong reads lock all GSIs",
       "optionC": "Strong reads are free on on-demand",
       "optionD": "Strong reads disable throttling",
@@ -553,11 +553,11 @@
     {
       "section": "Redis",
       "level": "Beginner",
-      "question": "volatile-lru evicts:",
-      "optionA": "Any key in LRU order",
-      "optionB": "Only keys that already have an expire set",
-      "optionC": "Only hash slots 0-100",
-      "optionD": "AOF files",
+      "question": "Redis maxmemory-policy is volatile-lru and the dataset is over maxmemory. A hot key has no TTL. What happens to that key?",
+      "optionA": "It is evicted in LRU order along with every other key, TTL or not",
+      "optionB": "It is not evicted: volatile-lru only considers keys that already have an expire set, so a TTL-less hot key can pin memory",
+      "optionC": "Redis moves it into hash slots 0-100 and then evicts it as a cluster rebalance",
+      "optionD": "Redis truncates the AOF to free space but leaves the in-memory key in the dataset",
       "correct": "B"
     },
     {
@@ -583,11 +583,11 @@
     {
       "section": "Redis",
       "level": "Intermediate",
-      "question": "Cache stampede mitigation that belongs in the app, not just a longer TTL:",
-      "optionA": "Disable AOF",
+      "question": "A hot cache key expires and 2,000 app servers miss together. Which mitigation belongs in the app, not just a longer Redis TTL?",
+      "optionA": "Turn off AOF persistence on the Redis node so misses refill faster",
       "optionB": "Single-flight / mutex per key, probabilistic early expiry, or serving stale while one worker refills",
-      "optionC": "Switch to KEYS",
-      "optionD": "Store everything without TTLs and never evict",
+      "optionC": "Switch the refill path to KEYS so every client can discover the missing key",
+      "optionD": "Store everything without TTLs and never evict, so the origin is never hit again",
       "correct": "B"
     },
     {
