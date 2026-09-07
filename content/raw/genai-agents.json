@@ -17,10 +17,10 @@
               "explanation": "Training and decoding optimize sequence likelihood, not a truth check. A high-probability continuation can be wrong."
             },
             {
-              "question": "Temperature in decoding mainly controls:",
+              "question": "A product owner wants to raise temperature 'so the model knows more facts.' What does temperature actually change?",
               "options": [
                 "How many tokens fit in the context window",
-                "How peaked versus flat the next-token sampling distribution is",
+                "How peaked versus flat the next-token sampling distribution is — not the model's knowledge",
                 "The tokenizer vocabulary size",
                 "Whether retrieved documents are allowed"
               ],
@@ -415,23 +415,23 @@
               "question": "You have a long system prompt, retrieved chunks, and a growing chat. The hidden cost is not only the latest user line because:",
               "options": [
                 "Only new characters are billed",
-                "Typical APIs bill (and the model processes) the full prompt each turn, so history plus retrieval compounds",
-                "Cached identical prefixes are never relevant to cost",
+                "APIs still process (and usually bill) prompt tokens each turn; identical prefixes may hit a prompt cache, but retrieval that changes every turn breaks that prefix and history still compounds",
+                "Cached identical prefixes always make extra context free",
                 "Output tokens are free"
               ],
               "answer": 1,
-              "explanation": "Each turn re-sends prior tokens unless you have prefix caching. Retrieval-every-turn plus long memory is a cost curve, not a constant."
+              "explanation": "Prefix/prompt caching helps a stable system prompt. Retrieval that changes every turn, plus growing history, is still a cost curve. Do not assume cached prefixes are never relevant — or always free."
             },
             {
               "question": "Quadratic attention in sequence length implies that doubling a dense prompt can:",
               "options": [
                 "At most double compute in those layers, never more",
-                "Roughly quadruple attention compute, on top of already paying for twice the tokens",
+                "Roughly quadruple attention compute on a full-attention stack, on top of already paying for twice the tokens (GQA / sliding-window / hybrid stacks are milder)",
                 "Leave latency unchanged",
                 "Only affect disk, not GPU time"
               ],
               "answer": 1,
-              "explanation": "Even with linear approximations in some stacks, naive full attention is O(n²). Long windows are a systems problem, not just a quality knob."
+              "explanation": "Naive full attention is O(n²). Many production long-context stacks use GQA, sliding windows, or hybrid SSM layers, so do not treat quadruple as a universal constant. Long windows are still a systems problem."
             },
             {
               "question": "Retrieved chunk C is top-ranked and the model quotes it. The answer is still wrong. Which failure is this?",

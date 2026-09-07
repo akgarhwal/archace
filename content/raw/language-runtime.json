@@ -1,0 +1,1074 @@
+{
+  "quiz": [
+    {
+      "section": "Java",
+      "level": "junior",
+      "question": "You write `int n = scores.get(userId);` where scores is `Map<String, Integer>`. The id is missing. What happens, and why?",
+      "optionA": "get returns 0 because HashMap defaults missing ints to zero.",
+      "optionB": "get returns null; unboxing null to int throws NullPointerException, so a missing user looks like a crash rather than a zero score.",
+      "optionC": "The compiler rejects mixing Integer and int, so this cannot ship.",
+      "optionD": "The map inserts 0 and returns it, so missing users silently look like zero scores.",
+      "correct": "B"
+    },
+    {
+      "section": "Java",
+      "level": "junior",
+      "question": "A hot path does `list.get(i)` on a million-element list. A teammate switches ArrayList to LinkedList 'because inserts in the middle are O(1)'. What happens?",
+      "optionA": "get(i) stays O(1); LinkedList is a better default for all list work.",
+      "optionB": "get(i) becomes a pointer walk; cache misses dominate, and the 'O(1) insert' still had to find the index first.",
+      "optionC": "The JIT vectorizes LinkedList get into ArrayList after a few thousand calls.",
+      "optionD": "The JVM rewrites LinkedList to an array once it exceeds 10,000 nodes.",
+      "correct": "B"
+    },
+    {
+      "section": "Java",
+      "level": "junior",
+      "question": "One thread iterates an ArrayList while another adds an element with no lock. What is the typical failure, and what does it not guarantee?",
+      "optionA": "You always get ConcurrentModificationException, so the data cannot be corrupt.",
+      "optionB": "Fail-fast iterators may throw ConcurrentModificationException, but that is a best-effort detector — you can still see torn data or no exception.",
+      "optionC": "ArrayList is thread-safe for add during iteration as long as you do not remove.",
+      "optionD": "The iterator snapshots the list, so a concurrent add is always safe.",
+      "correct": "B"
+    },
+    {
+      "section": "Java",
+      "level": "junior",
+      "question": "A method opens a JDBC Connection, returns early on a validation error, and only closes on the happy path. What is the production failure mode?",
+      "optionA": "The compiler inserts close() on every return, so this is fine.",
+      "optionB": "Early returns leak connections until the pool is empty; try-with-resources (or finally) closes on every exit.",
+      "optionC": "JDBC connections close as soon as the Connection object is garbage-collected.",
+      "optionD": "Returning early rolls back and releases the connection automatically.",
+      "correct": "B"
+    },
+    {
+      "section": "Java",
+      "level": "junior",
+      "question": "You build a 50,000-line report with `s = s + line + \"\\n\"` in a loop. Why does this explode in time and garbage?",
+      "optionA": "String is mutable, so each + overwrites in place and the cost is only encoding.",
+      "optionB": "Each + allocates a new String and copies the whole prefix; the loop is quadratic allocations. StringBuilder or a joiner is amortized linear.",
+      "optionC": "The JIT always rewrites this to one StringBuilder, so production is safe.",
+      "optionD": "The extra garbage is only the line objects; the growing prefix is interned.",
+      "correct": "B"
+    },
+    {
+      "section": "Java",
+      "level": "junior",
+      "question": "A request filter stores the user in a ThreadLocal. A Tomcat-style pool reuses the thread and you never call remove(). What happens?",
+      "optionA": "ThreadLocals are scoped to the HTTP request by the JVM, so reuse is safe.",
+      "optionB": "The next request on that thread can see the previous user, and the ThreadLocal map can pin objects until the thread dies.",
+      "optionC": "ThreadLocal is copied per request automatically by the servlet container.",
+      "optionD": "Pooled threads refuse to start if a ThreadLocal is still set.",
+      "correct": "B"
+    },
+    {
+      "section": "Java",
+      "level": "junior",
+      "question": "`List<String> xs = Arrays.asList(\"a\", \"b\"); xs.add(\"c\");` What goes wrong?",
+      "optionA": "It works; asList returns a fully mutable ArrayList.",
+      "optionB": "Arrays.asList is a fixed-size wrapper over the array; add/remove throw UnsupportedOperationException. It is not an independent ArrayList.",
+      "optionC": "asList always returns an unmodifiable List.of copy, so even set() is impossible.",
+      "optionD": "add is ignored silently and the list stays length 2.",
+      "correct": "B"
+    },
+    {
+      "section": "Java",
+      "level": "junior",
+      "question": "You use a record `Point(int x, int y)` as a HashMap key. A teammate adds a mutable `List<Tag> tags` component. Why is that a trap?",
+      "optionA": "Records cannot be used as HashMap keys.",
+      "optionB": "Record equals/hashCode include all components. A list that mutates after insert loses the map entry, same as any mutable key.",
+      "optionC": "Records use identity equality, so extra fields never affect the map.",
+      "optionD": "The compiler rejects mutable components on records.",
+      "correct": "B"
+    },
+    {
+      "section": "Java",
+      "level": "junior",
+      "question": "Two threads do `volatile int n; n++;` to count requests. Why is this still wrong?",
+      "optionA": "volatile forbids the ++ operator.",
+      "optionB": "volatile publishes individual reads and writes, but n++ is read-modify-write; you can lose increments. Use AtomicInteger or a lock.",
+      "optionC": "The JIT makes volatile ++ atomic on x86, so this is the right default.",
+      "optionD": "volatile int is incremented exactly-once across threads by the JMM.",
+      "correct": "B"
+    },
+    {
+      "section": "Java",
+      "level": "junior",
+      "question": "A REST handler does `catch (Exception e) { }` and returns 200. What did you just hide?",
+      "optionA": "Only checked exceptions; RuntimeException still propagates.",
+      "optionB": "Almost every failure, including bugs; the client thinks success and you have no signal. Catch specific types, log, and fail the request.",
+      "optionC": "Exception does not include NullPointerException, so NPEs still escape.",
+      "optionD": "Empty catch blocks are stripped by the compiler in production.",
+      "correct": "B"
+    },
+    {
+      "section": "Java",
+      "level": "junior",
+      "question": "You synchronize on `userId.intern()` to lock per user. Why is this a production hazard?",
+      "optionA": "intern() is illegal on strings that arrived from the network.",
+      "optionB": "Interned strings are a global, unbounded pool; you contend on intern, pin memory, and can deadlock with unrelated code that interned the same text.",
+      "optionC": "intern() copies the string so locks never overlap across requests.",
+      "optionD": "synchronized on String is ignored by the JVM.",
+      "correct": "B"
+    },
+    {
+      "section": "Java",
+      "level": "junior",
+      "question": "A JPA entity implements equals on a database id that is null until persist. You put two new entities in a HashSet before save. What happens?",
+      "optionA": "They are always distinct because HashSet uses identity for JPA entities.",
+      "optionB": "Both hash as the 'null id' bucket and can collide as equal, or become lost after the id is assigned. Do not use a mutable generated id as the equality key for new instances.",
+      "optionC": "JPA forbids putting entities in a HashSet.",
+      "optionD": "HashSet rehashes after persist automatically.",
+      "correct": "B"
+    },
+    {
+      "section": "Java",
+      "level": "staff",
+      "question": "You adopt virtual threads for a servlet app, but a hot path still does `synchronized (mutex) { jdbc.call(); }`. Even if pinning is improved on newer JDKs, what remains the staff-level problem?",
+      "optionA": "synchronized is ignored on virtual threads, so the mutex does nothing.",
+      "optionB": "The mutex still serializes all that JDBC; cheap threads do not make a global lock scale. Blocking work belongs off a shared monitor, with a bounded pool or per-key locks.",
+      "optionC": "Virtual threads make synchronized wait-free, so this is the recommended pattern.",
+      "optionD": "JDBC automatically yields the monitor while the socket waits.",
+      "correct": "B"
+    },
+    {
+      "section": "Java",
+      "level": "staff",
+      "question": "A Netty/gRPC path uses DirectByteBuffer and native memory climbs while heap looks fine. GC does not recover it. What is going on?",
+      "optionA": "Direct buffers live on the Java heap and will be collected at the next young GC.",
+      "optionB": "Direct/native buffers are off-heap; reclamation via cleaner can lag. Bound them, release them, and meter MaxDirectMemorySize (or the allocator's own cap).",
+      "optionC": "Native memory is unlimited and free on the host.",
+      "optionD": "Setting -Xmx caps direct memory in every JDK, so this cannot happen.",
+      "correct": "B"
+    },
+    {
+      "section": "Java",
+      "level": "staff",
+      "question": "You grow a heap from 30 GB to 40 GB and RSS jumps more than the extra 10 GB, with worse GC. What geometry did you likely just lose?",
+      "optionA": "Compressed ordinary object pointers typically stop around a ~32 GB heap; references become 8 bytes and you move more memory per object.",
+      "optionB": "Heaps above 32 GB disable GC and fall back to malloc.",
+      "optionC": "Compressed oops only apply to stacks, so heap size cannot change pointer width.",
+      "optionD": "40 GB heaps always keep 32-bit pointers with a larger scale factor and no extra RSS.",
+      "correct": "A"
+    },
+    {
+      "section": "Java",
+      "level": "staff",
+      "question": "Time-to-safepoint is high: a thread is in a tight loop or JNI without poll points. What does the process look like?",
+      "optionA": "GC and deopt wait; latency spikes while one thread will not reach a safepoint and the rest of the JVM sits behind it.",
+      "optionB": "Safepoints only affect debugging and never pause request threads.",
+      "optionC": "Tight Java loops cannot miss safepoints by construction.",
+      "optionD": "JNI always polls as often as bytecode, so native code cannot stall a safepoint.",
+      "correct": "A"
+    },
+    {
+      "section": "Java",
+      "level": "staff",
+      "question": "A hot method allocates a tiny Point the JIT could scalar-replace, but you store it in a field 'for logging later'. What did you just do?",
+      "optionA": "The JIT still allocates on the stack because the field is private.",
+      "optionB": "You escaped the object; it must hit the heap, creating garbage and cache pressure the JIT could have avoided.",
+      "optionC": "Private fields are stack-allocated if they do not leave the class.",
+      "optionD": "Escape analysis only applies to C++, not HotSpot.",
+      "correct": "B"
+    },
+    {
+      "section": "Java",
+      "level": "staff",
+      "question": "You copy a thread-pool pattern that caches a JDBC Connection in a ThreadLocal onto Java 21+ virtual threads (potentially millions). What breaks?",
+      "optionA": "ThreadLocal is illegal on virtual threads and will not compile.",
+      "optionB": "You can create a ThreadLocal per virtual thread and leak a connection per task. ThreadLocals are the wrong cache once threads are cheap; use structured scopes or a real pool.",
+      "optionC": "Virtual threads share one ThreadLocal map by design, so the cache is automatically correct.",
+      "optionD": "The JVM coalesces ThreadLocals across virtual threads automatically.",
+      "correct": "B"
+    },
+    {
+      "section": "Java",
+      "level": "staff",
+      "question": "A container hot-redeploys a webapp and metaspace/class count climbs. A library registered a static listener, JMX bean, or Thread with the old ClassLoader. What is this?",
+      "optionA": "A permgen bug that cannot happen after JDK 8.",
+      "optionB": "A classloader leak: statics/JMX/threads keep the old loader (and all its classes) alive across redeploys. Prefer process restart over hot redeploy.",
+      "optionC": "Metaspace is unbounded and never leaks; the climb is only JIT code cache.",
+      "optionD": "JMX beans are always weakly referenced, so this cannot retain a loader.",
+      "correct": "B"
+    },
+    {
+      "section": "Java",
+      "level": "staff",
+      "question": "A thread writes several fields, then publishes the object by storing it into a concurrent queue. Another thread takes it. Why can this be correct without volatile on each field?",
+      "optionA": "It cannot; every field still needs volatile or the payload may be stale.",
+      "optionB": "The queue's put/take (or similar concurrent publication) provides happens-before, so writes before the put are visible after the take.",
+      "optionC": "Concurrent queues copy objects defensively, so visibility is a memcpy.",
+      "optionD": "The JMM forbids publishing via queues without volatile fields.",
+      "correct": "B"
+    },
+    {
+      "section": "Java",
+      "level": "staff",
+      "question": "A resource class relies on finalize()/Cleaner 'just in case' instead of explicit close. Why is that not a resource-management strategy?",
+      "optionA": "Cleaners run synchronously on close, so they replace try-with-resources.",
+      "optionB": "Finalization/cleaning is delayed, unordered, and can never run if the process dies; you still leak under GC pressure. Use AutoCloseable and prompt close.",
+      "optionC": "The GC always runs finalizers before returning from new, so close is redundant.",
+      "optionD": "Cleaner is a real-time SLA for native resources.",
+      "correct": "B"
+    },
+    {
+      "section": "Java",
+      "level": "staff",
+      "question": "Flight Recorder (or a sampling profiler) shows a hot lock, but the code looks wait-free. What should you check before rewriting the algorithm?",
+      "optionA": "Sampling profilers cannot see locks, so the signal is always a false positive.",
+      "optionB": "Allocation, inflated monitors, uncontended synchronized that still safepoints, and biased-locking history — measure with async-profiler/JFR, then fix the actual contention, not the name of the class.",
+      "optionC": "Any lock that appears in a profile must become a lock-free queue.",
+      "optionD": "JFR cannot attribute time to JVM runtime, only to your bytecode.",
+      "correct": "B"
+    },
+    {
+      "section": "Spring Boot",
+      "level": "junior",
+      "question": "A @Service uses field @Autowired private deps, and a unit test wants to pass a fake. Why is constructor injection the better default?",
+      "optionA": "Field injection is faster at runtime because it skips the constructor.",
+      "optionB": "Constructor injection makes dependencies required, final, and easy to new-up in tests without spinning a context.",
+      "optionC": "Spring cannot inject constructors in Boot 3.",
+      "optionD": "Field injection fails in production if the field is private.",
+      "correct": "B"
+    },
+    {
+      "section": "Spring Boot",
+      "level": "junior",
+      "question": "Your laptop runs with no Spring profile set. application-prod.yml has the real DB URL; application.yml has H2. What actually gets used?",
+      "optionA": "Both files merge with prod always winning because the filename contains 'prod'.",
+      "optionB": "Only the default application.yml (plus env/system properties). application-prod.yml is inactive until prod is an active profile.",
+      "optionC": "Boot always loads every application-*.yml on the classpath.",
+      "optionD": "H2 is ignored if a prod file exists anywhere on disk.",
+      "correct": "B"
+    },
+    {
+      "section": "Spring Boot",
+      "level": "junior",
+      "question": "You put @Transactional on a private method in a @Service. Why might there be no transaction?",
+      "optionA": "Private methods always run in a new transaction.",
+      "optionB": "Spring's proxy cannot intercept private (or self-invoked) methods; the annotation is a no-op.",
+      "optionC": "@Transactional only works on controllers, never on services.",
+      "optionD": "Private is required for transactions to start.",
+      "correct": "B"
+    },
+    {
+      "section": "Spring Boot",
+      "level": "junior",
+      "question": "A @RequestBody User has @NotNull fields, but invalid bodies still hit the service. What is usually missing?",
+      "optionA": "Bean Validation is not on the classpath, or @Valid/@Validated is missing on the parameter, so the constraint annotations are documentation only.",
+      "optionB": "@NotNull is enforced by Jackson automatically during parse.",
+      "optionC": "Invalid JSON cannot be deserialized, so this cannot happen.",
+      "optionD": "You must use XML to get Bean Validation.",
+      "correct": "A"
+    },
+    {
+      "section": "Spring Boot",
+      "level": "junior",
+      "question": "A @Controller method returns a User object and the browser shows a 404/whitelabel instead of JSON. What is the usual cause?",
+      "optionA": "User cannot be serialized by Jackson at all.",
+      "optionB": "@Controller is view-oriented; without @ResponseBody (or @RestController) Spring looks for a template named after the return, not a JSON body.",
+      "optionC": "Jackson is disabled unless you add @Controller.",
+      "optionD": "Browsers cannot accept JSON from Spring.",
+      "correct": "B"
+    },
+    {
+      "section": "Spring Boot",
+      "level": "junior",
+      "question": "Bean A constructor-injects B and B constructor-injects A. Startup fails. What is the real design smell, not the workaround?",
+      "optionA": "Spring forbids more than two beans in one context.",
+      "optionB": "The two types are one unit; split a third collaborator or invert the dependency. @Lazy/setter injection hides a cycle that will bite later.",
+      "optionC": "You must use field injection to allow cycles in production.",
+      "optionD": "Cycles are required for @Transactional to start.",
+      "correct": "B"
+    },
+    {
+      "section": "Spring Boot",
+      "level": "junior",
+      "question": "server.port=8080 is in application.yml but the process still listens on 8081. Where should you look first?",
+      "optionA": "YAML always wins over the environment.",
+      "optionB": "Environment variables (SERVER_PORT), command-line args, and other higher-precedence sources override the file. Check origins, not just the yaml.",
+      "optionC": "Boot ignores port after the first request.",
+      "optionD": "You must recompile to change port.",
+      "correct": "B"
+    },
+    {
+      "section": "Spring Boot",
+      "level": "junior",
+      "question": "A LocalDate field arrives as \"2026-09-07\" and a new service throws HttpMessageNotReadableException. What usually happened?",
+      "optionA": "Java cannot represent calendar dates in JSON.",
+      "optionB": "The app customized ObjectMapper without JavaTimeModule / Boot's Jackson builder, so ISO dates are not decoded.",
+      "optionC": "LocalDate only works in XML.",
+      "optionD": "Dates must be epoch millis; ISO strings are illegal in Jackson.",
+      "correct": "B"
+    },
+    {
+      "section": "Spring Boot",
+      "level": "junior",
+      "question": "You move a @Service to com.acme.billing but @SpringBootApplication stays on com.acme.app.Application. The bean is missing at runtime. Why?",
+      "optionA": "@Service is deprecated and must be replaced with @Component.",
+      "optionB": "Component scan defaults to the application's package and below; the new package is a sibling, not a child, so the service is never registered.",
+      "optionC": "Spring scans the whole classpath for @Service always.",
+      "optionD": "You must name the class *Service for it to load.",
+      "correct": "B"
+    },
+    {
+      "section": "Spring Boot",
+      "level": "junior",
+      "question": "/actuator/health is public and show-details=always. A probe blip now also reveals your DB hostname and disk paths. What should you do?",
+      "optionA": "Details are required for kubelet to accept the probe.",
+      "optionB": "Keep public health as UP/DOWN; put details on a locked-down management port. Probes do not need internals.",
+      "optionC": "Disable health so Kubernetes cannot see failures.",
+      "optionD": "Health details are encrypted automatically.",
+      "correct": "B"
+    },
+    {
+      "section": "Spring Boot",
+      "level": "junior",
+      "question": "application.yml has `logging.level.root: INFO` but a library's log4j2.xml sets DEBUG and your console is flooded. What is going on?",
+      "optionA": "Boot logging.level always wins over every other config file.",
+      "optionB": "Two logging systems or a library's own config can bypass Boot's logging.level. Standardize on one system (usually Logback via Boot) and stop shipping a competing XML.",
+      "optionC": "INFO cannot be set in YAML; only properties files work.",
+      "optionD": "DEBUG from a library is a JVM flag you cannot override.",
+      "correct": "B"
+    },
+    {
+      "section": "Spring Boot",
+      "level": "staff",
+      "question": "You enable virtual threads in Boot 3.2+ but keep a 200-thread Tomcat pool and an @Async executor of 500 platform threads 'for safety'. What did you misunderstand?",
+      "optionA": "Virtual threads require even larger platform pools so carriers never starve.",
+      "optionB": "Virtual threads are meant to replace giant platform pools on blocking I/O. Bound the real scarce resource (JDBC pool, downstream connections), not thread count; two huge platform pools fight the model.",
+      "optionC": "Virtual threads cannot run on servlet stacks, so the Tomcat pool is still the only concurrency knob.",
+      "optionD": "@Async always uses virtual threads once the property is set, so the executor size is ignored.",
+      "correct": "B"
+    },
+    {
+      "section": "Spring Boot",
+      "level": "staff",
+      "question": "Spring Retry retries a 502 from a downstream on a write that is not idempotent. What do you actually cause?",
+      "optionA": "Retries are always safe for HTTP because 502 means the write never happened.",
+      "optionB": "Duplicate side effects (double charge, double email) unless the callee is idempotent. Retry budgets belong on idempotent reads or with idempotency keys.",
+      "optionC": "Spring Retry deduplicates by URL automatically.",
+      "optionD": "502 is a read-only signal; Spring will not retry writes.",
+      "correct": "B"
+    },
+    {
+      "section": "Spring Boot",
+      "level": "staff",
+      "question": "A Spring Boot app puts userId on every Micrometer timer. After a traffic spike, Prometheus/memory dies. What happened?",
+      "optionA": "Timers cannot have tags, so this configuration is rejected at startup.",
+      "optionB": "High-cardinality tags explode time series. Bound tags to a small enum (route, status, instance), never unbounded IDs.",
+      "optionC": "Prometheus automatically rolls up userId into a histogram.",
+      "optionD": "Micrometer drops tags longer than three characters.",
+      "correct": "B"
+    },
+    {
+      "section": "Spring Boot",
+      "level": "staff",
+      "question": "You need to expand-contract a NOT NULL column while doing a rolling Spring Boot deploy. Why is 'add NOT NULL with default in the same release as the readers' dangerous?",
+      "optionA": "Flyway cannot add columns during a rolling deploy.",
+      "optionB": "Old instances may write without the new column/code path; mixed versions plus a blocking rewrite can lock the table. Expand (nullable/backfill) then contract after the fleet is new.",
+      "optionC": "Rolling deploys always take ACCESS EXCLUSIVE in Hibernate.",
+      "optionD": "NOT NULL is ignored until the next restart, so the same release is always safe.",
+      "correct": "B"
+    },
+    {
+      "section": "Spring Boot",
+      "level": "staff",
+      "question": "A Spring MVC (servlet) app uses WebClient.block() on the request thread for every downstream call. What did you not buy?",
+      "optionA": "You bought full reactive backpressure end-to-end.",
+      "optionB": "You still occupy a servlet thread for the whole wait; WebClient only helps if the pipeline is actually non-blocking. A pooled RestClient may be simpler and as fast.",
+      "optionC": "block() migrates the work to Netty event loops and frees Tomcat.",
+      "optionD": "WebClient.block is illegal in MVC and will not compile.",
+      "correct": "B"
+    },
+    {
+      "section": "Spring Boot",
+      "level": "staff",
+      "question": "A @KafkaListener writes to the DB then relies on auto-commit of the offset. Auto-commit is on, DB commit is separate. What lost-update/duplicate class is this?",
+      "optionA": "Kafka and the DB share a transaction by default in Spring.",
+      "optionB": "At-least-once delivery: you can process twice or lose the ack. Use idempotent writes and commit the offset after DB commit (or a transaction manager that covers both).",
+      "optionC": "Kafka listeners are exactly-once if the topic has one partition.",
+      "optionD": "Auto-commit waits for @Transactional to finish.",
+      "correct": "B"
+    },
+    {
+      "section": "Spring Boot",
+      "level": "staff",
+      "question": "Kubernetes SIGTERM hits a Spring Boot app with in-flight 30s requests and server.shutdown is immediate (or an old default). What happens?",
+      "optionA": "Spring always waits for in-flight requests regardless of that property.",
+      "optionB": "The process dies mid-request unless graceful shutdown plus a preStop sleep cover in-flight work inside terminationGracePeriodSeconds.",
+      "optionC": "kubelet waits forever for HTTP to drain.",
+      "optionD": "Actuator liveness extends the grace period automatically.",
+      "correct": "B"
+    },
+    {
+      "section": "Spring Boot",
+      "level": "staff",
+      "question": "A custom OncePerRequestFilter authenticates after Spring Security's authorization filter because you registered it as a plain @Component Filter. What is the failure?",
+      "optionA": "Filter order is random and usually fine in Boot 3.",
+      "optionB": "Security filter chain order is explicit; a late filter can run after the decision or sit outside the chain. Register it in the SecurityFilterChain at the right position.",
+      "optionC": "@Component filters always run first, before Spring Security.",
+      "optionD": "Authorization does not use filters in Boot 3.",
+      "correct": "B"
+    },
+    {
+      "section": "Spring Boot",
+      "level": "staff",
+      "question": "Two tenants share one Spring Boot app and one Hibernate EntityManager. You forget the tenant-id predicate on a query. What is the incident?",
+      "optionA": "Hibernate adds tenant filters automatically to native SQL.",
+      "optionB": "Cross-tenant data leak. Tenant isolation must be in every query (filter, discriminator, or separate schema/DB) and tested; a missing WHERE is a security bug.",
+      "optionC": "Spring Security tenancy is implied by the JWT, so queries cannot leak.",
+      "optionD": "One EntityManager cannot see two tenants' rows by construction.",
+      "correct": "B"
+    },
+    {
+      "section": "Spring Boot",
+      "level": "staff",
+      "question": "A platform team enables /actuator/refresh to change secrets in place. Why do staff teams often prefer immutable deploys instead?",
+      "optionA": "Refresh always restarts the JVM cleanly, which is slower than a rolling deploy.",
+      "optionB": "Half-applied config, stale singletons, and secret-in-memory linger; a new process with a new config artifact is a known state.",
+      "optionC": "Immutable deploys cannot change env vars at all.",
+      "optionD": "/refresh encrypts all beans, so it is strictly safer than a restart.",
+      "correct": "B"
+    },
+    {
+      "section": "Python",
+      "level": "junior",
+      "question": "`class Cart: items = []` then `Cart().items.append(x)`. Why do carts share items?",
+      "optionA": "Instances always copy class attributes on construction.",
+      "optionB": "`items` is a class attribute; mutating it mutates the shared list. Use `self.items = []` in `__init__`.",
+      "optionC": "append copies the list per instance, so this cannot share.",
+      "optionD": "This only happens if you use dataclasses.",
+      "correct": "B"
+    },
+    {
+      "section": "Python",
+      "level": "junior",
+      "question": "You `open(path)` on a Latin-1 file under a UTF-8 locale in Python 3. What fails?",
+      "optionA": "open() always reads bytes, so decoding cannot fail.",
+      "optionB": "Text mode uses a default encoding (often UTF-8); decoding raises UnicodeDecodeError. Pass encoding explicitly.",
+      "optionC": "Python 3 has no default encoding for text files.",
+      "optionD": "Latin-1 files cannot be stored on disk.",
+      "correct": "B"
+    },
+    {
+      "section": "Python",
+      "level": "junior",
+      "question": "You `copy.copy` a nested dict of user prefs and a nested list still mutates the original. Why?",
+      "optionA": "copy.copy is a deep copy of containers.",
+      "optionB": "copy.copy is shallow: nested objects are shared. Use deepcopy (or rebuild) if you must detach the graph.",
+      "optionC": "dicts cannot nest lists in CPython.",
+      "optionD": "deepcopy is illegal on dicts.",
+      "correct": "B"
+    },
+    {
+      "section": "Python",
+      "level": "junior",
+      "question": "`if user_id:` skips id 0 (or an empty string). Why is that a bug for identifiers?",
+      "optionA": "0 is truthy in Python, so this cannot skip it.",
+      "optionB": "0, '', and [] are falsy, so they look like 'missing'. Check `is None` (or an explicit type) for optional ids.",
+      "optionC": "`if user_id` always hits the database before the test.",
+      "optionD": "user_id 0 cannot exist in Python integers.",
+      "correct": "B"
+    },
+    {
+      "section": "Python",
+      "level": "junior",
+      "question": "`json.dumps` on a set or a datetime raises TypeError. What is the boundary rule?",
+      "optionA": "json.dumps serializes all Python objects.",
+      "optionB": "json is a tiny type set (dict/list/str/num/bool/null). Convert at the edge (default=, a DTO, or a better codec); do not leak Python types over the wire.",
+      "optionC": "sets become JSON objects automatically.",
+      "optionD": "TypeError means the JSON was too large.",
+      "correct": "B"
+    },
+    {
+      "section": "Python",
+      "level": "junior",
+      "question": "`subprocess.run(user_cmd, shell=True)` interpolates a filename from the client. What is the actual risk?",
+      "optionA": "shell=True is required for argument lists and cannot run a shell.",
+      "optionB": "The client can inject shell metacharacters; you execute whatever they concatenate. Pass a list of args and keep shell=False.",
+      "optionC": "subprocess always sandboxes the child, so injection cannot run.",
+      "optionD": "shell=True only affects Windows.",
+      "correct": "B"
+    },
+    {
+      "section": "Python",
+      "level": "senior",
+      "question": "A Flask/Django app uses gunicorn with 1 sync worker and 8 threads. CPU-bound JSON encoding saturates one core. Why didn't threads save you?",
+      "optionA": "gunicorn cannot use threads at all.",
+      "optionB": "The GIL still serializes bytecode; threads help I/O waits, not CPU-bound Python. Use more processes (or a native extension that releases the GIL).",
+      "optionC": "sync workers run one process per thread automatically.",
+      "optionD": "Threads bypass the GIL in CPython 3.12 always.",
+      "correct": "B"
+    },
+    {
+      "section": "Python",
+      "level": "senior",
+      "question": "You size a Postgres pool to 50 in the app, then run 8 gunicorn workers. What is the real connection count?",
+      "optionA": "50 total, shared across workers via the parent process.",
+      "optionB": "~50 × 8 processes (plus any threads). Pool settings are per process; multiply by workers or you hit max_connections.",
+      "optionC": "Forked workers inherit one live connection safely and share it.",
+      "optionD": "psycopg shares the pool via shared memory between workers.",
+      "correct": "B"
+    },
+    {
+      "section": "Python",
+      "level": "senior",
+      "question": "In asyncio you cancel a task during `await http.get()`. The timeout fires, but a `finally` still writes to the DB. What must you get right?",
+      "optionA": "CancelledError should be swallowed always so cleanup can finish unbounded work.",
+      "optionB": "Cancellation is thrown at await points; cleanup must be bounded and idempotent, and you should not start new awaits you cannot afford after cancel.",
+      "optionC": "Cancelled tasks cannot run finally.",
+      "optionD": "http.get ignores cancellation, so finally cannot observe it.",
+      "correct": "B"
+    },
+    {
+      "section": "Python",
+      "level": "senior",
+      "question": "Two Python modules import each other at module top-level, and a class is half-initialized. What is the production-safe fix?",
+      "optionA": "Add more imports until import order happens to work.",
+      "optionB": "Break the cycle: import inside the function, extract a third module, or use protocols. Do not rely on import order.",
+      "optionC": "Python forbids cycles so this cannot ship.",
+      "optionD": "Circular imports are resolved by the GIL.",
+      "correct": "B"
+    },
+    {
+      "section": "Python",
+      "level": "senior",
+      "question": "You store request_id in a global in an asyncio app. Concurrent requests mix IDs in logs. Why?",
+      "optionA": "asyncio is single-threaded so globals are safe per request.",
+      "optionB": "Concurrent tasks interleave; use contextvars (or pass the id) so each task has its own copy. Thread-locals also fail if you mix threads and tasks.",
+      "optionC": "logging captures request_id automatically from the ASGI scope.",
+      "optionD": "globals are task-local in 3.11+.",
+      "correct": "B"
+    },
+    {
+      "section": "Python",
+      "level": "senior",
+      "question": "A FastAPI dependency yields a SQLAlchemy Session and you pass it into a BackgroundTasks job that runs after the response. What happens?",
+      "optionA": "The session stays open forever, which is the intended lifecycle.",
+      "optionB": "The request teardown closes the session before/while the background task uses it. Background work needs its own session/lifecycle.",
+      "optionC": "FastAPI freezes the session for background tasks.",
+      "optionD": "Sessions are immutable after yield.",
+      "correct": "B"
+    },
+    {
+      "section": "Python",
+      "level": "staff",
+      "question": "A staff Python service monkeypatches stdlib with gevent, then adds a gRPC client. What class of bug appears?",
+      "optionA": "gevent makes all C extensions yield, so gRPC is automatically green.",
+      "optionB": "Native/gRPC threads and gevent's greenlet IO model disagree; you get stalls, deadlock, or silent data races. Do not mix unless the library is gevent-aware.",
+      "optionC": "grpcio is written in gevent.",
+      "optionD": "monkeypatch rewrites gRPC completion queues.",
+      "correct": "B"
+    },
+    {
+      "section": "Python",
+      "level": "staff",
+      "question": "You enable a free-threaded CPython build. A C extension mutates a C struct from two Python threads without a lock because 'the GIL used to serialize us'. What now?",
+      "optionA": "The GIL still exists in free-threaded builds for all extensions.",
+      "optionB": "That extension is now a data race. Extensions must be explicit about thread safety; many PyPI wheels still assume a GIL.",
+      "optionC": "Free-threaded CPython forbids C extensions.",
+      "optionD": "The CPU memory model makes C structs atomic.",
+      "correct": "B"
+    },
+    {
+      "section": "Python",
+      "level": "staff",
+      "question": "A long-lived Python worker RSS grows after a burst of large objects even though gc.collect() says the heap is small. What are you looking at?",
+      "optionA": "Python always returns all memory to the OS on collect.",
+      "optionB": "Allocators (pymalloc/arenas, glibc) often keep arenas. Recycle the process, be careful with object pools, and do not confuse GC stats with RSS.",
+      "optionC": "RSS cannot exceed the Python heap.",
+      "optionD": "gc.collect always unmaps arenas.",
+      "correct": "B"
+    },
+    {
+      "section": "Python",
+      "level": "staff",
+      "question": "CPU is 100% in a Python process but your spans show 'waiting'. What staff metric is missing?",
+      "optionA": "Network RTT is the only explanation for wait spans.",
+      "optionB": "GIL wait / interpreter stall: threads are runnable but not executing bytecode. Profile with a C-level profiler, not just asyncio traces.",
+      "optionC": "DNS only — Python never burns CPU in the interpreter.",
+      "optionD": "GC is always visible as a span, so this cannot be collection.",
+      "correct": "B"
+    },
+    {
+      "section": "Python",
+      "level": "staff",
+      "question": "You must ship a native wheel to air-gapped machines that run an older glibc than your build image. What fails first?",
+      "optionA": "wheels always contain every manylinux ABI.",
+      "optionB": "The dynamic linker cannot find symbols; you needed a manylinux/musllinux target that matches the fleet, or a frozen runtime. 'pip install from PyPI' at boot is not a packaging strategy.",
+      "optionC": "CPython binaries are identical across distros.",
+      "optionD": "venv is guaranteed present on all OS images.",
+      "correct": "B"
+    },
+    {
+      "section": "Python",
+      "level": "staff",
+      "question": "A data plane stores per-request state in a module-level dict keyed by id, with no bound, in a 24/7 worker. What is the staff failure?",
+      "optionA": "Module-level dicts are process-local and therefore cannot leak.",
+      "optionB": "An unbounded cache is a leak: keys never die, RSS climbs, and a restart is your only GC. Bound it, expire it, or do not cache at module scope.",
+      "optionC": "CPython weakrefs every module dict automatically.",
+      "optionD": "The GIL evicts idle keys when the interpreter is idle.",
+      "correct": "B"
+    },
+    {
+      "section": "C++",
+      "level": "junior",
+      "question": "You define a destructor that frees a raw pointer but leave copy/move defaulted. What happens on copy?",
+      "optionA": "The compiler deletes copies because you wrote a destructor.",
+      "optionB": "Default copy duplicates the pointer; both destructors free it (double-free). If you write one of the five, define or delete the rest — or use unique_ptr and the rule of zero.",
+      "optionC": "Default copy deep-clones malloc memory.",
+      "optionD": "Destructors disable copying at compile time always.",
+      "correct": "B"
+    },
+    {
+      "section": "C++",
+      "level": "junior",
+      "question": "`const std::string& f() { std::string s = \"x\"; return s; }` What is wrong?",
+      "optionA": "NRVO extends s to the caller, so the reference is safe.",
+      "optionB": "You return a reference to a destroyed local; using it is undefined behavior. Return by value.",
+      "optionC": "const references to locals are promoted to static storage.",
+      "optionD": "The compiler is required to reject this program.",
+      "correct": "B"
+    },
+    {
+      "section": "C++",
+      "level": "junior",
+      "question": "`for (unsigned i = n - 1; i >= 0; --i)` with size_t n. Why is this an infinite loop when n is 0 or the last decrement wraps?",
+      "optionA": "unsigned cannot be decremented.",
+      "optionB": "unsigned >= 0 is always true; i wraps to a huge value. Prefer signed indices or a different loop shape.",
+      "optionC": "The compiler inserts a signed cast around the comparison.",
+      "optionD": "size_t is signed on LP64, so this cannot wrap.",
+      "correct": "B"
+    },
+    {
+      "section": "C++",
+      "level": "junior",
+      "question": "Members are listed `A a; B b;` but the initializer list is `b(...), a(b.x)`. What is the bug?",
+      "optionA": "Initializer-list order is the run order, so b is constructed first.",
+      "optionB": "Members construct in declaration order, not list order; a is initialized first, using a not-yet-constructed b. That is undefined behavior.",
+      "optionC": "C++ sorts the initializer list to be safe.",
+      "optionD": "You cannot mention other members in an initializer list at all.",
+      "correct": "B"
+    },
+    {
+      "section": "C++",
+      "level": "junior",
+      "question": "You `push_back` 10 million times on a vector with no reserve, then keep pointers to earlier elements. What are the two problems?",
+      "optionA": "push_back is O(1) worst-case and pointers into a vector never dangle.",
+      "optionB": "Repeated realloc copies the buffer (and can be quadratic if growth is naive), and reallocation invalidates pointers/iterators into the old storage.",
+      "optionC": "vector is a linked structure, so pointers stay valid and growth is free.",
+      "optionD": "The compiler forbids holding pointers while push_back is used.",
+      "correct": "B"
+    },
+    {
+      "section": "C++",
+      "level": "junior",
+      "question": "A function takes `const std::string&` and you store that reference on an object that outlives the call. A caller passed a string literal. What happens?",
+      "optionA": "The literal lives for the program lifetime, so the stored reference is always safe.",
+      "optionB": "The temporary std::string dies at the end of the full expression; the stored reference dangles. Own a std::string, or do not store views/references to arguments.",
+      "optionC": "const references extend any temporary to the lifetime of the storing object.",
+      "optionD": "The compiler is required to reject storing a reference to a parameter.",
+      "correct": "B"
+    },
+    {
+      "section": "C++",
+      "level": "senior",
+      "question": "operator= must be exception-safe. Why copy-and-swap (or equivalent) instead of freeing then copying?",
+      "optionA": "Free-then-copy is strongly exception-safe because the old state is already gone.",
+      "optionB": "If copy throws after you have already released, you lose the old state. Build the new value first, then swap.",
+      "optionC": "swap cannot throw if you write it, so exception safety is automatic.",
+      "optionD": "Exceptions are disabled if you define operator=.",
+      "correct": "B"
+    },
+    {
+      "section": "C++",
+      "level": "senior",
+      "question": "A producer writes payload then `flag.store(true, memory_order_relaxed)`. The consumer sees flag and reads payload. Why can payload be stale?",
+      "optionA": "relaxed is a full barrier on every architecture.",
+      "optionB": "relaxed does not establish happens-before with the payload writes. You need release on the store and acquire on the load (or a mutex).",
+      "optionC": "x86 makes this bug impossible even at -O3 on ARM.",
+      "optionD": "bool stores are sequentially consistent always.",
+      "correct": "B"
+    },
+    {
+      "section": "C++",
+      "level": "senior",
+      "question": "You take a pointer into a `std::string` then the string grows. Why can SSO make this even more surprising?",
+      "optionA": "SSO stores characters on the heap always, so growth never moves them.",
+      "optionB": "Small strings live in the object; any growth (or move) can invalidate pointers into that inline buffer the same way a heap reallocation would.",
+      "optionC": "string pointers never dangle because the type owns the buffer.",
+      "optionD": "SSO is illegal in the standard, so this cannot happen.",
+      "correct": "B"
+    },
+    {
+      "section": "C++",
+      "level": "senior",
+      "question": "A function returns `std::span<int>` over a local `std::vector<int>`. What happens?",
+      "optionA": "span extends the vector's lifetime until the last span dies.",
+      "optionB": "span is a view; the vector dies and the span is dangling. Own the data or return the vector.",
+      "optionC": "span copies the elements, so the local vector can die.",
+      "optionD": "vector cannot back a span.",
+      "correct": "B"
+    },
+    {
+      "section": "C++",
+      "level": "senior",
+      "question": "You need a Pimpl so a library header stays stable. What did you actually buy, and what did you pay?",
+      "optionA": "Pimpl is only a style choice; it does not affect ABI or compile times.",
+      "optionB": "An opaque unique_ptr to an incomplete Impl hides layout, so clients do not recompile when Impl changes — at the cost of an allocation and a pointer chase per object.",
+      "optionC": "Pimpl lets you put std::string in the public .so ABI safely.",
+      "optionD": "Pimpl forbids virtual functions.",
+      "correct": "B"
+    },
+    {
+      "section": "C++",
+      "level": "senior",
+      "question": "`std::async(std::launch::async, f)` in a tight loop of 10k tasks. What operational failure are you building?",
+      "optionA": "async always runs on a bounded, well-sized pool.",
+      "optionB": "Implementations may spawn a thread per task (or an unbounded pool); you can exhaust threads/memory. Use an explicit bounded pool.",
+      "optionC": "async is illegal in a loop and will not compile.",
+      "optionD": "launch::async is the same as deferred and never starts threads.",
+      "correct": "B"
+    },
+    {
+      "section": "C++",
+      "level": "staff",
+      "question": "Two threads increment adjacent `std::atomic<uint64_t>` counters in an array and scale poorly. What is it, and the fix?",
+      "optionA": "atomics always share a global lock, so adjacent or not does not matter.",
+      "optionB": "They bounce one cache line between cores (false sharing). Pad/align to cache-line size or use a striped counter.",
+      "optionC": "uint64 atomics cannot be incremented without a mutex.",
+      "optionD": "This only happens without -O3.",
+      "correct": "B"
+    },
+    {
+      "section": "C++",
+      "level": "staff",
+      "question": "A coroutine captures a reference parameter and then the caller's stack frame is gone. What is the bug?",
+      "optionA": "Coroutines extend all reference arguments to the coroutine's lifetime.",
+      "optionB": "Reference parameters dangle after the caller returns; copy values the coroutine needs or take ownership. This is a use-after-free.",
+      "optionC": "co_await copies every reference.",
+      "optionD": "The compiler forbids capturing references in coroutines.",
+      "correct": "B"
+    },
+    {
+      "section": "C++",
+      "level": "staff",
+      "question": "A staff binary is LTO-built. Two TUs define different inline functions with the same signature. What risk did you accept?",
+      "optionA": "LTO always errors on this at link time.",
+      "optionB": "ODR violation: LTO may pick one body and silently change behavior. One definition, or distinct names.",
+      "optionC": "inline means both survive and the call site picks at runtime.",
+      "optionD": "LTO disables inlining, so both copies remain.",
+      "correct": "B"
+    },
+    {
+      "section": "C++",
+      "level": "staff",
+      "question": "You compile one TU with -fno-exceptions and another with exceptions, then a header-only template throws across that boundary. What happens?",
+      "optionA": "The exception is automatically translated into an error code.",
+      "optionB": "You mixed exception ABIs: the result is undefined (often std::terminate). One exception policy per binary, enforced in the build.",
+      "optionC": "The linker rejects mixed exception flags, so this cannot ship.",
+      "optionD": "-fno-exceptions only affects main(); templates still throw safely.",
+      "correct": "B"
+    },
+    {
+      "section": "C++",
+      "level": "staff",
+      "question": "Every public API in a large C++ codebase takes and returns std::shared_ptr 'so lifetime is easy'. What did you actually pay?",
+      "optionA": "Nothing: shared_ptr is free on modern CPUs and makes ownership obvious.",
+      "optionB": "Atomic refcounts on every copy, control-block allocations, and unclear who is supposed to uniquely own the object. Default to unique_ptr or values; shared_ptr is for genuine shared lifetime.",
+      "optionC": "shared_ptr is required for any object that has a destructor.",
+      "optionD": "The compiler converts shared_ptr to unique_ptr in LTO, so the type is documentation only.",
+      "correct": "B"
+    }
+  ],
+  "flashcards": [
+    {
+      "section": "Java",
+      "level": "junior",
+      "question": "Why does unboxing a missing HashMap Integer crash?",
+      "answer": "Map.get returns null for a missing key. Assigning that Integer to int unboxes null and throws NPE. Check containsKey, use getOrDefault, or keep the value boxed until you know it is present."
+    },
+    {
+      "section": "Java",
+      "level": "junior",
+      "question": "Why is LinkedList usually the wrong list default?",
+      "answer": "get(i) and even 'insert in the middle' walk nodes. You pay pointer-chasing and allocator noise. ArrayList (with reserve) wins on real hardware unless you truly have a deque of splice-only work."
+    },
+    {
+      "section": "Java",
+      "level": "junior",
+      "question": "What does ConcurrentModificationException actually guarantee?",
+      "answer": "Fail-fast iterators make a best-effort check of a modCount. It is a debugging signal, not a memory barrier and not a proof that concurrent mutation is impossible. If two threads share an ArrayList, you still need a lock or a concurrent collection."
+    },
+    {
+      "section": "Java",
+      "level": "junior",
+      "question": "Why try-with-resources instead of a close() on the happy path?",
+      "answer": "Every exit — return, throw, continue — must release sockets, files, and JDBC. try-with-resources (AutoCloseable) ties close to scope, including suppressed exceptions. A close() only on the success line leaks under errors."
+    },
+    {
+      "section": "Java",
+      "level": "junior",
+      "question": "Why must you remove() a ThreadLocal on a pooled thread?",
+      "answer": "The thread outlives the request. The next request reuses the same ThreadLocal map: user/tenant leaks, and the values are pinned until the thread dies. Use try/finally remove, or a framework that already scopes request context."
+    },
+    {
+      "section": "Java",
+      "level": "junior",
+      "question": "Why is volatile ++ not a counter?",
+      "answer": "volatile is visibility of a single read or write. n++ is get, add, put. Two threads can both read 4 and both write 5. AtomicInteger/LongAdder or a lock provides the missing atomic update."
+    },
+    {
+      "section": "Java",
+      "level": "staff",
+      "question": "Why are ThreadLocals the wrong cache on virtual threads?",
+      "answer": "Platform thread pools made ThreadLocal look like a cheap per-worker slot. Virtual threads can be numerous; a ThreadLocal JDBC connection or buffer becomes a leak and can pin carriers. Use scoped values, explicit parameters, or a real bounded pool."
+    },
+    {
+      "section": "Java",
+      "level": "staff",
+      "question": "What does losing compressed oops cost you?",
+      "answer": "Around a ~32 GB heap, HotSpot often switches from 32-bit to 64-bit object pointers. Each reference grows, objects inflate, GC moves more bytes, and RSS jumps more than the extra heap you asked for. Stay under the limit or shard the live set."
+    },
+    {
+      "section": "Java",
+      "level": "staff",
+      "question": "What is a classloader leak in a container redeploy?",
+      "answer": "Something still reachable from a static, JMX bean, shutdown hook, or Thread holds the old ClassLoader. All of that webapp's classes stay in metaspace. The fix is process restart, not another hot reload."
+    },
+    {
+      "section": "Java",
+      "level": "staff",
+      "question": "When does a concurrent queue make field volatiles unnecessary?",
+      "answer": "If you finish writing an object's fields, then publish the reference via a concurrent put/take (or a lock, or a volatile store of that reference), happens-before covers the earlier writes. Volatile on every field is not required after a proper publication edge."
+    },
+    {
+      "section": "Java",
+      "level": "staff",
+      "question": "Why isn't Cleaner a close() strategy?",
+      "answer": "Cleaning runs later, if at all, and not when the process is killed. Native memory and file descriptors need AutoCloseable and a bounded lifetime. Cleaner is a last-ditch safety net, not the design."
+    },
+    {
+      "section": "Java",
+      "level": "staff",
+      "question": "What is time-to-safepoint telling you?",
+      "answer": "GC, deopt, and some JFR operations need every thread at a poll point. A tight loop, counted loop without polls, or JNI that does not check in can stall the whole JVM. The symptom is random multi-millisecond pauses that are not 'the GC is slow'."
+    },
+    {
+      "section": "Spring Boot",
+      "level": "junior",
+      "question": "Why constructor injection over field @Autowired?",
+      "answer": "Required deps become constructor args you can make final. Tests can `new` the class with fakes. Missing beans fail at context start, not on the first NPE in production. Field injection hides the graph and fights tests."
+    },
+    {
+      "section": "Spring Boot",
+      "level": "junior",
+      "question": "When is application-prod.yml actually loaded?",
+      "answer": "Only if `prod` is an active profile (spring.profiles.active, env, or similar). A file sitting on the classpath is not enough. Default `application.yml` plus env/system properties is what a profile-less process uses."
+    },
+    {
+      "section": "Spring Boot",
+      "level": "junior",
+      "question": "Why can @Transactional on a private method do nothing?",
+      "answer": "Spring AOP uses a proxy. Private methods are not intercepted, and `this.foo()` would not go through the proxy even if the method were public. Put transactional entry points on another bean, public, and call them from the outside."
+    },
+    {
+      "section": "Spring Boot",
+      "level": "junior",
+      "question": "Why isn't @NotNull enough on a @RequestBody?",
+      "answer": "Constraint annotations are inert until Bean Validation runs. You need the validator on the classpath and @Valid/@Validated on the controller parameter (plus an exception handler). Otherwise nulls land in the service."
+    },
+    {
+      "section": "Spring Boot",
+      "level": "junior",
+      "question": "Why did moving a @Service to a sibling package make it vanish?",
+      "answer": "@SpringBootApplication scans its own package and subpackages. `com.acme.app` does not include `com.acme.billing`. Either move the application class up, or add an explicit @ComponentScan."
+    },
+    {
+      "section": "Spring Boot",
+      "level": "junior",
+      "question": "What should public /actuator/health return?",
+      "answer": "UP or DOWN for probes. Hostnames, disk paths, and downstream versions belong on a management port with auth. show-details=always on the public path is reconnaissance."
+    },
+    {
+      "section": "Spring Boot",
+      "level": "staff",
+      "question": "What does enabling virtual threads not replace?",
+      "answer": "It does not make a 200-connection JDBC pool into 10,000 concurrent queries, and it does not make a global lock scale. Bound the scarce resources (pools, timeouts, bulkheads). Virtual threads replace oversized platform thread pools on blocking I/O, not capacity planning."
+    },
+    {
+      "section": "Spring Boot",
+      "level": "staff",
+      "question": "Why is userId a forbidden Micrometer tag?",
+      "answer": "Each distinct tag set is a time series. Unbounded IDs turn Prometheus/Mimir into a memory bomb and make dashboards useless. Tags are a small enum: route, status, instance — not primary keys."
+    },
+    {
+      "section": "Spring Boot",
+      "level": "staff",
+      "question": "Expand/contract a column during a rolling Boot deploy — why?",
+      "answer": "Old and new binaries run together. A blocking rewrite or a NOT NULL the old code does not populate locks writes or breaks mixed traffic. Add nullable, backfill, ship readers/writers, then constrain. Schema and fleet versions are one rollout."
+    },
+    {
+      "section": "Spring Boot",
+      "level": "staff",
+      "question": "What did WebClient.block() on a servlet thread not buy you?",
+      "answer": "You still occupy a Tomcat/Jetty thread for the whole downstream wait. Reactive helps when the pipeline is non-blocking end to end. Otherwise a pooled RestClient is simpler and the occupancy math is honest."
+    },
+    {
+      "section": "Spring Boot",
+      "level": "staff",
+      "question": "Kafka auto-commit plus a separate DB commit — what is the class of bug?",
+      "answer": "At-least-once: offset can commit before the DB, or the DB can commit before the offset. You get lost updates or duplicates. Idempotent writes and commit the offset after the DB (or a transaction manager that covers both)."
+    },
+    {
+      "section": "Spring Boot",
+      "level": "staff",
+      "question": "Why prefer a new process over /actuator/refresh for secrets?",
+      "answer": "Refresh can leave half-applied @Value, stale singletons, and the old secret in memory/thread locals. A new artifact and a new JVM is a known state. Mutable config in a long-lived process is an incident class."
+    },
+    {
+      "section": "Python",
+      "level": "junior",
+      "question": "Why do class-level mutable lists get shared across instances?",
+      "answer": "`items = []` on the class is one list object. `self.items.append` mutates that object. Allocate `self.items = []` in `__init__` (the same rule as mutable default arguments)."
+    },
+    {
+      "section": "Python",
+      "level": "junior",
+      "question": "Why pass encoding= to open()?",
+      "answer": "Text mode decodes with a default that depends on the locale (often UTF-8). A Latin-1 or Windows file then raises UnicodeDecodeError in production. Bytes in, encoding explicit, errors policy explicit."
+    },
+    {
+      "section": "Python",
+      "level": "junior",
+      "question": "Why is `if user_id:` wrong for optional ids?",
+      "answer": "0, '', and [] are falsy. A real id of 0 looks missing. Distinguish None from a present empty/zero value with `is None` or an explicit type check."
+    },
+    {
+      "section": "Python",
+      "level": "junior",
+      "question": "Why is shell=True a security bug?",
+      "answer": "The shell parses metacharacters. A filename of `x; rm -rf /` is not a filename. Pass a list of arguments and keep shell=False unless you fully control the string."
+    },
+    {
+      "section": "Python",
+      "level": "senior",
+      "question": "Why multiply the DB pool by gunicorn workers?",
+      "answer": "Each worker is a process with its own memory. A pool of 50 is 50 connections per process. 8 workers → ~400. Forked children must not share a live socket from the parent. Size against max_connections."
+    },
+    {
+      "section": "Python",
+      "level": "senior",
+      "question": "What does asyncio cancellation actually cancel?",
+      "answer": "The next await point. finally still runs. New awaits in cleanup can themselves be cancelled. Keep cleanup bounded and idempotent; do not start a 30s DB write in finally after a timeout."
+    },
+    {
+      "section": "Python",
+      "level": "senior",
+      "question": "Why contextvars instead of a global request_id?",
+      "answer": "asyncio interleaves tasks on one thread. A global is one slot for every request. contextvars (or passing the id) give each task its own copy. ThreadLocals fail the same way if you mix threads and tasks."
+    },
+    {
+      "section": "Python",
+      "level": "senior",
+      "question": "Can you pass a FastAPI-yielded SQLAlchemy session into BackgroundTasks?",
+      "answer": "No. The request teardown closes the session when the response finishes. The background job then uses a closed session. Give background work its own session (and its own error handling)."
+    },
+    {
+      "section": "Python",
+      "level": "staff",
+      "question": "Why is gevent + gRPC a staff-level 'do not mix'?",
+      "answer": "gevent rewrites blocking IO into greenlets. gRPC and many C extensions use real threads and their own pollers. The two schedulers do not know about each other: stalls, deadlock, missed wakeups. One concurrency model per process."
+    },
+    {
+      "section": "Python",
+      "level": "staff",
+      "question": "What does free-threaded CPython change for C extensions?",
+      "answer": "Code that was accidentally safe because the GIL serialized two Python threads is now a data race on C structs. Extensions must document and implement thread safety. Many wheels still assume a GIL."
+    },
+    {
+      "section": "Python",
+      "level": "staff",
+      "question": "Why can RSS grow when gc.collect() looks fine?",
+      "answer": "pymalloc and glibc keep arenas. GC stats are Python objects, not RSS. Long-lived workers after a memory burst often need process recycle, not another collect()."
+    },
+    {
+      "section": "Python",
+      "level": "staff",
+      "question": "What is GIL wait as an observability gap?",
+      "answer": "Threads are runnable and CPU is busy, but your spans say wait because they only see awaits and syscalls. A C-level profiler (py-spy, perf) shows bytecode/GIL stall. That is the staff metric for 'Python is slow'."
+    },
+    {
+      "section": "C++",
+      "level": "junior",
+      "question": "What does the rule of five actually prevent?",
+      "answer": "If you write a destructor that frees a pointer and leave copy defaulted, both copies free the same address (double-free). Define or delete copy/move too — or hold unique_ptr and write none of them (rule of zero)."
+    },
+    {
+      "section": "C++",
+      "level": "junior",
+      "question": "Why is returning a reference to a local undefined behavior?",
+      "answer": "The local's lifetime ends at the closing brace. The reference is a pointer to dead stack. NRVO does not save a reference return. Return by value (or own the object on the heap with a smart pointer)."
+    },
+    {
+      "section": "C++",
+      "level": "junior",
+      "question": "Why does `for (unsigned i = n-1; i >= 0; --i)` not terminate?",
+      "answer": "Unsigned comparison `i >= 0` is always true. Decrement wraps from 0 to UINT_MAX. Use a signed index, a reverse iterator, or a loop that does not test unsigned against zero."
+    },
+    {
+      "section": "C++",
+      "level": "junior",
+      "question": "In which order are C++ members constructed?",
+      "answer": "Declaration order in the class body, not the order of the initializer list. Using a later member to initialize an earlier one reads an unconstructed object. List members in declaration order and initialize in that order."
+    },
+    {
+      "section": "C++",
+      "level": "senior",
+      "question": "Why copy-and-swap for exception-safe operator=?",
+      "answer": "Build the new value first (copy/move into a temporary). If that throws, *this is unchanged. Then swap. Free-then-copy leaves a hollow object if the copy throws — the basic guarantee, not the strong one."
+    },
+    {
+      "section": "C++",
+      "level": "senior",
+      "question": "Why isn't memory_order_relaxed a publish flag?",
+      "answer": "Relaxed atomics do not create happens-before with surrounding ordinary writes. A consumer can see the flag and still see a stale payload. Release the store, acquire the load — or use a mutex."
+    },
+    {
+      "section": "C++",
+      "level": "senior",
+      "question": "Why can a pointer into std::string dangle even for a small string?",
+      "answer": "SSO stores small character data inside the string object. Growth, move, or SSO-to-heap transition relocates those bytes. A pointer/string_view into a string you do not own is a lifetime bug."
+    },
+    {
+      "section": "C++",
+      "level": "senior",
+      "question": "What does Pimpl buy a library?",
+      "answer": "The public header holds an opaque unique_ptr<Impl>. Clients do not recompile when Impl's layout changes, and you keep STL types out of the .so ABI. You pay an allocation and a pointer chase per object."
+    },
+    {
+      "section": "C++",
+      "level": "staff",
+      "question": "What is false sharing of atomics?",
+      "answer": "Two atomics on the same cache line ping-pong between cores even if they are logically independent. Align/pad to the cache line or stripe counters per core. The profile looks like atomic overhead; the hardware is coherence traffic."
+    },
+    {
+      "section": "C++",
+      "level": "staff",
+      "question": "Why do coroutine reference parameters dangle?",
+      "answer": "The coroutine may suspend and resume after the caller has returned. A reference parameter is a pointer into that dead frame. Copy the values you need, or take ownership with a value/smart pointer, before the first suspend."
+    },
+    {
+      "section": "C++",
+      "level": "staff",
+      "question": "What does LTO do to an ODR violation?",
+      "answer": "Two TUs defined different inline functions with the same signature. Without LTO you might 'get lucky' per TU. LTO can pick one body for the whole binary and silently change behavior. One definition."
+    },
+    {
+      "section": "C++",
+      "level": "staff",
+      "question": "Why is mixed -fno-exceptions a binary-wide decision?",
+      "answer": "Exception tables, unwind, and 'throw' vs 'error code' are ABI. Mixing TUs (or a header-only throw into a no-exceptions TU) is undefined — often terminate. Pick one policy and enforce it in the compiler flags, not in code comments."
+    }
+  ]
+}

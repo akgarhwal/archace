@@ -3,8 +3,18 @@
     {
       "section": "PostgreSQL",
       "level": "junior",
+      "question": "A buggy ORM issues a join that never finishes. You want the database to kill it before it holds locks and fills work_mem. Which timeout is the right first lever, and what does it not cover?",
+      "optionA": "statement_timeout aborts that SQL; it does not cancel a session that is idle-in-transaction after the statement ended — that needs idle_in_transaction_session_timeout (and lock_timeout for waiters)",
+      "optionB": "lock_timeout kills running queries even if they hold no locks",
+      "optionC": "statement_timeout also rolls back idle-in-transaction sessions automatically",
+      "optionD": "PostgreSQL has no query timeout; you must kill backends from the OS",
+      "correct": "A"
+    },
+    {
+      "section": "PostgreSQL",
+      "level": "junior",
       "question": "A long-running report transaction sits idle in the same database as a busy OLTP table. Why can autovacuum fail to reclaim dead tuples on that table even after many updates?",
-      "optionA": "VACUUM cannot run while any other session holds a snapshot older than the dead tuples",
+      "optionA": "VACUUM still runs, but it cannot remove tuples still visible to that session's snapshot, so dead rows accumulate until the snapshot ends",
       "optionB": "PostgreSQL never vacuums a table that still has indexes",
       "optionC": "Dead tuples are only stored in WAL and never in heap pages",
       "optionD": "Idle transactions automatically freeze all XIDs so vacuum has nothing to do",
@@ -284,7 +294,7 @@
       "section": "PostgreSQL",
       "level": "staff",
       "question": "A multi-master-like design uses logical replication with conflict avoidance by partitioning key ranges per node. An UPDATE moves a row across ranges. What breaks?",
-      "optionA": "The UPDATE is not a DELETE+INSERT across publications, so the row can vanish or duplicate depending on replica identity and filters",
+      "optionA": "Each publication only emits DELETE or INSERT for its own row filter. A key-range move on one node can delete the row from the old range and never insert it on the node that owns the new range",
       "optionB": "PostgreSQL converts the UPDATE into a HOT update on the subscriber automatically",
       "optionC": "WAL is not generated for cross-range updates",
       "optionD": "synchronous_commit ignores logical slots for such rows",
@@ -384,7 +394,7 @@
       "section": "PostgreSQL",
       "level": "staff",
       "question": "A connection pooler in session mode plus thousands of idle-in-transaction sessions. Memory on the database host climbs. Why is this worse than idle (not in transaction)?",
-      "optionA": "Each idle-in-transaction backend holds a snapshot, preventing xmin advancement, vacuum, and releasing of catalog caches tied to that snapshot",
+      "optionA": "Those backends still occupy a process, and if they hold a snapshot (RR/SSI, open cursor) or an assigned xid they pin xmin; READ COMMITTED idle after a SELECT often does not. Either way you leak backends",
       "optionB": "Idle-in-transaction sessions do not use a backend process",
       "optionC": "PostgreSQL automatically sets synchronous_commit = off for idle transactions",
       "optionD": "WAL is fsynced continuously for idle snapshots",
@@ -558,6 +568,16 @@
       "optionB": "InnoDB allows only one secondary index per table at runtime",
       "optionC": "Covering indexes disable the buffer pool",
       "optionD": "Online DDL remains running in the background forever",
+      "correct": "A"
+    },
+    {
+      "section": "MySQL",
+      "level": "senior",
+      "question": "You enable semi-sync so a failover replica must ACK before the client is told COMMIT. After a primary crash, the promoted replica can still miss a transaction the client saw as committed. Why?",
+      "optionA": "Semi-sync is not 'the replica you promote flushed the ACK': AFTER_COMMIT can return before the replica durable-fsyncs, and you might promote a different replica than the one that ACK'd",
+      "optionB": "Semi-sync writes the binlog only on the replica, so the primary never had the transaction",
+      "optionC": "InnoDB disables redo on the primary when semi-sync is on, so crash recovery is empty",
+      "optionD": "GTID makes every ACK'd transaction present on every replica before COMMIT returns",
       "correct": "A"
     },
     {
@@ -864,7 +884,7 @@
       "section": "PostgreSQL",
       "level": "junior",
       "question": "Why can a single idle-in-transaction session block autovacuum cleanup?",
-      "answer": "VACUUM cannot remove tuple versions still visible to any running snapshot. An old idle transaction holds back xmin, so dead rows pile up, tables bloat, and query plans degrade until that session ends."
+      "answer": "VACUUM still runs, but it cannot remove tuple versions still visible to a held snapshot. An old RR/SSI transaction or open cursor pins xmin; READ COMMITTED idle after a statement often does not. A pinned xmin means dead rows pile up until that snapshot ends."
     },
     {
       "section": "PostgreSQL",
@@ -966,7 +986,7 @@
       "section": "PostgreSQL",
       "level": "staff",
       "question": "Why is a logical UPDATE that changes a replicated identity or row-filter key so dangerous?",
-      "answer": "Logical decoding emits an UPDATE, not a coordinated DELETE+INSERT across publications. Filters, partitions, and replica identity can drop the old key and never insert the new one, causing silent drift between nodes."
+      "answer": "A publication row filter can turn the UPDATE into DELETE or INSERT for that publication only. The old range's publisher may emit a DELETE while nobody INSERTs on the node that owns the new range, so the row vanishes. There is no coordinated cross-publication move."
     },
     {
       "section": "PostgreSQL",
@@ -1129,6 +1149,18 @@
       "level": "staff",
       "question": "How do join-based multi-table updates acquire surprisingly wide next-key locks?",
       "answer": "Locks follow the actual access method: whichever index and range the optimizer scans, including extra gaps if it is not a unique PK point lookup. Rewriting to precise PK updates shrinks lock ranges and deadlock surface."
+    },
+    {
+      "section": "PostgreSQL",
+      "level": "junior",
+      "question": "statement_timeout vs idle_in_transaction_session_timeout vs lock_timeout?",
+      "answer": "statement_timeout kills a running SQL. It does not abort a session that already finished a statement and is sitting idle-in-transaction — that needs idle_in_transaction_session_timeout. lock_timeout aborts waiters that cannot acquire a lock, not the lock holder."
+    },
+    {
+      "section": "MySQL",
+      "level": "senior",
+      "question": "What does semi-sync not guarantee on failover?",
+      "answer": "The client ACK is not 'this transaction is on the replica you will promote.' AFTER_COMMIT can return before the replica durable-fsyncs, and you might promote a different replica than the one that ACK'd. Design failover around the actual ACK source, or accept a possible last-transaction loss."
     }
   ]
 }
